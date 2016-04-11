@@ -167,13 +167,13 @@ Fullik.Chain.prototype = {
 
     },
 
-    addConsecutiveRotorConstrainedBone:function( boneDirectionUV, lng, constraintAngleDegs ){
+    addConsecutiveRotorConstrainedBone:function( boneDirectionUV, boneLength, constraintAngleDegs ){
 
         if (this.mNumBones === 0) return;
 
         // Create the bone starting at the end of the previous bone, set its direction, constraint angle and colour
         // then add it to the chain. Note: The default joint type of a new FullikBone3D is Fullik.J_BALL.
-        var bone = new Fullik.Bone( this.mChain[ this.mNumBones-1 ].getEndLocation(), undefined , boneDirectionUV.normalize(), lng );
+        var bone = new Fullik.Bone( this.mChain[ this.mNumBones-1 ].getEndLocation(), undefined , boneDirectionUV.normalize(), boneLength );
         bone.setBallJointConstraintDegs( constraintAngleDegs );
         this.addBone( bone );
 
@@ -410,8 +410,6 @@ Fullik.Chain.prototype = {
         
         // Allow up to our iteration limit attempts at solving the chain
         var solveDistance;
-        //var i = this.mMaxIterationAttempts;
-        //while( i-- ){
         for ( var i = 0; i < this.mMaxIterationAttempts; i++ ){   
 
             // Solve the chain for this target
@@ -465,20 +463,22 @@ Fullik.Chain.prototype = {
 
     solveIK : function( target ){
 
-        if ( this.mNumBones === 0 ) return;
+        //var i;
 
-        var bone, lng, joint, jointType;
+        // Sanity check that there are bones in the chain
+        if ( this.mNumBones === 0 ) return;
         
         // ---------- Forward pass from end effector to base -----------
 
         // Loop over all bones in the chain, from the end effector (numBones-1) back to the basebone (0) 
         var i = this.mNumBones;
-        while( i-- ){
+        while( i-- ){      
+        //for ( i = this.mNumBones-1; i >= 0; i-- ){
             // Get the length of the bone we're working on
-            bone = this.mChain[i];
-            lng  = bone.getLength();
-            joint = bone.getJoint();
-            jointType = bone.getJointType();
+            var thisBone = this.mChain[i];
+            var thisBoneLength  = thisBone.getLength();
+            var thisBoneJoint = thisBone.getJoint();
+            var thisBoneJointType = thisBone.getJointType();
 
             // If we are NOT working on the end effector bone
             if ( i != this.mNumBones - 1 ) {
@@ -486,34 +486,34 @@ Fullik.Chain.prototype = {
                 var outerBoneOuterToInnerUV = this.mChain[ i+1 ].getDirectionUV().negated();
 
                 // Get the outer-to-inner unit vector of this bone
-                var boneOuterToInnerUV = bone.getDirectionUV().negated();
+                var thisBoneOuterToInnerUV = thisBone.getDirectionUV().negated();
                 
-                // Get the joint type for this bone and handle constraints on boneInnerToOuterUV
+                // Get the joint type for this bone and handle constraints on thisBoneInnerToOuterUV
                 
-                if ( jointType === Fullik.J_BALL ) { 
+                if ( thisBoneJointType === Fullik.J_BALL ) { 
 
                     // Constrain to relative angle between this bone and the outer bone if required
-                    var angleBetweenDegs    = Fullik.getAngleBetweenDegs( outerBoneOuterToInnerUV, boneOuterToInnerUV );
-                    var constraintAngleDegs = joint.getBallJointConstraintDegs();
+                    var angleBetweenDegs    = Fullik.getAngleBetweenDegs( outerBoneOuterToInnerUV, thisBoneOuterToInnerUV );
+                    var constraintAngleDegs = thisBoneJoint.getBallJointConstraintDegs();
                     if ( angleBetweenDegs > constraintAngleDegs ){   
-                        boneOuterToInnerUV = Fullik.getAngleLimitedUnitVectorDegs( boneOuterToInnerUV, outerBoneOuterToInnerUV, constraintAngleDegs );
+                        thisBoneOuterToInnerUV = Fullik.getAngleLimitedUnitVectorDegs( thisBoneOuterToInnerUV, outerBoneOuterToInnerUV, constraintAngleDegs );
                     }
                 }
-                else if ( jointType === Fullik.J_GLOBAL_HINGE ) {  
+                else if ( thisBoneJointType === Fullik.J_GLOBAL_HINGE ) {  
 
                     // Project this bone outer-to-inner direction onto the hinge rotation axis
                     // Note: The returned vector is normalised.
-                    boneOuterToInnerUV = boneOuterToInnerUV.projectOnPlane( joint.getHingeRotationAxis() ); 
+                    thisBoneOuterToInnerUV = thisBoneOuterToInnerUV.projectOnPlane( thisBoneJoint.getHingeRotationAxis() ); 
                     
                     // NOTE: Constraining about the hinge reference axis on this forward pass leads to poor solutions... so we won't.
                 }
-                else if ( jointType === Fullik.J_LOCAL_HINGE ) {   
+                else if ( thisBoneJointType === Fullik.J_LOCAL_HINGE ) {   
                     // Not a basebone? Then construct a rotation matrix based on the previous bones inner-to-to-inner direction...
                     var m; // M3
                     var relativeHingeRotationAxis; // V3
                     if ( i > 0 ) {
                         m = Fullik.createRotationMatrix( this.mChain[i-1].getDirectionUV() );
-                        relativeHingeRotationAxis = m.timesV3( joint.getHingeRotationAxis() ).normalize();
+                        relativeHingeRotationAxis = m.timesV3( thisBoneJoint.getHingeRotationAxis() ).normalize();
                     } else {// ...basebone? Need to construct matrix from the relative constraint UV.
                         relativeHingeRotationAxis = this.mBaseboneRelativeConstraintUV;
                     }
@@ -523,7 +523,7 @@ Fullik.Chain.prototype = {
                                         
                     // Project this bone's outer-to-inner direction onto the plane described by the relative hinge rotation axis
                     // Note: The returned vector is normalised.                 
-                    boneOuterToInnerUV = boneOuterToInnerUV.projectOnPlane( relativeHingeRotationAxis );
+                    thisBoneOuterToInnerUV = thisBoneOuterToInnerUV.projectOnPlane( relativeHingeRotationAxis );
                                         
                     // NOTE: Constraining about the hinge reference axis on this forward pass leads to poor solutions... so we won't.                                       
                 }
@@ -531,10 +531,10 @@ Fullik.Chain.prototype = {
                 // At this stage we have a outer-to-inner unit vector for this bone which is within our constraints,
                 // so we can set the new inner joint location to be the end joint location of this bone plus the
                 // outer-to-inner direction unit vector multiplied by the length of the bone.
-                var newStartLocation = bone.getEndLocation().plus( boneOuterToInnerUV.times( lng ) );
+                var newStartLocation = thisBone.getEndLocation().plus( thisBoneOuterToInnerUV.times( thisBoneLength ) );
 
                 // Set the new start joint location for this bone
-                bone.setStartLocation( newStartLocation );
+                thisBone.setStartLocation( newStartLocation );
 
                 // If we are not working on the basebone, then we also set the end joint location of
                 // the previous bone in the chain (i.e. the bone closer to the base) to be the new
@@ -544,20 +544,20 @@ Fullik.Chain.prototype = {
             } else { // If we ARE working on the end effector bone...
             
                 // Snap the end effector's end location to the target
-                bone.setEndLocation( target );
+                thisBone.setEndLocation( target );
                 
                 // Get the UV between the target / end-location (which are now the same) and the start location of this bone
-                var boneOuterToInnerUV = bone.getDirectionUV().negated();
+                var thisBoneOuterToInnerUV = thisBone.getDirectionUV().negated();
                 
                 // If the end effector is global hinged then we have to snap to it, then keep that
                 // resulting outer-to-inner UV in the plane of the hinge rotation axis
-                switch ( jointType ) {
+                switch ( thisBoneJointType ) {
                     case Fullik.J_BALL:
                         // Ball joints do not get constrained on this forward pass
                         break;                      
                     case Fullik.J_GLOBAL_HINGE:
                         // Global hinges get constrained to the hinge rotation axis, but not the reference axis within the hinge plane
-                        boneOuterToInnerUV = boneOuterToInnerUV.projectOnPlane( joint.getHingeRotationAxis() );
+                        thisBoneOuterToInnerUV = thisBoneOuterToInnerUV.projectOnPlane( thisBoneJoint.getHingeRotationAxis() );
                         break;
                     case Fullik.J_LOCAL_HINGE:
                         // Local hinges get constrained to the hinge rotation axis, but not the reference axis within the hinge plane
@@ -566,20 +566,20 @@ Fullik.Chain.prototype = {
                         var m = Fullik.createRotationMatrix( this.mChain[i-1].getDirectionUV() );
                         
                         // ...and transform the hinge rotation axis into the previous bones frame of reference.
-                        var relativeHingeRotationAxis = m.timesV3( joint.getHingeRotationAxis() ).normalize();
+                        var relativeHingeRotationAxis = m.timesV3( thisBoneJoint.getHingeRotationAxis() ).normalize();
                                             
                         // Project this bone's outer-to-inner direction onto the plane described by the relative hinge rotation axis
                         // Note: The returned vector is normalised.                 
-                        boneOuterToInnerUV = boneOuterToInnerUV.projectOnPlane( relativeHingeRotationAxis );
+                        thisBoneOuterToInnerUV = thisBoneOuterToInnerUV.projectOnPlane( relativeHingeRotationAxis );
                         break;
                 }
                                                 
                 // Calculate the new start joint location as the end joint location plus the outer-to-inner direction UV
                 // multiplied by the length of the bone.
-                var newStartLocation = target.plus( boneOuterToInnerUV.times( lng ) );
+                var newStartLocation = target.plus( thisBoneOuterToInnerUV.times( thisBoneLength ) );
                 
                 // Set the new start joint location for this bone to be new start location...
-                bone.setStartLocation( newStartLocation );
+                thisBone.setStartLocation( newStartLocation );
 
                 // ...and set the end joint location of the bone further in to also be at the new start location (if there IS a bone
                 // further in - this may be a single bone chain)
@@ -591,56 +591,56 @@ Fullik.Chain.prototype = {
 
         // ---------- Backward pass from base to end effector -----------
  
-        for ( i = 0; i < this.mNumBones; i++ ){
+        for ( i = 0; i < this.mNumBones; i++){
 
-            bone = this.mChain[i];
-            lng  = bone.getLength();
+            var thisBone = this.mChain[i];
+            var thisBoneLength  = thisBone.getLength();
 
             // If we are not working on the basebone
-            if ( i !== 0 ){
+            if (i != 0){
                 // Get the inner-to-outer direction of this bone as well as the previous bone to use as a baseline
-                var boneInnerToOuterUV = bone.getDirectionUV();
+                var thisBoneInnerToOuterUV = thisBone.getDirectionUV();
                 var prevBoneInnerToOuterUV = this.mChain[i-1].getDirectionUV();
                 
                 // Dealing with a ball joint?
-                joint = bone.getJoint();
-                jointType = joint.getJointType();
+                var thisBoneJoint = thisBone.getJoint();
+                var jointType = thisBoneJoint.getJointType();
 
                 if ( jointType === Fullik.J_BALL ){                   
-                    var angleBetweenDegs    = Fullik.getAngleBetweenDegs( prevBoneInnerToOuterUV, boneInnerToOuterUV );
-                    var constraintAngleDegs = joint.getBallJointConstraintDegs(); 
+                    var angleBetweenDegs    = Fullik.getAngleBetweenDegs( prevBoneInnerToOuterUV, thisBoneInnerToOuterUV );
+                    var constraintAngleDegs = thisBoneJoint.getBallJointConstraintDegs(); 
                     
                     // Keep this bone direction constrained within the rotor about the previous bone direction
                     if (angleBetweenDegs > constraintAngleDegs){
-                        boneInnerToOuterUV = Fullik.getAngleLimitedUnitVectorDegs( boneInnerToOuterUV, prevBoneInnerToOuterUV, constraintAngleDegs );
+                        thisBoneInnerToOuterUV = Fullik.getAngleLimitedUnitVectorDegs( thisBoneInnerToOuterUV, prevBoneInnerToOuterUV, constraintAngleDegs );
                     }
                 }
                 else if ( jointType === Fullik.J_GLOBAL_HINGE ) {                   
                     // Get the hinge rotation axis and project our inner-to-outer UV onto it
-                    var hingeRotationAxis  = joint.getHingeRotationAxis();
-                    boneInnerToOuterUV = boneInnerToOuterUV.projectOnPlane(hingeRotationAxis);
+                    var hingeRotationAxis  = thisBoneJoint.getHingeRotationAxis();
+                    thisBoneInnerToOuterUV = thisBoneInnerToOuterUV.projectOnPlane(hingeRotationAxis);
                     
                     // If there are joint constraints, then we must honour them...
-                    var cwConstraintDegs   = -joint.getHingeClockwiseConstraintDegs();
-                    var acwConstraintDegs  =  joint.getHingeAnticlockwiseConstraintDegs();
+                    var cwConstraintDegs   = -thisBoneJoint.getHingeClockwiseConstraintDegs();
+                    var acwConstraintDegs  =  thisBoneJoint.getHingeAnticlockwiseConstraintDegs();
 
                     if ( !( Fullik.nearEquals( cwConstraintDegs, -Fullik.MAX_ANGLE_DEGS, 0.001 ) ) && !( Fullik.nearEquals( acwConstraintDegs, Fullik.MAX_ANGLE_DEGS, 0.001 ) ) ) {
 
-                        var hingeReferenceAxis =  joint.getHingeReferenceAxis();
+                        var hingeReferenceAxis =  thisBoneJoint.getHingeReferenceAxis();
                         
                         // Get the signed angle (about the hinge rotation axis) between the hinge reference axis and the hinge-rotation aligned bone UV
                         // Note: ACW rotation is positive, CW rotation is negative.
-                        var signedAngleDegs = Fullik.getSignedAngleBetweenDegs( hingeReferenceAxis, boneInnerToOuterUV, hingeRotationAxis );
+                        var signedAngleDegs = Fullik.getSignedAngleBetweenDegs( hingeReferenceAxis, thisBoneInnerToOuterUV, hingeRotationAxis );
                         
                         // Make our bone inner-to-outer UV the hinge reference axis rotated by its maximum clockwise or anticlockwise rotation as required
-                        if (signedAngleDegs > acwConstraintDegs) boneInnerToOuterUV = Fullik.rotateAboutAxisDegs( hingeReferenceAxis, acwConstraintDegs, hingeRotationAxis ).normalised();
-                        else if (signedAngleDegs < cwConstraintDegs) boneInnerToOuterUV = Fullik.rotateAboutAxisDegs( hingeReferenceAxis, cwConstraintDegs, hingeRotationAxis ).normalised();
+                        if (signedAngleDegs > acwConstraintDegs) thisBoneInnerToOuterUV = Fullik.rotateAboutAxisDegs( hingeReferenceAxis, acwConstraintDegs, hingeRotationAxis ).normalised();
+                        else if (signedAngleDegs < cwConstraintDegs) thisBoneInnerToOuterUV = Fullik.rotateAboutAxisDegs( hingeReferenceAxis, cwConstraintDegs, hingeRotationAxis ).normalised();
                         
                     }
                 }
                 else if ( jointType === Fullik.J_LOCAL_HINGE ){   
                     // Transform the hinge rotation axis to be relative to the previous bone in the chain
-                    var hingeRotationAxis  = joint.getHingeRotationAxis();
+                    var hingeRotationAxis  = thisBoneJoint.getHingeRotationAxis();
                     
                     // Construct a rotation matrix based on the previous bone's direction
                     var m = Fullik.createRotationMatrix( prevBoneInnerToOuterUV );
@@ -651,24 +651,24 @@ Fullik.Chain.prototype = {
                     
                     // Project this bone direction onto the plane described by the hinge rotation axis
                     // Note: The returned vector is normalised.
-                    boneInnerToOuterUV = boneInnerToOuterUV.projectOnPlane( relativeHingeRotationAxis );
+                    thisBoneInnerToOuterUV = thisBoneInnerToOuterUV.projectOnPlane( relativeHingeRotationAxis );
                     
                     // Constrain rotation about reference axis if required
-                    var cwConstraintDegs  = -joint.getHingeClockwiseConstraintDegs();
-                    var acwConstraintDegs =  joint.getHingeAnticlockwiseConstraintDegs();
+                    var cwConstraintDegs   = -thisBoneJoint.getHingeClockwiseConstraintDegs();
+                    var acwConstraintDegs  =  thisBoneJoint.getHingeAnticlockwiseConstraintDegs();
                     if ( !( Fullik.nearEquals( cwConstraintDegs, -Fullik.MAX_ANGLE_DEGS, 0.001 ) ) && !( Fullik.nearEquals( acwConstraintDegs, Fullik.MAX_ANGLE_DEGS, 0.001 ) ) ) {
 
                         // Calc. the reference axis in local space
-                        //Vec3f relativeHingeReferenceAxis = mBaseboneRelativeReferenceConstraintUV;//m.times( joint.getHingeReferenceAxis() ).normalise();
-                        var relativeHingeReferenceAxis = m.timesV3( joint.getHingeReferenceAxis() ).normalize();
+                        //Vec3f relativeHingeReferenceAxis = mBaseboneRelativeReferenceConstraintUV;//m.times( thisBoneJoint.getHingeReferenceAxis() ).normalise();
+                        var relativeHingeReferenceAxis = m.timesV3( thisBoneJoint.getHingeReferenceAxis() ).normalize();
                         
                         // Get the signed angle (about the hinge rotation axis) between the hinge reference axis and the hinge-rotation aligned bone UV
                         // Note: ACW rotation is positive, CW rotation is negative.
-                        var signedAngleDegs = Fullik.getSignedAngleBetweenDegs(relativeHingeReferenceAxis, boneInnerToOuterUV, relativeHingeRotationAxis);
+                        var signedAngleDegs = Fullik.getSignedAngleBetweenDegs(relativeHingeReferenceAxis, thisBoneInnerToOuterUV, relativeHingeRotationAxis);
                         
                         // Make our bone inner-to-outer UV the hinge reference axis rotated by its maximum clockwise or anticlockwise rotation as required
-                        if (signedAngleDegs > acwConstraintDegs) boneInnerToOuterUV = Fullik.rotateAboutAxisDegs( relativeHingeReferenceAxis, acwConstraintDegs, relativeHingeRotationAxis ).normalize();
-                        else if (signedAngleDegs < cwConstraintDegs) boneInnerToOuterUV = Fullik.rotateAboutAxisDegs( relativeHingeReferenceAxis, cwConstraintDegs, relativeHingeRotationAxis ).normalize();                            
+                        if (signedAngleDegs > acwConstraintDegs) thisBoneInnerToOuterUV = Fullik.rotateAboutAxisDegs( relativeHingeReferenceAxis, acwConstraintDegs, relativeHingeRotationAxis ).normalize();
+                        else if (signedAngleDegs < cwConstraintDegs) thisBoneInnerToOuterUV = Fullik.rotateAboutAxisDegs( relativeHingeReferenceAxis, cwConstraintDegs, relativeHingeRotationAxis ).normalize();                            
                         
                     }
                     
@@ -677,10 +677,10 @@ Fullik.Chain.prototype = {
                 // At this stage we have a outer-to-inner unit vector for this bone which is within our constraints,
                 // so we can set the new inner joint location to be the end joint location of this bone plus the
                 // outer-to-inner direction unit vector multiplied by the length of the bone.
-                var newEndLocation = bone.getStartLocation().plus( boneInnerToOuterUV.times( lng ) );
+                var newEndLocation = thisBone.getStartLocation().plus( thisBoneInnerToOuterUV.times( thisBoneLength ) );
 
                 // Set the new start joint location for this bone
-                bone.setEndLocation( newEndLocation );
+                thisBone.setEndLocation( newEndLocation );
 
                 // If we are not working on the end effector bone, then we set the start joint location of the next bone in
                 // the chain (i.e. the bone closer to the target) to be the new end joint location of this bone.
@@ -689,40 +689,40 @@ Fullik.Chain.prototype = {
             } else { // If we ARE working on the basebone...
                
                 // If the base location is fixed then snap the start location of the basebone back to the fixed base...
-                if ( this.mFixedBaseMode ){
-                    bone.setStartLocation( this.mFixedBaseLocation );
+                if (this.mFixedBaseMode){
+                    thisBone.setStartLocation( this.mFixedBaseLocation );
                 } else { // ...otherwise project it backwards from the end to the start by its length.
                 
-                    bone.setStartLocation( bone.getEndLocation().minus( bone.getDirectionUV().times( lng ) ) );
+                    thisBone.setStartLocation( thisBone.getEndLocation().minus( thisBone.getDirectionUV().times( thisBoneLength ) ) );
                 }
                 
                 // If the basebone is unconstrained then process it as usual...
                 if ( this.mBaseboneConstraintType === Fullik.BB_NONE ) {
                     // Set the new end location of this bone, and if there are more bones,
                     // then set the start location of the next bone to be the end location of this bone
-                    var newEndLocation = bone.getStartLocation().plus( bone.getDirectionUV().times( lng ) );
-                    bone.setEndLocation( newEndLocation );    
+                    var newEndLocation = thisBone.getStartLocation().plus( thisBone.getDirectionUV().times( thisBoneLength ) );
+                    thisBone.setEndLocation( newEndLocation );    
                     
                     if ( this.mNumBones > 1 ) { this.mChain[1].setStartLocation( newEndLocation ); }
                 } else {// ...otherwise we must constrain it to the basebone constraint unit vector
                   
                     if ( this.mBaseboneConstraintType === Fullik.BB_GLOBAL_ROTOR ){   
                         // Get the inner-to-outer direction of this bone
-                        var boneInnerToOuterUV = bone.getDirectionUV();
+                        var thisBoneInnerToOuterUV = thisBone.getDirectionUV();
                                 
-                        var angleBetweenDegs    = Fullik.getAngleBetweenDegs( this.mBaseboneConstraintUV, boneInnerToOuterUV );
-                        var constraintAngleDegs = bone.getBallJointConstraintDegs(); 
+                        var angleBetweenDegs    = Fullik.getAngleBetweenDegs( this.mBaseboneConstraintUV, thisBoneInnerToOuterUV );
+                        var constraintAngleDegs = thisBone.getBallJointConstraintDegs(); 
                     
                         if ( angleBetweenDegs > constraintAngleDegs ){
-                            boneInnerToOuterUV = Fullik.getAngleLimitedUnitVectorDegs( boneInnerToOuterUV, this.mBaseboneConstraintUV, constraintAngleDegs );
+                            thisBoneInnerToOuterUV = Fullik.getAngleLimitedUnitVectorDegs( thisBoneInnerToOuterUV, this.mBaseboneConstraintUV, constraintAngleDegs );
                         }
                         
-                        var newEndLocation = bone.getStartLocation().plus( boneInnerToOuterUV.times( lng ) );
+                        var newEndLocation = thisBone.getStartLocation().plus( thisBoneInnerToOuterUV.times( thisBoneLength ) );
                         
-                        bone.setEndLocation( newEndLocation );
+                        thisBone.setEndLocation( newEndLocation );
                         
                         // Also, set the start location of the next bone to be the end location of this bone
-                        if ( this.mNumBones > 1 ) { this.mChain[1].setStartLocation( newEndLocation ); }
+                        if (this.mNumBones > 1) { this.mChain[1].setStartLocation( newEndLocation ); }
                     }
                     else if ( this.mBaseboneConstraintType === Fullik.BB_LOCAL_ROTOR ){
                         // Note: The mBaseboneRelativeConstraintUV is updated in the FullikStructure3D.updateTarget()
@@ -732,80 +732,80 @@ Fullik.Chain.prototype = {
                         // us so we are now free to use it here.
                         
                         // Get the inner-to-outer direction of this bone
-                        var boneInnerToOuterUV = bone.getDirectionUV();
+                        var thisBoneInnerToOuterUV = thisBone.getDirectionUV();
                                 
                         // Constrain about the relative basebone constraint unit vector as neccessary
-                        var angleBetweenDegs    = Fullik.getAngleBetweenDegs( this.mBaseboneRelativeConstraintUV, boneInnerToOuterUV);
-                        var constraintAngleDegs = bone.getBallJointConstraintDegs();
+                        var angleBetweenDegs    = Fullik.getAngleBetweenDegs( this.mBaseboneRelativeConstraintUV, thisBoneInnerToOuterUV);
+                        var constraintAngleDegs = thisBone.getBallJointConstraintDegs();
                         if ( angleBetweenDegs > constraintAngleDegs ){
-                            boneInnerToOuterUV = Fullik.getAngleLimitedUnitVectorDegs(boneInnerToOuterUV, this.mBaseboneRelativeConstraintUV, constraintAngleDegs);
+                            thisBoneInnerToOuterUV = Fullik.getAngleLimitedUnitVectorDegs(thisBoneInnerToOuterUV, this.mBaseboneRelativeConstraintUV, constraintAngleDegs);
                         }
                         
                         // Set the end location
-                        var newEndLocation = bone.getStartLocation().plus( boneInnerToOuterUV.times( lng ) );                        
-                        bone.setEndLocation( newEndLocation );
+                        var newEndLocation = thisBone.getStartLocation().plus( thisBoneInnerToOuterUV.times(thisBoneLength) );                        
+                        thisBone.setEndLocation( newEndLocation );
                         
                         // Also, set the start location of the next bone to be the end location of this bone
-                        if ( this.mNumBones > 1 ) { this.mChain[1].setStartLocation(newEndLocation); }
+                        if (this.mNumBones > 1) { this.mChain[1].setStartLocation(newEndLocation); }
 
                     } else if ( this.mBaseboneConstraintType === Fullik.BB_GLOBAL_HINGE ) {
 
-                        joint  =  bone.getJoint();
-                        var hingeRotationAxis  =  joint.getHingeRotationAxis();
-                        var cwConstraintDegs   = - joint.getHingeClockwiseConstraintDegs(); // Clockwise rotation is negative!
-                        var acwConstraintDegs  =  joint.getHingeAnticlockwiseConstraintDegs();
+                        var thisJoint  =  thisBone.getJoint();
+                        var hingeRotationAxis  =  thisJoint.getHingeRotationAxis();
+                        var cwConstraintDegs   = -thisJoint.getHingeClockwiseConstraintDegs();     // Clockwise rotation is negative!
+                        var acwConstraintDegs  =  thisJoint.getHingeAnticlockwiseConstraintDegs();
                         
                         // Get the inner-to-outer direction of this bone and project it onto the global hinge rotation axis
-                        var boneInnerToOuterUV = bone.getDirectionUV().projectOnPlane(hingeRotationAxis);
+                        var thisBoneInnerToOuterUV = thisBone.getDirectionUV().projectOnPlane(hingeRotationAxis);
                                 
                         // If we have a global hinge which is not freely rotating then we must constrain about the reference axis
                         if ( !( Fullik.nearEquals( cwConstraintDegs, Fullik.MAX_ANGLE_DEGS, 0.01 ) ) && !( Fullik.nearEquals( acwConstraintDegs, Fullik.MAX_ANGLE_DEGS, 0.01 ) ) ) {
 
                             // Grab the hinge reference axis and calculate the current signed angle between it and our bone direction (about the hinge
                             // rotation axis). Note: ACW rotation is positive, CW rotation is negative.
-                            var hingeReferenceAxis = joint.getHingeReferenceAxis();
-                            var signedAngleDegs    = Fullik.getSignedAngleBetweenDegs(hingeReferenceAxis, boneInnerToOuterUV, hingeRotationAxis);
+                            var hingeReferenceAxis = thisJoint.getHingeReferenceAxis();
+                            var signedAngleDegs    = Fullik.getSignedAngleBetweenDegs(hingeReferenceAxis, thisBoneInnerToOuterUV, hingeRotationAxis);
                             
                             // Constrain as necessary
-                            if (signedAngleDegs > acwConstraintDegs) boneInnerToOuterUV = Fullik.rotateAboutAxisDegs( hingeReferenceAxis, acwConstraintDegs, hingeRotationAxis ).normalize();
-                            else if (signedAngleDegs < cwConstraintDegs) boneInnerToOuterUV = Fullik.rotateAboutAxisDegs(hingeReferenceAxis, cwConstraintDegs, hingeRotationAxis).normalize();                            
+                            if (signedAngleDegs > acwConstraintDegs) thisBoneInnerToOuterUV = Fullik.rotateAboutAxisDegs( hingeReferenceAxis, acwConstraintDegs, hingeRotationAxis ).normalize();
+                            else if (signedAngleDegs < cwConstraintDegs) thisBoneInnerToOuterUV = Fullik.rotateAboutAxisDegs(hingeReferenceAxis, cwConstraintDegs, hingeRotationAxis).normalize();                            
                             
                         }
                         
                         // Calc and set the end location of this bone
-                        var newEndLocation = bone.getStartLocation().plus( boneInnerToOuterUV.times( lng ) );                        
-                        bone.setEndLocation( newEndLocation );
+                        var newEndLocation = thisBone.getStartLocation().plus( thisBoneInnerToOuterUV.times(thisBoneLength) );                        
+                        thisBone.setEndLocation( newEndLocation );
                         
                         // Also, set the start location of the next bone to be the end location of this bone
                         if ( this.mNumBones > 1 ) { this.mChain[1].setStartLocation(newEndLocation); }
 
                     } else if ( this.mBaseboneConstraintType === Fullik.BB_LOCAL_HINGE ){
 
-                        var joint  =  bone.getJoint();
-                        var hingeRotationAxis  =  this.mBaseboneRelativeConstraintUV;          // Basebone relative constraint is our hinge rotation axis!
-                        var cwConstraintDegs   = - joint.getHingeClockwiseConstraintDegs();    // Clockwise rotation is negative!
-                        var acwConstraintDegs  =  joint.getHingeAnticlockwiseConstraintDegs();
+                        var thisJoint  =  thisBone.getJoint();
+                        var hingeRotationAxis  =  this.mBaseboneRelativeConstraintUV;              // Basebone relative constraint is our hinge rotation axis!
+                        var cwConstraintDegs   = -thisJoint.getHingeClockwiseConstraintDegs();     // Clockwise rotation is negative!
+                        var acwConstraintDegs  =  thisJoint.getHingeAnticlockwiseConstraintDegs();
                         
                         // Get the inner-to-outer direction of this bone and project it onto the global hinge rotation axis
-                        var boneInnerToOuterUV = bone.getDirectionUV().projectOnPlane(hingeRotationAxis);
+                        var thisBoneInnerToOuterUV = thisBone.getDirectionUV().projectOnPlane(hingeRotationAxis);
                         
                         //If we have a local hinge which is not freely rotating then we must constrain about the reference axis
                         if ( !( Fullik.nearEquals( cwConstraintDegs, Fullik.MAX_ANGLE_DEGS, 0.01 ) ) && !( Fullik.nearEquals( acwConstraintDegs, Fullik.MAX_ANGLE_DEGS, 0.01 ) ) ) {
         
                             // Grab the hinge reference axis and calculate the current signed angle between it and our bone direction (about the hinge
                             // rotation axis). Note: ACW rotation is positive, CW rotation is negative.
-                            var hingeReferenceAxis = this.mBaseboneRelativeReferenceConstraintUV; //joint.getHingeReferenceAxis();
-                            var signedAngleDegs    = Fullik.getSignedAngleBetweenDegs( hingeReferenceAxis, boneInnerToOuterUV, hingeRotationAxis );
+                            var hingeReferenceAxis = this.mBaseboneRelativeReferenceConstraintUV; //thisJoint.getHingeReferenceAxis();
+                            var signedAngleDegs    = Fullik.getSignedAngleBetweenDegs( hingeReferenceAxis, thisBoneInnerToOuterUV, hingeRotationAxis );
                             
                             // Constrain as necessary
-                            if ( signedAngleDegs > acwConstraintDegs ) boneInnerToOuterUV = Fullik.rotateAboutAxisDegs( hingeReferenceAxis, acwConstraintDegs, hingeRotationAxis ).normalize();
-                            else if (signedAngleDegs < cwConstraintDegs) boneInnerToOuterUV = Fullik.rotateAboutAxisDegs( hingeReferenceAxis, cwConstraintDegs, hingeRotationAxis ).normalize();   
+                            if ( signedAngleDegs > acwConstraintDegs ) thisBoneInnerToOuterUV = Fullik.rotateAboutAxisDegs( hingeReferenceAxis, acwConstraintDegs, hingeRotationAxis ).normalize();
+                            else if (signedAngleDegs < cwConstraintDegs) thisBoneInnerToOuterUV = Fullik.rotateAboutAxisDegs( hingeReferenceAxis, cwConstraintDegs, hingeRotationAxis ).normalize();   
 
                         }
                         
                         // Calc and set the end location of this bone
-                        var newEndLocation = bone.getStartLocation().plus( boneInnerToOuterUV.times( lng ) );                        
-                        bone.setEndLocation( newEndLocation );
+                        var newEndLocation = thisBone.getStartLocation().plus( thisBoneInnerToOuterUV.times( thisBoneLength ) );                        
+                        thisBone.setEndLocation( newEndLocation );
                         
                         // Also, set the start location of the next bone to be the end location of this bone
                         if ( this.mNumBones > 1 ) { this.mChain[1].setStartLocation( newEndLocation ); }
@@ -819,6 +819,7 @@ Fullik.Chain.prototype = {
 
         // Update our last target location
         this.mLastTargetLocation.copy( target );
+        //console.log(target)
                 
         // DEBUG - check the live chain length and the originally calculated chain length are the same
         /*
@@ -828,34 +829,40 @@ Fullik.Chain.prototype = {
         }
         */
 
+        var d = Fullik.distanceBetween( this.mChain[this.mNumBones-1].getEndLocation(), target );
+        //console.log('final',  d);
         
         // Finally, calculate and return the distance between the current effector location and the target.
-        return Fullik.distanceBetween( this.mChain[this.mNumBones-1].getEndLocation(), target );
+        return d; //Fullik.distanceBetween( this.mChain[this.mNumBones-1].getEndLocation(), target );
     },
 
     updateChainLength : function(){
+        // We start adding up the length of the bones from an initial length of zero
+        this.mChainLength = 0;
 
         // Loop over all the bones in the chain, adding the length of each bone to the mChainLength property
-        this.mChainLength = 0;
-        var i = this.mNumBones;
-        while(i--) this.mChainLength += this.mChain[i].getLength();
+        for (var i = 0; i < this.mNumBones; i++){
+            this.mChainLength += this.mChain[i].getLength();
+        }
 
     },
 
     cloneIkChain : function(){
-
         // How many bones are in this chain?
         var numBones = this.mChain.length;
         
-        // Create a new Array
+        // Create a new Vector of FullikBone3D objects of that size
         var clonedChain = [];
 
         // For each bone in the chain being cloned...       
         for (var i = 0; i < numBones; i++){
-            // Use the copy constructor to create a new Fullik.Bone with the values set from the source Fullik.Bone.
+            // Use the copy constructor to create a new FullikBone3D with the values set from the source FullikBone3D.
             // and add it to the cloned chain.
+            //clonedChain.push( new Fullik.Bone( this.mChain[i] ) );
+
             clonedChain.push( this.mChain[i].clone() );
         }
+        //console.log('clone chaine: ' , clonedChain)
         
         return clonedChain;
 
