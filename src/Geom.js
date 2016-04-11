@@ -75,7 +75,7 @@ Fullik.V3.prototype.randomise = function( min, max ){
         // Note: |n| is length or magnitude of the vector n, NOT its (component-wise) absolute value        
         var b = this.normalised();
         var n = planeNormal.normalised();     
-        return b.minus( n.multiply( Fullik.dotProduct(b, planeNormal) ) ).normalize();
+        return b.minus( n.times( Fullik.dotProduct(b, planeNormal) ) ).normalize();
 };*/
 
 /*Fullik.V3.prototype.cross = function( v ) { 

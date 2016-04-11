@@ -17,16 +17,16 @@ Fullik.START = 0;
 Fullik.END = 1;
 
 // joint Type
-Fullik.J_BALL = 0; 
-Fullik.J_GLOBAL_HINGE = 1;
-Fullik.J_LOCAL_HINGE = 2;
+Fullik.J_BALL = 1; 
+Fullik.J_GLOBAL_HINGE = 4;
+Fullik.J_LOCAL_HINGE = 5;
 
 // chain BaseboneConstraintType3D 
-Fullik.BB_NONE = 0; // No constraint - basebone may rotate freely
-Fullik.BB_GLOBAL_ROTOR = 1; // World-space rotor constraint
-Fullik.BB_LOCAL_ROTOR = 2;// Rotor constraint in the coordinate space of (i.e. relative to) the direction of the connected bone
-Fullik.BB_GLOBAL_HINGE = 3; // World-space hinge constraint
-Fullik.BB_LOCAL_HINGE = 4;// Hinge constraint in the coordinate space of (i.e. relative to) the direction of the connected bone
+Fullik.BB_NONE = 1; // No constraint - basebone may rotate freely
+Fullik.BB_GLOBAL_ROTOR = 2; // World-space rotor constraint
+Fullik.BB_LOCAL_ROTOR = 3;// Rotor constraint in the coordinate space of (i.e. relative to) the direction of the connected bone
+Fullik.BB_GLOBAL_HINGE = 4; // World-space hinge constraint
+Fullik.BB_LOCAL_HINGE = 5;// Hinge constraint in the coordinate space of (i.e. relative to) the direction of the connected bone
 
 Fullik.lerp = function (a, b, percent) { return a + (b - a) * percent; };
 Fullik.randRange = function (min, max) { return Fullik.lerp( min, max, Math.random()); };

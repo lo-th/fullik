@@ -54,19 +54,19 @@ Fullik.Joint.prototype = {
     },
 
     getHingeClockwiseConstraintDegs:function(){
-        if ( this.type !== Fullik.J_BALL ) return this.mHingeClockwiseConstraintDegs;
+        if ( !(this.type === Fullik.J_BALL) ) return this.mHingeClockwiseConstraintDegs;
     },
 
     getHingeAnticlockwiseConstraintDegs:function(){
-        if ( this.type !== Fullik.J_BALL ) return this.mHingeAnticlockwiseConstraintDegs;
+        if ( !(this.type === Fullik.J_BALL) ) return this.mHingeAnticlockwiseConstraintDegs;
     },
 
     getHingeReferenceAxis:function(){
-        if ( this.type !== Fullik.J_BALL ) return this.mReferenceAxisUV; 
+        if ( !(this.type === Fullik.J_BALL) ) return this.mReferenceAxisUV; 
     },
 
     getHingeRotationAxis:function(){
-        if ( this.type !== Fullik.J_BALL ) return this.mRotationAxisUV; 
+        if ( !(this.type === Fullik.J_BALL) ) return this.mRotationAxisUV; 
     },
 
     getBallJointConstraintDegs:function(){
@@ -88,19 +88,19 @@ Fullik.Joint.prototype = {
     },
 
     setHingeJointClockwiseConstraintDegs:function( angleDegs ){
-        if ( this.type !== Fullik.J_BALL ) this.mHingeClockwiseConstraintDegs = angleDegs; 
+        if ( !(this.type === Fullik.J_BALL) ) this.mHingeClockwiseConstraintDegs = angleDegs; 
     },
 
     setHingeJointAnticlockwiseConstraintDegs:function( angleDegs ){
-        if ( this.type !== Fullik.J_BALL ) this.mHingeAnticlockwiseConstraintDegs = angleDegs; 
+        if ( !(this.type === Fullik.J_BALL) ) this.mHingeAnticlockwiseConstraintDegs = angleDegs; 
     },
 
     setHingeRotationAxis:function( axis ){
-        if ( this.type !== Fullik.J_BALL ) this.mRotationAxisUV.copy( axis.normalised() ); 
+        if ( !(this.type === Fullik.J_BALL) ) this.mRotationAxisUV.copy( axis.normalised() ); 
     },
 
     setHingeReferenceAxis:function( referenceAxis ){
-        if ( this.type !== Fullik.J_BALL ) this.mReferenceAxisUV.copy( referenceAxis.normalised() ); 
+        if ( !(this.type === Fullik.J_BALL) ) this.mReferenceAxisUV.copy( referenceAxis.normalised() ); 
     },
 
     

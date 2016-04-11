@@ -153,6 +153,8 @@
             gui.add('button',   { name:'Demo 8' } ).onChange( function(v) { demo(8) });
             gui.add('button',   { name:'Demo 9' } ).onChange( function(v) { demo(9) });
             //gui.add('button',   { name:'Demo 10' } ).onChange( function(v) { demo(10) });
+            //gui.add('button',   { name:'Demo 11' } ).onChange( function(v) { demo(11) });
+            gui.add('button',   { name:'Demo 12' } ).onChange( function(v) { demo(12) });
 
 			gui.add( target, 'x', { min:-100, max:100 } )//.onChange(function(value) {updateTarget()});
 			gui.add( target, 'y', { min:-100, max:100 } )//.onChange(function(value) {updateTarget()});
@@ -498,6 +500,40 @@
                 case 12:
 
                 tell("Demo 12 - Connected Chains with Non-Freely-Rotating Global Hinge Basebone Constraints");
+
+                var chain = new Fullik.Chain();
+                var chain3D = [];
+
+                var color = 0x999999;
+
+                var startLoc = new Fullik.V3(0, 0, 40);
+                var endLoc = startLoc.plus( defaultBoneDirection.times(defaultBoneLength) );
+
+                var basebone = new Fullik.Bone( startLoc, endLoc );
+                chain.addBone( basebone );
+
+                chain3D.push( addBone3D({ x:1, y:1, z:defaultBoneLength }, color ) );
+
+                for (var j = 0; j < 7; j++) {
+
+                    chain.addConsecutiveBone( defaultBoneDirection, defaultBoneLength );
+                    chain3D.push( addBone3D( { x:1, y:1, z:defaultBoneLength }, color ) );
+
+                };
+
+                solver.add( chain, chain3D, target );
+
+                var chain2 = new Fullik.Chain();
+                var base = new Fullik.Bone( new Fullik.V3(0, 0, 0), new Fullik.V3(15, 0, 0) );
+                chain2.addBone(base);
+                chain2.setHingeBaseboneConstraint( Fullik.BB_GLOBAL_HINGE, Y_AXIS, 90, 45, X_AXIS);
+                chain2.addConsecutiveBone( X_AXIS, 15 );
+                chain2.addConsecutiveBone( X_AXIS, 10 );
+                chain2.addConsecutiveBone( X_AXIS, 10 );
+
+                color = 0xFF0000;
+                var chain3D2 = [addBone3D( { x:1, y:1, z:15 }, color ),addBone3D( { x:1, y:1, z:15 }, color ), addBone3D( { x:1, y:1, z:10 }, color ), addBone3D( { x:1, y:1, z:10 }, color ) ]
+                solver.connectChain( chain2, 0, 3, Fullik.START, chain3D2, target );
 
                 break;
 

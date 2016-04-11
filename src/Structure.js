@@ -1,13 +1,11 @@
 
 Fullik.Structure = function(  ){
 
-    this.mChains = [];
+    this.chains = [];
     this.meshChains = [];
     this.targets = [];
     this.mNumChains = 0;
 
-
-  
 }
 
 Fullik.Structure.prototype = {
@@ -20,17 +18,17 @@ Fullik.Structure.prototype = {
         var connectedChainNumber;
         var hostChain, hostBone, constraintType;
 
-        for(var i = 0; i<this.mNumChains; i++){
+        for(var i = 0; i< this.mNumChains ; i++){
 
-            c = this.mChains[i];
+            c = this.chains[i];
             connectedChainNumber = c.getConnectedChainNumber();
             m = this.meshChains[i];
 
             if (connectedChainNumber === -1) c.updateTarget( this.targets[i] );
             else{
-                hostChain = this.mChains[connectedChainNumber];
+                hostChain = this.chains[connectedChainNumber];
                 hostBone  = hostChain.getBone( c.getConnectedBoneNumber() );
-                if(hostBone.getBoneConnectionPoint() === Fullik.START ) c.setBaseLocation( hostBone.getStartLocation() );
+                if( hostBone.getBoneConnectionPoint() === Fullik.START ) c.setBaseLocation( hostBone.getStartLocation() );
                 else c.setBaseLocation( hostBone.getEndLocation() );
 
                 constraintType = c.getBaseboneConstraintType();
@@ -84,7 +82,7 @@ Fullik.Structure.prototype = {
             this.remove(i);
         }
 
-        this.mChains = [];
+        this.chains = [];
         this.meshChains = [];
         this.targets = [];
 
@@ -92,7 +90,7 @@ Fullik.Structure.prototype = {
 
     add:function( chain, meshBone, target ){
 
-        this.mChains.push( chain ); 
+        this.chains.push( chain ); 
         if( meshBone ) this.meshChains.push( meshBone );  
         this.targets.push( target );  
         this.mNumChains ++;
@@ -101,8 +99,8 @@ Fullik.Structure.prototype = {
 
     remove:function( id ){
 
-        this.mChains[id].clear();
-        this.mChains.splice(id, 1);
+        this.chains[id].clear();
+        this.chains.splice(id, 1);
         this.meshChains.splice(id, 1);
         this.targets.splice(id, 1);
         this.mNumChains --;
@@ -111,7 +109,7 @@ Fullik.Structure.prototype = {
 
     setFixedBaseMode:function( fixedBaseMode ){
         for ( var i = 0; i < this.mNumChains; i++) {
-            this.mChains[i].setFixedBaseMode( fixedBaseMode );
+            this.chains[i].setFixedBaseMode( fixedBaseMode );
         }
     },
 
@@ -123,17 +121,17 @@ Fullik.Structure.prototype = {
 
     getChain:function(id){
 
-        return this.mChains[id];
+        return this.chains[id];
 
     },
 
     connectChain : function( newChain, existingChainNumber, existingBoneNumber, boneConnectionPoint, meshBone, target ){
 
         if ( existingChainNumber > this.mNumChains ) return;
-        if ( existingBoneNumber > this.mChains[existingChainNumber].getNumBones() ) return;
+        if ( existingBoneNumber > this.chains[existingChainNumber].getNumBones() ) return;
 
         // Make a copy of the provided chain so any changes made to the original do not affect this chain
-        var relativeChain = new Fullik.Chain( newChain );
+        var relativeChain = newChain.clone();//new Fullik.Chain( newChain );
 
         // Connect the copy of the provided chain to the specified chain and bone in this structure
         relativeChain.connectToStructure( this, existingChainNumber, existingBoneNumber );
@@ -144,8 +142,8 @@ Fullik.Structure.prototype = {
         var connectionPoint = boneConnectionPoint || this.getChain(existingChainNumber).getBone( existingBoneNumber ).getBoneConnectionPoint();
         var connectionLocation;
 
-        if ( connectionPoint === Fullik.START ) connectionLocation = this.mChains[existingChainNumber].getBone(existingBoneNumber).getStartLocation();
-        else connectionLocation = this.mChains[existingChainNumber].getBone(existingBoneNumber).getEndLocation();
+        if ( connectionPoint === Fullik.START ) connectionLocation = this.chains[existingChainNumber].getBone(existingBoneNumber).getStartLocation();
+        else connectionLocation = this.chains[existingChainNumber].getBone(existingBoneNumber).getEndLocation();
          
 
         relativeChain.setBaseLocation( connectionLocation );
@@ -172,10 +170,4 @@ Fullik.Structure.prototype = {
     },
 
     
-
-
-    
-
-
-
 }
