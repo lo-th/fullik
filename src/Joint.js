@@ -39,9 +39,9 @@ Fullik.Joint.prototype = {
     setHinge: function( type, rotationAxis, clockwiseConstraintDegs, anticlockwiseConstraintDegs, referenceAxis ){
 
         // Set params
+        this.type = type;
         this.mHingeClockwiseConstraintDegs     = clockwiseConstraintDegs;
         this.mHingeAnticlockwiseConstraintDegs = anticlockwiseConstraintDegs;
-        this.type = type;
         this.mRotationAxisUV.copy( rotationAxis.normalised() );
         this.mReferenceAxisUV.copy( referenceAxis.normalised() );
 

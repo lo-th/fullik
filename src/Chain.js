@@ -634,7 +634,7 @@ Fullik.Chain.prototype = {
                     var cwConstraintDegs   = -joint.getHingeClockwiseConstraintDegs();
                     var acwConstraintDegs  =  joint.getHingeAnticlockwiseConstraintDegs();
 
-                    if ( !( Fullik.nearEquals( cwConstraintDegs, -Fullik.MAX_ANGLE_DEGS, 0.001 ) ) && !( Fullik.nearEquals( acwConstraintDegs, Fullik.MAX_ANGLE_DEGS, 0.001 ) ) ) {
+                    if ( !( Fullik.nearEquals( cwConstraintDegs, -Fullik.MAX_ANGLE_DEGS, Fullik.PRECISION ) ) && !( Fullik.nearEquals( acwConstraintDegs, Fullik.MAX_ANGLE_DEGS, Fullik.PRECISION ) ) ) {
 
                         var hingeReferenceAxis =  joint.getHingeReferenceAxis();
                         
@@ -666,7 +666,7 @@ Fullik.Chain.prototype = {
                     // Constrain rotation about reference axis if required
                     var cwConstraintDegs  = -joint.getHingeClockwiseConstraintDegs();
                     var acwConstraintDegs =  joint.getHingeAnticlockwiseConstraintDegs();
-                    if ( !( Fullik.nearEquals( cwConstraintDegs, -Fullik.MAX_ANGLE_DEGS, 0.001 ) ) && !( Fullik.nearEquals( acwConstraintDegs, Fullik.MAX_ANGLE_DEGS, 0.001 ) ) ) {
+                    if ( !( Fullik.nearEquals( cwConstraintDegs, -Fullik.MAX_ANGLE_DEGS, Fullik.PRECISION ) ) && !( Fullik.nearEquals( acwConstraintDegs, Fullik.MAX_ANGLE_DEGS, Fullik.PRECISION ) ) ) {
 
                         // Calc. the reference axis in local space
                         //Vec3f relativeHingeReferenceAxis = mBaseboneRelativeReferenceConstraintUV;//m.times( joint.getHingeReferenceAxis() ).normalise();
@@ -735,10 +735,10 @@ Fullik.Chain.prototype = {
                         if ( this.mNumBones > 1 ) { this.bones[1].setStartLocation( newEndLocation ); }
                     }
                     else if ( this.mBaseboneConstraintType === Fullik.BB_LOCAL_ROTOR ){
-                        // Note: The mBaseboneRelativeConstraintUV is updated in the FullikStructure3D.updateTarget()
-                        // method BEFORE this FullikChain3D.updateTarget() method is called. We no knowledge of the
+                        // Note: The mBaseboneRelativeConstraintUV is updated in the Fullik.Structure.updateTarget()
+                        // method BEFORE this Fullik.Chain.updateTarget() method is called. We no knowledge of the
                         // direction of the bone we're connected to in another chain and so cannot calculate this 
-                        // relative basebone constraint direction on our own, but the FullikStructure3D does it for
+                        // relative basebone constraint direction on our own, but the Fullik.Structure does it for
                         // us so we are now free to use it here.
                         
                         // Get the inner-to-outer direction of this bone
@@ -769,7 +769,7 @@ Fullik.Chain.prototype = {
                         var boneInnerToOuterUV = bone.getDirectionUV().projectOnPlane( hingeRotationAxis ).normalize();
                                 
                         // If we have a global hinge which is not freely rotating then we must constrain about the reference axis
-                        if ( !( Fullik.nearEquals( cwConstraintDegs, Fullik.MAX_ANGLE_DEGS, 0.01 ) ) && !( Fullik.nearEquals( acwConstraintDegs, Fullik.MAX_ANGLE_DEGS, 0.01 ) ) ) {
+                        if ( !( Fullik.nearEquals( cwConstraintDegs, Fullik.MAX_ANGLE_DEGS, Fullik.PRECISION_DEG ) ) && !( Fullik.nearEquals( acwConstraintDegs, Fullik.MAX_ANGLE_DEGS, Fullik.PRECISION_DEG ) ) ) {
 
                             // Grab the hinge reference axis and calculate the current signed angle between it and our bone direction (about the hinge
                             // rotation axis). Note: ACW rotation is positive, CW rotation is negative.
@@ -800,7 +800,7 @@ Fullik.Chain.prototype = {
                         var boneInnerToOuterUV = bone.getDirectionUV().projectOnPlane(hingeRotationAxis).normalize();
                         
                         //If we have a local hinge which is not freely rotating then we must constrain about the reference axis
-                        if ( !( Fullik.nearEquals( cwConstraintDegs, Fullik.MAX_ANGLE_DEGS, 0.01 ) ) && !( Fullik.nearEquals( acwConstraintDegs, Fullik.MAX_ANGLE_DEGS, 0.01 ) ) ) {
+                        if ( !( Fullik.nearEquals( cwConstraintDegs, Fullik.MAX_ANGLE_DEGS, Fullik.PRECISION_DEG ) ) && !( Fullik.nearEquals( acwConstraintDegs, Fullik.MAX_ANGLE_DEGS, Fullik.PRECISION_DEG ) ) ) {
         
                             // Grab the hinge reference axis and calculate the current signed angle between it and our bone direction (about the hinge
                             // rotation axis). Note: ACW rotation is positive, CW rotation is negative.

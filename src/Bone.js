@@ -1,5 +1,6 @@
 
-Fullik.Bone = function( startLocation, endLocation, directionUV, length ){ //, directionUV, length, name ){
+
+Fullik.Bone = function( startLocation, endLocation, directionUV, length ){
 
     this.mJoint = new Fullik.Joint();
     this.mStartLocation = new Fullik.V3();

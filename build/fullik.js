@@ -12,21 +12,29 @@ Fullik.MAX_ANGLE_DEGS = 180;
 
 Fullik.MAX_VALUE = Infinity;//Number.MAX_VALUE;
 
+Fullik.PRECISION = 0.001;
+Fullik.PRECISION_DEG = 0.01;
+
 // point position
 Fullik.START = 0; 
 Fullik.END = 1;
 
 // joint Type
-Fullik.J_BALL = 1; 
-Fullik.J_GLOBAL_HINGE = 4;
-Fullik.J_LOCAL_HINGE = 5;
+Fullik.J_BALL = 1;  // ball-joint constraint about the previous bone in the chain
+Fullik.J_GLOBAL_HINGE = 4; //A world-space hinge constraint
+Fullik.J_LOCAL_HINGE = 5; // A hinge constraint relative to the previous bone in the chain.
 
-// chain BaseboneConstraintType3D 
+// chain Basebone Constraint Type 
 Fullik.BB_NONE = 1; // No constraint - basebone may rotate freely
 Fullik.BB_GLOBAL_ROTOR = 2; // World-space rotor constraint
 Fullik.BB_LOCAL_ROTOR = 3;// Rotor constraint in the coordinate space of (i.e. relative to) the direction of the connected bone
 Fullik.BB_GLOBAL_HINGE = 4; // World-space hinge constraint
 Fullik.BB_LOCAL_HINGE = 5;// Hinge constraint in the coordinate space of (i.e. relative to) the direction of the connected bone
+
+// the LOCAL_ROTOR and LOCAL_HINGE basebone constraint types are only available 
+// to be used by chains which are connected to other chains. 
+// In addition, hinge constraints may have an additional reference axis constraint which is the direction
+// within the axis of the hinge about which clockwise/anticlockwise movement is allowed.
 
 Fullik.lerp = function (a, b, percent) { return a + (b - a) * percent; };
 Fullik.randRange = function (min, max) { return Fullik.lerp( min, max, Math.random()); };
@@ -58,33 +66,50 @@ Fullik.V3.prototype.lengthIsApproximately = function( t ){
     return Math.abs(this.length() - 1.0) < t ? true : false;
 },
 
-/*Fullik.V3.prototype.length = function(  ){
-    return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
-},*/
-
 Fullik.V3.prototype.normalised = function(){
     return this.clone().normalize();
 };
 
 Fullik.V3.prototype.times = function( scale ){
-    return this.clone().multiplyScalar(scale);//new Fullik.V3( this.x * scale, this.y * scale, this.z * scale );
-    //return this.clone().add( v );
+    return this.clone().multiplyScalar(scale);
 };
 
 Fullik.V3.prototype.plus = function(v){
-    return this.clone().add(v);//new Fullik.V3(this.x + v.x, this.y + v.y, this.z + v.z);
-    //return this.clone().add( v );
+    return this.clone().add(v);
 };
 
 Fullik.V3.prototype.minus = function( v ){
-    return this.clone().sub(v);//new Fullik.V3(this.x - v.x, this.y - v.y, this.z - v.z);
+    return this.clone().sub(v);
 }
+
+Fullik.V3.prototype.randomise = function( min, max ){
+    this.x = Fullik.randRange( min, max );
+    this.y = Fullik.randRange( min, max );
+    this.z = Fullik.randRange( min, max );
+};
+
+Fullik.V3.prototype.negated = function() { 
+    return this.clone().negate();
+};
+
+Fullik.V3.prototype.approximatelyEquals = function( v, t ){ 
+    var xDiff = Math.abs(this.x - v.x);
+    var yDiff = Math.abs(this.y - v.y);
+    var zDiff = Math.abs(this.z - v.z);
+    return (xDiff < t && yDiff < t && zDiff < t);
+};
+
+/*
+
+Fullik.V3.prototype.length = function(  ){
+    return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
+},
 
 Fullik.V3.prototype.divideBy = function( s ){
     return this.clone().divideScalar( s );
 };
 
-/*Fullik.V3.prototype.normalize = function( min, max ){
+Fullik.V3.prototype.normalize = function( min, max ){
     var magnitude = Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
 
     // As long as the magnitude is greater then zero, divide each element by the
@@ -100,15 +125,11 @@ Fullik.V3.prototype.divideBy = function( s ){
     
     // Return this for chaining
     return this;
-};*/
-
-Fullik.V3.prototype.randomise = function( min, max ){
-    this.x = Fullik.randRange( min, max );
-    this.y = Fullik.randRange( min, max );
-    this.z = Fullik.randRange( min, max );
 };
 
-/*Fullik.V3.prototype.projectOntoPlane = function( planeNormal ){
+
+
+Fullik.V3.prototype.projectOntoPlane = function( planeNormal ){
     if ( !(planeNormal.length() > 0) ) return; //{ throw new IllegalArgumentException("Plane normal cannot be a zero vector."); }
         
         // Projection of vector b onto plane with normal n is defined as: b - ( b.n / ( |n| squared )) * n
@@ -116,21 +137,16 @@ Fullik.V3.prototype.randomise = function( min, max ){
         var b = this.normalised();
         var n = planeNormal.normalised();     
         return b.minus( n.times( Fullik.dotProduct(b, planeNormal) ) ).normalize();
-};*/
+};
 
-/*Fullik.V3.prototype.cross = function( v ) { 
+Fullik.V3.prototype.cross = function( v ) { 
     return this.clone().cross();//new Fullik.V3(this.y * v.z - this.z * v.y,    this.z * v.x - this.x * v.z, this.x * v.y - this.y * v.x);
-};*/
-Fullik.V3.prototype.negated = function() { 
-    return this.clone().negate();
 };
 
-Fullik.V3.prototype.approximatelyEquals = function( v, t ){ 
-    var xDiff = Math.abs(this.x - v.x);
-    var yDiff = Math.abs(this.y - v.y);
-    var zDiff = Math.abs(this.z - v.z);
-    return (xDiff < t && yDiff < t && zDiff < t);
-};
+*/
+
+
+
 
 
 
@@ -138,7 +154,9 @@ Fullik.perpendicular = function( a, b ){
     return Fullik.nearEquals( Fullik.dotProduct(a, b), 0.0, 0.01 ) ? true : false;
 };
 
-Fullik.scalarProduct = function(v1, v2) { return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z; };
+Fullik.scalarProduct = function( v1, v2 ) { 
+    return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z; 
+};
 
 Fullik.dotProduct = function(v1, v2) { 
     var v1Norm = v1.normalised();
@@ -151,13 +169,13 @@ Fullik.crossProduct = function( v1, v2 ) {
 };
 
 Fullik.genPerpendicularVectorQuick = function( v ) { 
-    var perp;
-    if (Math.abs(v.y) < 0.99) perp = new Fullik.V3( -v.z, 0, v.x ); // cross(v, UP)
-    else perp = new Fullik.V3( 0, v.z, -v.y ); // cross(v, RIGHT)
+    var perp = new Fullik.V3();
+    if ( Math.abs( v.y ) < 0.99 ) perp.set( -v.z, 0, v.x ); // cross(v, UP)
+    else perp.set( 0, v.z, -v.y ); // cross(v, RIGHT)
     return perp.normalize();
 };
 
-Fullik.genPerpendicularVectorHM = function( v ) { 
+/*Fullik.genPerpendicularVectorHM = function( v ) { 
     var a = Fullik.absV3( v );
     if (a.x <= a.y && a.x <= a.z) return new Fullik.V3(0, -v.z, v.y).normalize();
     else if (a.y <= a.x && a.y <= a.z) return new Fullik.V3(-v.z, 0, v.x).normalize();
@@ -168,19 +186,21 @@ Fullik.genPerpendicularVectorFrisvad = function( v ) {
     if (v.z < -0.9999999) return new Fullik.V3(0, -1, 0);// Handle the singularity
     var a = 1/(1 + v.z);
     return new Fullik.V3(1 - v.x * v.x * a, -v.x * v.y * a, -v.x).normalize();
-};
+};*/
 
 Fullik.getUvBetween = function( v1, v2 ) { 
      return v2.minus(v1).normalize();
 };
 
-Fullik.timesV3 = function( v, scale ) { 
-    v.x *= scale; v.y *= scale; v.z *= scale;
+/*Fullik.timesV3 = function( v, scale ) { 
+    v.x *= scale; 
+    v.y *= scale; 
+    v.z *= scale;
 };
 
 Fullik.absV3 = function( v ) { 
-    return new Fullik.V3( v.x < 0 ? -v.x : v.x, v.y < 0 ? -v.y : v.y, v.z < 0 ? -v.z : v.z);
-};
+    return new Fullik.V3( v.x < 0 ? -v.x : v.x, v.y < 0 ? -v.y : v.y, v.z < 0 ? -v.z : v.z );
+};*/
 
 
 Fullik.getAngleBetweenRads = function( v1, v2 ){ 
@@ -206,12 +226,12 @@ Fullik.rotateAboutAxisDegs = function( v, angleDegs, axis ){
     return Fullik.rotateAboutAxisRads( v, angleDegs * Fullik.torad, axis ); 
 };
 
-Fullik.rotateAboutAxisRads = function( v, angleRads, rotationAxis ){
+Fullik.rotateAboutAxisRads = function( v, rad, rotationAxis ){
 
     var rotationMatrix = new Fullik.M3();
 
-    var sinTheta         = Math.sin(angleRads);
-    var cosTheta         = Math.cos(angleRads);
+    var sinTheta         = Math.sin( rad );
+    var cosTheta         = Math.cos( rad );
     var oneMinusCosTheta = 1.0 - cosTheta;
     
     // It's quicker to pre-calc these and reuse than calculate x * y, then y * x later (same thing).
@@ -246,21 +266,21 @@ Fullik.rotateXDegs = function( v, angleDegs ){ return Fullik.rotateXRads( v, ang
 Fullik.rotateYDegs = function( v, angleDegs ){ return Fullik.rotateYRads( v, angleDegs * Fullik.torad ); };
 Fullik.rotateZDegs = function( v, angleDegs ){ return Fullik.rotateZRads( v, angleDegs * Fullik.torad ); };
 
-Fullik.rotateXRads = function( v, angleRads ){ 
-    var cosTheta = Math.cos( angleRads );
-    var sinTheta = Math.sin( angleRads );
+Fullik.rotateXRads = function( v, rad ){ 
+    var cosTheta = Math.cos( rad );
+    var sinTheta = Math.sin( rad );
     return new Fullik.V3( v.x, v.y * cosTheta - v.z * sinTheta, v.y * sinTheta + v.z * cosTheta );
 };
 
-Fullik.rotateYRads = function( v, angleRads ){ 
-    var cosTheta = Math.cos( angleRads );
-    var sinTheta = Math.sin( angleRads );
+Fullik.rotateYRads = function( v, rad ){ 
+    var cosTheta = Math.cos( rad );
+    var sinTheta = Math.sin( rad );
     return new Fullik.V3( v.z * sinTheta + v.x * cosTheta, v.y, v.z * cosTheta - v.x * sinTheta );
 };
 
-Fullik.rotateZRads = function( v, angleRads ){ 
-    var cosTheta = Math.cos( angleRads );
-    var sinTheta = Math.sin( angleRads );
+Fullik.rotateZRads = function( v, rad ){ 
+    var cosTheta = Math.cos( rad );
+    var sinTheta = Math.sin( rad );
     return new Fullik.V3( v.x * cosTheta - v.y * sinTheta, v.x * sinTheta + v.y * cosTheta, v.z );
 };
 
@@ -283,8 +303,8 @@ Fullik.getAngleLimitedUnitVectorDegs = function( vecToLimit, vecBaseline, angleL
         // Our new vector is the baseline vector rotated by the max allowable angle about the correction axis
         return Fullik.rotateAboutAxisDegs( vecBaseline, angleLimitDegs, correctionAxis ).normalize();
     }
-    else // Angle not greater than limit? Just return a normalised version of the vecToLimit
-    {
+    else {// Angle not greater than limit? Just return a normalised version of the vecToLimit
+    
         // This may already BE normalised, but we have no way of knowing without calcing the length, so best be safe and normalise.
         // TODO: If performance is an issue, then I could get the length, and if it's not approx. 1.0f THEN normalise otherwise just return as is.
         return vecToLimit.normalised();
@@ -295,7 +315,7 @@ Fullik.getAngleLimitedUnitVectorDegs = function( vecToLimit, vecBaseline, angleL
 
 // distance
 
-Fullik.withinManhattanDistance = function( v1, v2, distance ){
+/*Fullik.withinManhattanDistance = function( v1, v2, distance ){
     if (Math.abs(v2.x - v1.x) > distance) return false; // Too far in x direction
     if (Math.abs(v2.y - v1.y) > distance) return false; // Too far in y direction
     if (Math.abs(v2.z - v1.z) > distance) return false; // Too far in z direction   
@@ -304,7 +324,7 @@ Fullik.withinManhattanDistance = function( v1, v2, distance ){
 
 Fullik.manhattanDistanceBetween = function( v1, v2 ){
     return Math.abs(v2.x - v1.x) + Math.abs(v2.x - v1.x) + Math.abs(v2.x - v1.x);
-};
+};*/
 
 Fullik.distanceBetween = function( v1, v2 ){
     var d = v2.clone().sub(v1);
@@ -343,7 +363,7 @@ Fullik.M3.prototype.setV3 = function( vx, vy, vz ){
 
 };
 
-Fullik.M3.prototype.transpose = function( m ){
+/*Fullik.M3.prototype.transpose = function( m ){
 
     var tm = m.elements;
     return new Fullik.M3().set( tm[0], tm[1], tm[2],  tm[3], tm[4], tm[5],  tm[6], tm[7], tm[8] );
@@ -362,11 +382,11 @@ Fullik.M3.prototype.determinant = function(){
     var te = this.elements;
     return te[2] * te[3] * te[7] - te[2]  * te[6] * te[4] - te[1] * te[3] * te[8] + te[1] * te[6] * te[5] + te[0] * te[4] * te[8] - te[0] * te[7] * te[5];
 
-};
+};*/
 
 
 
-Fullik.M3.prototype.timesM3 = function( m ){
+/*Fullik.M3.prototype.timesM3 = function( m ){
 
     var temp = new Fullik.M3();
 
@@ -387,7 +407,7 @@ Fullik.M3.prototype.timesM3 = function( m ){
     tt[8] = te[6] * tm[2] + te[7] * tm[5] + te[8] * tm[8];
 
     return temp;
-};
+};*/
 
 Fullik.M3.prototype.timesV3 = function( v ){
 
@@ -411,12 +431,16 @@ Fullik.M3.prototype.isOrthogonal = function(){
 };
 
 
-Fullik.M3.prototype.rotateRads = function( rotationAxis, angleRads ){
+Fullik.M3.prototype.rotateDegs = function( angleDegs, localAxis ){
+    return this.rotateRads( localAxis, angleDegs * Fullik.torad ); 
+};
+
+Fullik.M3.prototype.rotateRads = function( rotationAxis, rad ){
 
     var dest = new Fullik.M3();
 
-    var sin         =  Math.sin( angleRads );
-    var cos         =  Math.cos( angleRads );     
+    var sin         =  Math.sin( rad );
+    var cos         =  Math.cos( rad );     
     var oneMinusCos = 1 - cos;
 
     var xy = rotationAxis.x * rotationAxis.y;
@@ -466,8 +490,21 @@ Fullik.M3.prototype.rotateRads = function( rotationAxis, angleRads ){
 
 };
 
-Fullik.M3.prototype.rotateDegs = function( angleDegs, localAxis ){
-    return this.rotateRads( localAxis, angleDegs * Fullik.torad ); 
+
+
+// get
+
+Fullik.M3.prototype.getXBasis = function(){
+    var te = this.elements;
+    return new Fullik.V3( te[0], te[3], te[6] );
+};
+Fullik.M3.prototype.getYBasis = function(){
+    var te = this.elements;
+    return new Fullik.V3( te[1], te[4], te[7] );
+};
+Fullik.M3.prototype.getZBasis = function(){
+    var te = this.elements;
+    return new Fullik.V3( te[2], te[5], te[8] );
 };
 
 // set 
@@ -476,44 +513,30 @@ Fullik.M3.prototype.setXBasis = function( v ){
     var te = this.elements;
     te[0] = v.x; te[3] = v.y; te[6] = v.z;
 };
-Fullik.M3.prototype.getXBasis = function(){
-    var te = this.elements;
-    return new Fullik.V3( te[0], te[3], te[6] );
-};
-
 Fullik.M3.prototype.setYBasis = function( v ){
     var te = this.elements;
     te[1] = v.x; te[4] = v.y; te[7] = v.z;
 };
-Fullik.M3.prototype.getYBasis = function(){
-    var te = this.elements;
-    return new Fullik.V3( te[1], te[4], te[7] );
-};
-
 Fullik.M3.prototype.setZBasis = function( v ){
     var te = this.elements;
     te[2] = v.x; te[5] = v.y; te[8] = v.z;
 };
-Fullik.M3.prototype.getZBasis = function(){
-    var te = this.elements;
-    return new Fullik.V3( te[2], te[5], te[8] );
-};
 
 
 
 
-Fullik.inverseM3 = function( m ){
+/*Fullik.inverseM3 = function( m ){
 
     return new Fullik.M3().getInverse(m);
 
-}
+}*/
 
 
 Fullik.createRotationMatrix = function( referenceDirection ){
 
     var xAxis;
     var yAxis;
-    var zAxis = referenceDirection.normalize();
+    var zAxis = referenceDirection.normalised();
             
     // Handle the singularity (i.e. bone pointing along negative Z-Axis)...
     if( referenceDirection.z < -0.9999999 ){
@@ -529,36 +552,6 @@ Fullik.createRotationMatrix = function( referenceDirection ){
     return new Fullik.M3().setV3( xAxis, yAxis, zAxis );
 
 };
-
-
-
-
-
-
-// -------------------------------
-//
-//      Matrix4 >> M4
-//
-// -------------------------------
-/*
-Fullik.M4 = function(){
-    THREE.Matrix4 .call( this );
-};
-
-Fullik.M4.prototype = Object.create( THREE.Matrix4.prototype );
-Fullik.M4.prototype.constructor = Fullik.M4;
-
-
-
-
-
-
-
-
-
-
-Fullik.approximatelyEquals = function( a, b, t ){ return Math.abs(a - b) <= t ? true : false; };
-*/
 
 
 Fullik.Joint = function( source ){
@@ -600,9 +593,9 @@ Fullik.Joint.prototype = {
     setHinge: function( type, rotationAxis, clockwiseConstraintDegs, anticlockwiseConstraintDegs, referenceAxis ){
 
         // Set params
+        this.type = type;
         this.mHingeClockwiseConstraintDegs     = clockwiseConstraintDegs;
         this.mHingeAnticlockwiseConstraintDegs = anticlockwiseConstraintDegs;
-        this.type = type;
         this.mRotationAxisUV.copy( rotationAxis.normalised() );
         this.mReferenceAxisUV.copy( referenceAxis.normalised() );
 
@@ -668,7 +661,8 @@ Fullik.Joint.prototype = {
     
 }
 
-Fullik.Bone = function( startLocation, endLocation, directionUV, length ){ //, directionUV, length, name ){
+
+Fullik.Bone = function( startLocation, endLocation, directionUV, length ){
 
     this.mJoint = new Fullik.Joint();
     this.mStartLocation = new Fullik.V3();
@@ -1431,7 +1425,7 @@ Fullik.Chain.prototype = {
                     var cwConstraintDegs   = -joint.getHingeClockwiseConstraintDegs();
                     var acwConstraintDegs  =  joint.getHingeAnticlockwiseConstraintDegs();
 
-                    if ( !( Fullik.nearEquals( cwConstraintDegs, -Fullik.MAX_ANGLE_DEGS, 0.001 ) ) && !( Fullik.nearEquals( acwConstraintDegs, Fullik.MAX_ANGLE_DEGS, 0.001 ) ) ) {
+                    if ( !( Fullik.nearEquals( cwConstraintDegs, -Fullik.MAX_ANGLE_DEGS, Fullik.PRECISION ) ) && !( Fullik.nearEquals( acwConstraintDegs, Fullik.MAX_ANGLE_DEGS, Fullik.PRECISION ) ) ) {
 
                         var hingeReferenceAxis =  joint.getHingeReferenceAxis();
                         
@@ -1463,7 +1457,7 @@ Fullik.Chain.prototype = {
                     // Constrain rotation about reference axis if required
                     var cwConstraintDegs  = -joint.getHingeClockwiseConstraintDegs();
                     var acwConstraintDegs =  joint.getHingeAnticlockwiseConstraintDegs();
-                    if ( !( Fullik.nearEquals( cwConstraintDegs, -Fullik.MAX_ANGLE_DEGS, 0.001 ) ) && !( Fullik.nearEquals( acwConstraintDegs, Fullik.MAX_ANGLE_DEGS, 0.001 ) ) ) {
+                    if ( !( Fullik.nearEquals( cwConstraintDegs, -Fullik.MAX_ANGLE_DEGS, Fullik.PRECISION ) ) && !( Fullik.nearEquals( acwConstraintDegs, Fullik.MAX_ANGLE_DEGS, Fullik.PRECISION ) ) ) {
 
                         // Calc. the reference axis in local space
                         //Vec3f relativeHingeReferenceAxis = mBaseboneRelativeReferenceConstraintUV;//m.times( joint.getHingeReferenceAxis() ).normalise();
@@ -1532,10 +1526,10 @@ Fullik.Chain.prototype = {
                         if ( this.mNumBones > 1 ) { this.bones[1].setStartLocation( newEndLocation ); }
                     }
                     else if ( this.mBaseboneConstraintType === Fullik.BB_LOCAL_ROTOR ){
-                        // Note: The mBaseboneRelativeConstraintUV is updated in the FullikStructure3D.updateTarget()
-                        // method BEFORE this FullikChain3D.updateTarget() method is called. We no knowledge of the
+                        // Note: The mBaseboneRelativeConstraintUV is updated in the Fullik.Structure.updateTarget()
+                        // method BEFORE this Fullik.Chain.updateTarget() method is called. We no knowledge of the
                         // direction of the bone we're connected to in another chain and so cannot calculate this 
-                        // relative basebone constraint direction on our own, but the FullikStructure3D does it for
+                        // relative basebone constraint direction on our own, but the Fullik.Structure does it for
                         // us so we are now free to use it here.
                         
                         // Get the inner-to-outer direction of this bone
@@ -1566,7 +1560,7 @@ Fullik.Chain.prototype = {
                         var boneInnerToOuterUV = bone.getDirectionUV().projectOnPlane( hingeRotationAxis ).normalize();
                                 
                         // If we have a global hinge which is not freely rotating then we must constrain about the reference axis
-                        if ( !( Fullik.nearEquals( cwConstraintDegs, Fullik.MAX_ANGLE_DEGS, 0.01 ) ) && !( Fullik.nearEquals( acwConstraintDegs, Fullik.MAX_ANGLE_DEGS, 0.01 ) ) ) {
+                        if ( !( Fullik.nearEquals( cwConstraintDegs, Fullik.MAX_ANGLE_DEGS, Fullik.PRECISION_DEG ) ) && !( Fullik.nearEquals( acwConstraintDegs, Fullik.MAX_ANGLE_DEGS, Fullik.PRECISION_DEG ) ) ) {
 
                             // Grab the hinge reference axis and calculate the current signed angle between it and our bone direction (about the hinge
                             // rotation axis). Note: ACW rotation is positive, CW rotation is negative.
@@ -1597,7 +1591,7 @@ Fullik.Chain.prototype = {
                         var boneInnerToOuterUV = bone.getDirectionUV().projectOnPlane(hingeRotationAxis).normalize();
                         
                         //If we have a local hinge which is not freely rotating then we must constrain about the reference axis
-                        if ( !( Fullik.nearEquals( cwConstraintDegs, Fullik.MAX_ANGLE_DEGS, 0.01 ) ) && !( Fullik.nearEquals( acwConstraintDegs, Fullik.MAX_ANGLE_DEGS, 0.01 ) ) ) {
+                        if ( !( Fullik.nearEquals( cwConstraintDegs, Fullik.MAX_ANGLE_DEGS, Fullik.PRECISION_DEG ) ) && !( Fullik.nearEquals( acwConstraintDegs, Fullik.MAX_ANGLE_DEGS, Fullik.PRECISION_DEG ) ) ) {
         
                             // Grab the hinge reference axis and calculate the current signed angle between it and our bone direction (about the hinge
                             // rotation axis). Note: ACW rotation is positive, CW rotation is negative.

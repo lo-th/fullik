@@ -22,6 +22,7 @@
 
 	<script src="js/three.min.js"></script>
 	<script src="js/OrbitControls.js"></script>
+    <script src="js/TransformControls.js"></script>
     <script src='js/uil.min.js'></script>
 
 	<script src="src/Fullik.js"></script>
@@ -35,7 +36,7 @@
 
 	<script>
 
-		var gui, scene, camera, renderer, orbit, ambientLight, lights, mesh, bones, skeletonHelper;
+		var gui, scene, camera, renderer, orbit, ambientLight, lights, mesh, bones, skeletonHelper, control ;
 
 		var target, effector;
 
@@ -61,7 +62,7 @@
 
 			
 			scene = new THREE.Scene();
-			camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 200 );
+			camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 2000 );
 			camera.position.z = 30;
 			camera.position.y = 30;
 
@@ -77,10 +78,16 @@
 
 
 
-			boxTarget = new THREE.Mesh(new THREE.BoxBufferGeometry( 1, 1, 1 ),  new THREE.MeshStandardMaterial({color:0xFF0000}) );
+			boxTarget = new THREE.Mesh(new THREE.SphereBufferGeometry( 2 ),  new THREE.MeshStandardMaterial({color:0xFF0088, wireframe:true }) );
 			scene.add( boxTarget );
 			boxTarget.position.set(0,20,0);
 			target = boxTarget.position;
+
+            control = new THREE.TransformControls( camera, renderer.domElement );
+            control.addEventListener( 'change', updateSolver );
+
+            control.attach( boxTarget );
+            scene.add( control );
 
 			ambientLight = new THREE.AmbientLight( 0x000000 );
 			scene.add( ambientLight );
@@ -97,18 +104,6 @@
 			scene.add( lights[ 0 ] );
 			scene.add( lights[ 1 ] );
 			scene.add( lights[ 2 ] );
-
-			/*for(var i=0; i<7 ; i++ ){
-				var g = new THREE.BoxBufferGeometry( 1, 1, defaultBoneLength );
-				g.applyMatrix( new THREE.Matrix4().makeTranslation( 0,0,defaultBoneLength*0.5 ) )
-				if(i===0) box[i] = new THREE.Mesh( g,  new THREE.MeshStandardMaterial({color:0xFFFFFF}) );
-				else box[i] = new THREE.Mesh( g,  new THREE.MeshStandardMaterial({color:0xFFFF00}) );
-				
-				scene.add( box[i] );
-			}*/
-
-			
-
 
 			window.addEventListener( 'resize', function () {
 
@@ -156,9 +151,9 @@
             //gui.add('button',   { name:'Demo 11' } ).onChange( function(v) { demo(11) });
             gui.add('button',   { name:'Demo 12' } ).onChange( function(v) { demo(12) });
 
-			gui.add( target, 'x', { min:-100, max:100 } )//.onChange(function(value) {updateTarget()});
-			gui.add( target, 'y', { min:-100, max:100 } )//.onChange(function(value) {updateTarget()});
-			gui.add( target, 'z', { min:-100, max:100 } )//.onChange(function(value) {updateTarget()});
+			//gui.add( target, 'x', { min:-100, max:100 } ).onChange(updateSolver);
+			//gui.add( target, 'y', { min:-100, max:100 } ).onChange(updateSolver);
+			//gui.add( target, 'z', { min:-100, max:100 } ).onChange(updateSolver);
 
             gui.add('bool',   { name:'fixed', value:true} ).onChange(function(v) {solver.setFixedBaseMode(v); solver.update(); });
 
@@ -196,12 +191,16 @@
                     var basebone = new Fullik.Bone( startLoc, endLoc );
                     chain.addBone( basebone );
 
-                    chain3D.push( addBone3D({ x:1, y:1, z:defaultBoneLength }, 0xFFFFFF) );
+                    
+
+                    chain3D.push( addBone3D( defaultBoneLength, 0xFFFFFF) );
 
                     for (var j = 0; j < 7; j++) {
 
+                       // var color = ColorLuminance(color, 10);
+
                         chain.addConsecutiveBone( defaultBoneDirection, defaultBoneLength );
-                        chain3D.push( addBone3D() );
+                        chain3D.push( addBone3D(defaultBoneLength, ColorLuminance( 0x550000, 25*j ) ) );
 
                     };
 
@@ -226,9 +225,9 @@
                     var color = 0xFF0000;
 
                     switch (i){
-                        case 0: color = 0xFF0000;   break;
-                        case 1: color = 0x00FF00; break;
-                        case 2: color = 0x0000FF;  break;
+                        case 0: color = 0x550000;   break;
+                        case 1: color = 0x005500; break;
+                        case 2: color = 0x000055;  break;
                     }
 
                     var startLoc = new Fullik.V3(0, 0, -40);
@@ -239,12 +238,12 @@
                     var basebone = new Fullik.Bone( startLoc, endLoc );
                     chain.addBone( basebone );
 
-                    chain3D.push( addBone3D({ x:1, y:1, z:defaultBoneLength }, color ) );
+                    chain3D.push( addBone3D( defaultBoneLength, color ) );
 
                     for (var j = 0; j < 7; j++) {
 
                         chain.addConsecutiveRotorConstrainedBone( defaultBoneDirection, defaultBoneLength, constraintAngleDegs );
-                        chain3D.push( addBone3D( { x:1, y:1, z:defaultBoneLength }, color ) );
+                        chain3D.push( addBone3D( defaultBoneLength, ColorLuminance( color, 25*j ) ) );
 
                     };
 
@@ -284,12 +283,12 @@
                     chain.addBone( basebone );
                     chain.setRotorBaseboneConstraint( Fullik.BB_GLOBAL_ROTOR, baseBoneConstraintAxis, baseBoneConstraintAngleDegs);
 
-                    chain3D.push( addBone3D({ x:1, y:1, z:defaultBoneLength*2 }, color ) );
+                    chain3D.push( addBone3D( defaultBoneLength*2, color ) );
 
                     for (var j = 0; j < 7; j++) {
 
                         chain.addConsecutiveBone( defaultBoneDirection, defaultBoneLength );
-                        chain3D.push( addBone3D( { x:1, y:1, z:defaultBoneLength }, color ) );
+                        chain3D.push( addBone3D( defaultBoneLength, color ) );
 
                     };
 
@@ -328,13 +327,13 @@
                     var basebone = new Fullik.Bone( startLoc, endLoc );
                     chain.addBone( basebone );
 
-                    chain3D.push( addBone3D({ x:1, y:1, z:defaultBoneLength }, color ) );
+                    chain3D.push( addBone3D( defaultBoneLength, color ) );
 
                     for (var j = 0; j < 7; j++) {
 
                         if (j % 2 == 0) chain.addConsecutiveFreelyRotatingHingedBone( defaultBoneDirection, defaultBoneLength, Fullik.J_GLOBAL_HINGE, globalHingeAxis );
                         else chain.addConsecutiveBone( defaultBoneDirection, defaultBoneLength );
-                        chain3D.push( addBone3D( { x:1, y:1, z:defaultBoneLength }, color ) );
+                        chain3D.push( addBone3D( defaultBoneLength, color ) );
 
                     };
 
@@ -359,14 +358,14 @@
                 var basebone = new Fullik.Bone( startLoc, endLoc );
                 chain.addBone( basebone );
 
-                chain3D.push( addBone3D({ x:1, y:1, z:defaultBoneLength }, color ) );
+                chain3D.push( addBone3D( defaultBoneLength, color ) );
 
                 for (var j = 0; j < 8; j++) {
 
                     if (j % 2 == 0){ chain.addConsecutiveHingedBone( Y_AXIS.clone().negated(), defaultBoneLength, Fullik.J_GLOBAL_HINGE, Z_AXIS.clone(), 120, 120, Y_AXIS.clone().negated() ); color = 0x999999; }
                     else {chain.addConsecutiveBone( Y_AXIS.clone().negated(), defaultBoneLength ); color = 0x00FF00;};
 
-                    chain3D.push( addBone3D( { x:1, y:1, z:defaultBoneLength }, color ) );
+                    chain3D.push( addBone3D( defaultBoneLength, color ) );
 
                 };
 
@@ -399,12 +398,14 @@
                 var basebone = new Fullik.Bone( startLoc, endLoc );
                 chain.addBone( basebone );
 
-                chain3D.push( addBone3D({ x:1, y:1, z:defaultBoneLength }, color ) );
+                chain3D.push( addBone3D( defaultBoneLength, color ) );
 
                 for (var j = 0; j < 8; j++) {
 
+
+
                     chain.addConsecutiveBone( defaultBoneDirection, defaultBoneLength );
-                    chain3D.push( addBone3D( { x:1, y:1, z:defaultBoneLength }, color ) );
+                    chain3D.push( addBone3D( defaultBoneLength, color ) );
 
                 };
 
@@ -420,15 +421,15 @@
                 chain2.addConsecutiveBone( Z_AXIS, 20 );
 
                 color = 0xFF0000;
-                var chain3D2 = [addBone3D( { x:1, y:1, z:10 }, color ),addBone3D( { x:1, y:1, z:20 }, color ), addBone3D( { x:1, y:1, z:20 }, color ), addBone3D( { x:1, y:1, z:20 }, color ) ]
+                var chain3D2 = [addBone3D( 10 , color ),addBone3D( 20, color ), addBone3D( 20, color ), addBone3D( 20, color ) ]
                 solver.connectChain( chain2, 0, 0, Fullik.START, chain3D2, target );
 
                 color = 0x00FF00;
-                var chain3D3 = [addBone3D( { x:1, y:1, z:10 }, color ),addBone3D( { x:1, y:1, z:20 }, color ), addBone3D( { x:1, y:1, z:20 }, color ), addBone3D( { x:1, y:1, z:20 }, color ) ]
+                var chain3D3 = [addBone3D( 10, color ),addBone3D( 20, color ), addBone3D( 20, color ), addBone3D( 20, color ) ]
                 solver.connectChain( chain2, 0, 2, Fullik.START, chain3D3, target );
 
                 color = 0x0000FF;
-                var chain3D4 = [addBone3D( { x:1, y:1, z:10 }, color ),addBone3D( { x:1, y:1, z:20 }, color ), addBone3D( { x:1, y:1, z:20 }, color ), addBone3D( { x:1, y:1, z:20 }, color ) ]
+                var chain3D4 = [addBone3D( 10, color ),addBone3D( 20, color ), addBone3D( 20, color ), addBone3D( 20, color ) ]
                 solver.connectChain( chain2, 0, 4, Fullik.END, chain3D4, target );
 
 
@@ -449,12 +450,12 @@
                 var basebone = new Fullik.Bone( startLoc, endLoc );
                 chain.addBone( basebone );
 
-                chain3D.push( addBone3D({ x:1, y:1, z:defaultBoneLength }, color ) );
+                chain3D.push( addBone3D( defaultBoneLength, color ) );
 
                 for (var j = 0; j < 7; j++) {
 
                     chain.addConsecutiveBone( defaultBoneDirection, defaultBoneLength );
-                    chain3D.push( addBone3D( { x:1, y:1, z:defaultBoneLength }, color ) );
+                    chain3D.push( addBone3D( defaultBoneLength, color ) );
 
                 };
 
@@ -469,7 +470,7 @@
                 chain2.addConsecutiveBone( X_AXIS, 15 );
 
                 color = 0xFF0000;
-                var chain3D2 = [addBone3D( { x:1, y:1, z:15 }, color ),addBone3D( { x:1, y:1, z:15 }, color ), addBone3D( { x:1, y:1, z:15 }, color ), addBone3D( { x:1, y:1, z:15 }, color ) ]
+                var chain3D2 = [addBone3D( 15, color ), addBone3D( 15, color ), addBone3D( 15, color ), addBone3D( 15, color ) ]
                 solver.connectChain( chain2, 0, 3, Fullik.START, chain3D2, target );
 
                 var chain3 = new Fullik.Chain();
@@ -481,7 +482,7 @@
                 chain3.addConsecutiveBone( Y_AXIS, 15 );
 
                 color = 0x00FF00;
-                var chain3D3 = [addBone3D( { x:1, y:1, z:15 }, color ),addBone3D( { x:1, y:1, z:15 }, color ), addBone3D( { x:1, y:1, z:15 }, color ), addBone3D( { x:1, y:1, z:15 }, color ) ]
+                var chain3D3 = [addBone3D( 15, color ), addBone3D( 15, color ), addBone3D( 15, color ), addBone3D( 15, color ) ]
                 solver.connectChain( chain3, 0, 6, Fullik.START, chain3D3, target );
 
              
@@ -512,12 +513,12 @@
                 var basebone = new Fullik.Bone( startLoc, endLoc );
                 chain.addBone( basebone );
 
-                chain3D.push( addBone3D({ x:1, y:1, z:defaultBoneLength }, color ) );
+                chain3D.push( addBone3D( defaultBoneLength, color ) );
 
                 for (var j = 0; j < 7; j++) {
 
                     chain.addConsecutiveBone( defaultBoneDirection, defaultBoneLength );
-                    chain3D.push( addBone3D( { x:1, y:1, z:defaultBoneLength }, color ) );
+                    chain3D.push( addBone3D( defaultBoneLength, color ) );
 
                 };
 
@@ -532,7 +533,7 @@
                 chain2.addConsecutiveBone( X_AXIS, 10 );
 
                 color = 0xFF0000;
-                var chain3D2 = [addBone3D( { x:1, y:1, z:15 }, color ),addBone3D( { x:1, y:1, z:15 }, color ), addBone3D( { x:1, y:1, z:10 }, color ), addBone3D( { x:1, y:1, z:10 }, color ) ]
+                var chain3D2 = [addBone3D( 15, color ),addBone3D(  15 , color ), addBone3D( 10, color ), addBone3D( 10, color ) ]
                 solver.connectChain( chain2, 0, 3, Fullik.START, chain3D2, target );
 
                 break;
@@ -545,11 +546,16 @@
 
         function addBone3D( size, color ){
 
-            size = size || {x:1, y:1, z:defaultBoneLength }
-            color = color || 0XFFFF00;
-            var g = new THREE.BoxBufferGeometry( size.x, size.y, size.z );
-            g.applyMatrix( new THREE.Matrix4().makeTranslation( size.x === 1 ? 0: size.x*0.5, size.y === 1 ? 0: size.y*0.5, size.z === 1 ? 0: size.z*0.5 ) )
-            b = new THREE.Mesh( g,  new THREE.MeshStandardMaterial({color:color}) );
+            //console.log(color)
+
+            size = size || defaultBoneLength;
+            color = color;// || 0xFFFF00;
+            var g = new THREE.CylinderBufferGeometry ( 1, 0.5, size );
+            g.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) )
+            g.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0, size*0.5 ) );
+            var m = new THREE.MeshStandardMaterial();
+            m.color.setHex(color);
+            var b = new THREE.Mesh( g,  m );
             scene.add( b );
             return b;
             
@@ -570,15 +576,37 @@
 
         };
 
+        function updateSolver () {
+
+            solver.update();
+            control.update();
+
+        }
+
 		function render () {
 
 			requestAnimationFrame( render );
-
-            solver.update();
-
 			renderer.render( scene, camera );
 
 		};
+
+        function ColorLuminance( H, L) {
+
+            var hex = "#" + ("000000" + H.toString(16)).substr(-6);
+            hex = String(hex).replace(/[^0-9a-f]/gi, '');
+
+            var lum = L || 0;
+
+            // convert to decimal and change luminosity
+            var rgb = "#", c, i;
+            for ( i = 0; i < 3; i++) {
+                c = parseInt( hex.substr(i*2,2), 16);
+                c = Math.round(Math.min(Math.max(0, c + (c * (lum*0.01))), 255)).toString(16);
+                rgb += ("00"+c).substr(c.length);
+            }
+
+            return rgb.toUpperCase().replace("#", "0x");//Number(rgb).toString(16);
+        }
 
 		//initTest();
 
