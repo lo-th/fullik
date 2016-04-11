@@ -143,12 +143,12 @@
             gui.add('button',   { name:'Demo 3' } ).onChange( function(v) { demo(3) });
             gui.add('button',   { name:'Demo 4' } ).onChange( function(v) { demo(4) });
             gui.add('button',   { name:'Demo 5' } ).onChange( function(v) { demo(5) });
-            //gui.add('button',   { name:'Demo 6' } ).onChange( function(v) { demo(6) });
-            //gui.add('button',   { name:'Demo 7' } ).onChange( function(v) { demo(7) });
+            gui.add('button',   { name:'Demo 6' } ).onChange( function(v) { demo(6) });
+            gui.add('button',   { name:'Demo 7' } ).onChange( function(v) { demo(7) });
             gui.add('button',   { name:'Demo 8' } ).onChange( function(v) { demo(8) });
             gui.add('button',   { name:'Demo 9' } ).onChange( function(v) { demo(9) });
-            //gui.add('button',   { name:'Demo 10' } ).onChange( function(v) { demo(10) });
-            //gui.add('button',   { name:'Demo 11' } ).onChange( function(v) { demo(11) });
+            gui.add('button',   { name:'Demo 10' } ).onChange( function(v) { demo(10) });
+            gui.add('button',   { name:'Demo 11' } ).onChange( function(v) { demo(11) });
             gui.add('button',   { name:'Demo 12' } ).onChange( function(v) { demo(12) });
 
 			//gui.add( target, 'x', { min:-100, max:100 } ).onChange(updateSolver);
@@ -376,11 +376,97 @@
 
                 tell("Demo 6 - Freely Rotating Local Hinges");
 
+                var numChains = 3;
+                var rotStep = 360 / numChains;
+                var baseBoneConstraintAngleDegs = 20;
+                var hingeRotationAxis;
+
+                for (var i = 0; i < numChains; i++ ){
+
+                    var chain = new Fullik.Chain();
+                    var chain3D = [];
+
+                    var color = 0xFF0000;
+
+                    switch (i){
+                        case 0: color = 0xFF0000; hingeRotationAxis = X_AXIS.clone(); break;
+                        case 1: color = 0x00FF00; hingeRotationAxis = Y_AXIS.clone(); break;
+                        case 2: color = 0x0000FF; hingeRotationAxis = Z_AXIS.clone(); break;
+                    }
+
+                    var startLoc = new Fullik.V3(0, 0, -40);
+                    startLoc = Fullik.rotateYDegs( startLoc, rotStep * i );
+                    var endLoc = startLoc.plus( defaultBoneDirection.times(defaultBoneLength));
+
+                    var basebone = new Fullik.Bone( startLoc, endLoc );
+                    chain.addBone( basebone );
+
+                    chain3D.push( addBone3D( defaultBoneLength, color ) );
+
+                    for (var j = 0; j < 7; j++) {
+
+                        if (j % 2 == 0) chain.addConsecutiveFreelyRotatingHingedBone( defaultBoneDirection, defaultBoneLength, Fullik.J_LOCAL_HINGE, hingeRotationAxis );
+                        else chain.addConsecutiveBone( defaultBoneDirection, defaultBoneLength );
+                        chain3D.push( addBone3D( defaultBoneLength, color ) );
+
+                    };
+
+                    solver.add( chain, chain3D, target );
+
+                }
+
                 break;
 
                 case 7:
 
                 tell("Demo 7 - Local Hinges with Reference Axis Constraints");
+
+                var numChains = 3;
+                var rotStep = 360 / numChains;
+                var baseBoneConstraintAngleDegs = 20;
+                var hingeRotationAxis;
+                var hingeReferenceAxis;
+
+                for (var i = 0; i < numChains; i++ ){
+
+                    var chain = new Fullik.Chain();
+                    var chain3D = [];
+
+                    var color = 0xFF0000;
+
+                    switch (i){
+                        case 0: color = 0xFF0000; hingeRotationAxis = X_AXIS.clone(); hingeReferenceAxis = Y_AXIS.clone(); break;
+                        case 1: color = 0x00FF00; hingeRotationAxis = Y_AXIS.clone(); hingeReferenceAxis = X_AXIS.clone(); break;
+                        case 2: color = 0x0000FF; hingeRotationAxis = Z_AXIS.clone(); hingeReferenceAxis = Y_AXIS.clone(); break;
+                    }
+
+                    var startLoc = new Fullik.V3(0, 0, -40);
+                    startLoc = Fullik.rotateYDegs( startLoc, rotStep * i );
+                    var endLoc = startLoc.plus( defaultBoneDirection.times(defaultBoneLength));
+
+                    var basebone = new Fullik.Bone( startLoc, endLoc );
+                    chain.addBone( basebone );
+
+                    chain3D.push( addBone3D( defaultBoneLength, color ) );
+
+                    for (var j = 0; j < 6; j++) {
+
+                        if (j % 2 == 0){ 
+                            chain.addConsecutiveHingedBone( defaultBoneDirection, defaultBoneLength, Fullik.J_LOCAL_HINGE, hingeReferenceAxis, 90, 90, hingeReferenceAxis );
+                            chain3D.push( addBone3D( defaultBoneLength, 0xAAAAAA ) );
+                        }
+                        else{ 
+                            chain.addConsecutiveBone( defaultBoneDirection, defaultBoneLength );
+                            chain3D.push( addBone3D( defaultBoneLength, color ) );
+                        }
+
+                        
+
+                    };
+
+                    solver.add( chain, chain3D, target );
+
+                }
 
                 break;
                 case 8:
@@ -401,8 +487,6 @@
                 chain3D.push( addBone3D( defaultBoneLength, color ) );
 
                 for (var j = 0; j < 8; j++) {
-
-
 
                     chain.addConsecutiveBone( defaultBoneDirection, defaultBoneLength );
                     chain3D.push( addBone3D( defaultBoneLength, color ) );
@@ -492,10 +576,84 @@
 
                 tell("Demo 10 - Local Rotor Constrained Connected Chains");
 
+                var chain = new Fullik.Chain();
+                var chain3D = [];
+
+                var color = 0x999999;
+
+                var startLoc = new Fullik.V3(0, 0, 40);
+                var endLoc = startLoc.plus( defaultBoneDirection.times(defaultBoneLength) );
+
+                var basebone = new Fullik.Bone( startLoc, endLoc );
+                chain.addBone( basebone );
+
+                chain3D.push( addBone3D( defaultBoneLength, color ) );
+
+                for (var j = 0; j < 7; j++) {
+
+                    chain.addConsecutiveBone( defaultBoneDirection, defaultBoneLength );
+                    chain3D.push( addBone3D( defaultBoneLength, color ) );
+
+                };
+
+                solver.add( chain, chain3D, target );
+
+                var chain2 = new Fullik.Chain();
+                var base = new Fullik.Bone( new Fullik.V3(0, 0, 0), new Fullik.V3(15, 0, 0) );
+                chain2.addBone(base);
+                
+                chain2.setRotorBaseboneConstraint( Fullik.BB_LOCAL_ROTOR, X_AXIS, 45 );
+
+                chain2.addConsecutiveBone( X_AXIS, 15 );
+                chain2.addConsecutiveBone( X_AXIS, 15 );
+                chain2.addConsecutiveBone( X_AXIS, 15 );
+
+                color = 0xFF0000;
+                var chain3D2 = [addBone3D( 15, color ),addBone3D(  15 , color ), addBone3D( 15, color ), addBone3D( 15, color ) ]
+                solver.connectChain( chain2, 0, 3, Fullik.START, chain3D2, target );
+
                 break;
                 case 11:
 
                 tell("Demo 11 - Connected Chains with Freely-Rotating Global Hinged Basebone Constraints");
+
+                var chain = new Fullik.Chain();
+                var chain3D = [];
+
+                var color = 0x999999;
+
+                var startLoc = new Fullik.V3(0, 0, 40);
+                var endLoc = startLoc.plus( defaultBoneDirection.times(defaultBoneLength) );
+
+                var basebone = new Fullik.Bone( startLoc, endLoc );
+                chain.addBone( basebone );
+
+                chain3D.push( addBone3D( defaultBoneLength, color ) );
+
+                for (var j = 0; j < 7; j++) {
+
+                    chain.addConsecutiveBone( defaultBoneDirection, defaultBoneLength );
+                    chain3D.push( addBone3D( defaultBoneLength, color ) );
+
+                };
+
+                solver.add( chain, chain3D, target );
+
+                var chain2 = new Fullik.Chain();
+                var base = new Fullik.Bone( new Fullik.V3(0, 0, 0), new Fullik.V3(15, 0, 0) );
+                chain2.addBone(base);
+
+                // Set this second chain to have a freely rotating global hinge which rotates about the Y axis
+                // Note: We MUST add the basebone to the chain before we can set the basebone constraint on it.
+                chain2.setFreelyRotatingGlobalHingedBasebone( Y_AXIS );
+
+                chain2.addConsecutiveBone( X_AXIS, 15 );
+                chain2.addConsecutiveBone( X_AXIS, 15 );
+                chain2.addConsecutiveBone( X_AXIS, 15 );
+
+                color = 0xFF0000;
+                var chain3D2 = [addBone3D( 15, color ),addBone3D(  15 , color ), addBone3D( 15, color ), addBone3D( 15, color ) ]
+                solver.connectChain( chain2, 0, 3, Fullik.START, chain3D2, target );
 
                 break;
                 case 12:

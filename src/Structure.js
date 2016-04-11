@@ -45,7 +45,7 @@ Fullik.Structure.prototype = {
                         
                     // We'll then get the basebone constraint UV and multiply it by the rotation matrix of the connected bone 
                     // to make the basebone constraint UV relative to the direction of bone it's connected to.
-                    var relativeBaseboneConstraintUV = connectionBoneMatrix.times( c.getBaseboneConstraintUV() ).normalised();
+                    var relativeBaseboneConstraintUV = connectionBoneMatrix.timesV3( c.getBaseboneConstraintUV() ).normalised();
                             
                     // Update our basebone relative constraint UV property
                     c.setBaseboneRelativeConstraintUV(relativeBaseboneConstraintUV);

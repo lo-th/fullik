@@ -144,7 +144,7 @@ Fullik.Chain.prototype = {
 
     addConsecutiveHingedBone: function( directionUV, length, jointType, hingeRotationAxis, clockwiseDegs, anticlockwiseDegs, hingeReferenceAxis ){
         // Cannot add a consectuive bone of any kind if the there is no basebone
-        if (this.mNumBones === 0) return;
+        if ( this.mNumBones === 0 ) return;
 
         // Normalise the direction and hinge rotation axis 
         directionUV.normalize();
