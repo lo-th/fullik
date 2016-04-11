@@ -160,10 +160,10 @@ Fullik.Chain.prototype = {
         var joint = new Fullik.Joint();
         switch (jointType){
             case Fullik.J_GLOBAL_HINGE:
-                joint.setAsGlobalHinge( hingeRotationAxis, clockwiseDegs, anticlockwiseDegs, hingeReferenceAxis);
+                joint.setAsGlobalHinge( hingeRotationAxis, clockwiseDegs, anticlockwiseDegs, hingeReferenceAxis );
                 break;
             case Fullik.J_LOCAL_HINGE:
-                joint.setAsLocalHinge( hingeRotationAxis, clockwiseDegs, anticlockwiseDegs, hingeReferenceAxis);
+                joint.setAsLocalHinge( hingeRotationAxis, clockwiseDegs, anticlockwiseDegs, hingeReferenceAxis );
                 break;
             default:
                 //throw new IllegalArgumentException("Hinge joint types may be only Fullik.J_GLOBAL_HINGE or Fullik.J_LOCAL_HINGE.");
@@ -388,6 +388,11 @@ Fullik.Chain.prototype = {
     //
     // -------------------------------
 
+    resetTarget : function( ){
+        this.mLastBaseLocation = new Fullik.V3( Fullik.MAX_VALUE, Fullik.MAX_VALUE, Fullik.MAX_VALUE );
+        this.mCurrentSolveDistance = Fullik.MAX_VALUE;
+    },
+
 
     // Method to solve this IK chain for the given target location.
     // The end result of running this method is that the IK chain configuration is updated.
@@ -525,7 +530,7 @@ Fullik.Chain.prototype = {
                         m = Fullik.createRotationMatrix( this.bones[i-1].getDirectionUV() );
                         relativeHingeRotationAxis = m.timesV3( joint.getHingeRotationAxis() ).normalize();
                     } else {// ...basebone? Need to construct matrix from the relative constraint UV.
-                        relativeHingeRotationAxis = this.mBaseboneRelativeConstraintUV;
+                        relativeHingeRotationAxis = this.mBaseboneRelativeConstraintUV.clone();
                     }
                     
                     // ...and transform the hinge rotation axis into the previous bones frame of reference.
@@ -797,7 +802,7 @@ Fullik.Chain.prototype = {
                         var acwConstraintDegs  =  joint.getHingeAnticlockwiseConstraintDegs();
                         
                         // Get the inner-to-outer direction of this bone and project it onto the global hinge rotation axis
-                        var boneInnerToOuterUV = bone.getDirectionUV().projectOnPlane(hingeRotationAxis).normalize();
+                        var boneInnerToOuterUV = bone.getDirectionUV().projectOnPlane(hingeRotationAxis);//.normalize();
                         
                         //If we have a local hinge which is not freely rotating then we must constrain about the reference axis
                         if ( !( Fullik.nearEquals( cwConstraintDegs, Fullik.MAX_ANGLE_DEGS, Fullik.PRECISION_DEG ) ) && !( Fullik.nearEquals( acwConstraintDegs, Fullik.MAX_ANGLE_DEGS, Fullik.PRECISION_DEG ) ) ) {

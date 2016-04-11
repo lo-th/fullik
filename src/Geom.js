@@ -363,7 +363,9 @@ Fullik.M3.prototype.determinant = function(){
 
 Fullik.M3.prototype.timesV3 = function( v ){
 
-    var te = this.elements;
+    var te = this.clone().elements;
+
+    //var te = this.elements;
 
     return new Fullik.V3(
         te[0] * v.x + te[1] * v.y + te[2] * v.z,

@@ -38,7 +38,7 @@ Fullik.Joint.prototype = {
     // Specify this joint to be a hinge with the provided settings.
     setHinge: function( type, rotationAxis, clockwiseConstraintDegs, anticlockwiseConstraintDegs, referenceAxis ){
 
-        // Set params
+        // Set paramsgetHingeReferenceAxis
         this.type = type;
         this.mHingeClockwiseConstraintDegs     = clockwiseConstraintDegs;
         this.mHingeAnticlockwiseConstraintDegs = anticlockwiseConstraintDegs;

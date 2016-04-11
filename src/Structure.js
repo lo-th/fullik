@@ -14,17 +14,25 @@ Fullik.Structure.prototype = {
 
     update:function(){
 
-        var c, m, b;
+        var c, m, b, t;
         var connectedChainNumber;
         var hostChain, hostBone, constraintType;
+
+        //var i =  this.mNumChains;
+
+        //while(i--){
 
         for(var i = 0; i< this.mNumChains ; i++){
 
             c = this.chains[i];
-            connectedChainNumber = c.getConnectedChainNumber();
             m = this.meshChains[i];
+            t = this.targets[i];
 
-            if (connectedChainNumber === -1) c.updateTarget( this.targets[i] );
+            connectedChainNumber = c.getConnectedChainNumber();
+
+            //this.chains[0].updateTarget( this.targets[0] );
+
+            if (connectedChainNumber === -1) c.updateTarget( t );
             else{
                 hostChain = this.chains[connectedChainNumber];
                 hostBone  = hostChain.getBone( c.getConnectedBoneNumber() );
@@ -41,24 +49,29 @@ Fullik.Structure.prototype = {
                     // If we have a local rotor or hinge constraint then we must calculate the relative basebone constraint before calling updateTarget
                     case Fullik.BB_LOCAL_ROTOR:
                     case Fullik.BB_LOCAL_HINGE:
+
                     var connectionBoneMatrix = Fullik.createRotationMatrix( hostBone.getDirectionUV() );
                         
                     // We'll then get the basebone constraint UV and multiply it by the rotation matrix of the connected bone 
                     // to make the basebone constraint UV relative to the direction of bone it's connected to.
-                    var relativeBaseboneConstraintUV = connectionBoneMatrix.timesV3( c.getBaseboneConstraintUV() ).normalised();
+                    var relativeBaseboneConstraintUV = connectionBoneMatrix.timesV3( c.getBaseboneConstraintUV() ).normalize();
                             
                     // Update our basebone relative constraint UV property
-                    c.setBaseboneRelativeConstraintUV(relativeBaseboneConstraintUV);
+                    c.setBaseboneRelativeConstraintUV( relativeBaseboneConstraintUV );
                         
                         // Updat the relative reference constraint UV if we hav a local hinge
                     if (constraintType === Fullik.BB_LOCAL_HINGE)
-                        c.setBaseboneRelativeReferenceConstraintUV( connectionBoneMatrix.times( c.getBone(0).getJoint().getHingeReferenceAxis() ) );
+                        c.setBaseboneRelativeReferenceConstraintUV( connectionBoneMatrix.timesV3( c.getBone(0).getJoint().getHingeReferenceAxis() ) );
                         
                     break;
 
                 }
 
-                c.updateTarget( this.targets[i] );
+                
+                c.resetTarget();//
+                //hostChain.updateTarget( this.targets[connectedChainNumber] );
+
+                c.updateTarget( t );
 
 
             }
