@@ -1,6 +1,6 @@
 
 
-Fullik.Bone = function( startLocation, endLocation, directionUV, length ){
+Fullik.Bone = function( startLocation, endLocation, directionUV, length, color ){
 
     this.mJoint = new Fullik.Joint();
     this.mStartLocation = new Fullik.V3();
@@ -8,6 +8,9 @@ Fullik.Bone = function( startLocation, endLocation, directionUV, length ){
     
     this.mBoneConnectionPoint = Fullik.END;
     this.mLength = 0;
+
+    this.color = color || 0xFFFFFF;
+    this.name = '';
 
     this.init( startLocation, endLocation, directionUV, length );
 
@@ -46,6 +49,14 @@ Fullik.Bone.prototype = {
     
 
     // SET
+
+    setName:function( name ){
+        this.name = name;
+    },
+
+    setColor:function( c ){
+        this.color = c;
+    },
 
     setBoneConnectionPoint:function( bcp ){
         this.mBoneConnectionPoint = bcp;

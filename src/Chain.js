@@ -1,6 +1,6 @@
 
 
-Fullik.Chain = function( source ){
+Fullik.Chain = function( color ){
 
     this.bones = [];
     this.name = '';
@@ -27,31 +27,8 @@ Fullik.Chain = function( source ){
     this.mConnectedChainNumber = -1;
     this.mConnectedBoneNumber = -1;
 
-    /*if( source!==undefined ){
+    this.color = color || 0xFFFFFF;
 
-        this.bones = source.cloneIkChain();
-        
-        this.mFixedBaseLocation.copy( source.mFixedBaseLocation );
-        this.mLastTargetLocation.copy( source.mLastTargetLocation );
-        this.mLastBaseLocation.copy( source.mLastBaseLocation );
-                
-        // Copy the basebone constraint UV if there is one to copy
-        if ( source.mBaseboneConstraintType !== Fullik.BB_NONE ){
-            this.mBaseboneConstraintUV.copy( source.mBaseboneConstraintUV );
-            this.mBaseboneRelativeConstraintUV.copy( source.mBaseboneRelativeConstraintUV );
-        }       
-        
-        // Native copy by value for primitive members
-        this.bonesLength            = source.mChainLength;
-        this.mNumBones               = source.mNumBones;
-        this.mCurrentSolveDistance   = source.mCurrentSolveDistance;
-        this.mConnectedChainNumber   = source.mConnectedChainNumber;
-        this.mConnectedBoneNumber    = source.mConnectedBoneNumber;
-        this.mBaseboneConstraintType = source.mBaseboneConstraintType;           
-        this.name                   = source.name;
-
-    }*/
-  
 }
 
 Fullik.Chain.prototype = {
@@ -81,6 +58,8 @@ Fullik.Chain.prototype = {
         c.mConnectedBoneNumber    = this.mConnectedBoneNumber;
         c.mBaseboneConstraintType = this.mBaseboneConstraintType;
 
+        c.color = this.color;
+
         return c;
 
     },
@@ -95,6 +74,8 @@ Fullik.Chain.prototype = {
     },
 
     addBone: function( bone ){
+
+        bone.setColor( this.color );
 
         // Add the new bone to the end of the ArrayList of bones
         this.bones.push( bone );//.add( bone );
@@ -262,6 +243,14 @@ Fullik.Chain.prototype = {
     // -------------------------------
     //      SET
     // -------------------------------
+
+    setColor:function(c){
+        this.color = c;
+        for (var i = 0; i < this.mNumBones; i++){  
+            this.bones[i].setColor( c );
+        }
+        
+    },
 
     setBaseboneRelativeConstraintUV: function( constraintUV ){ this.mBaseboneRelativeConstraintUV = constraintUV; },
     setBaseboneRelativeReferenceConstraintUV: function( constraintUV ){ this.mBaseboneRelativeReferenceConstraintUV = constraintUV; },

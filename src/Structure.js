@@ -1,10 +1,14 @@
 
-Fullik.Structure = function(  ){
+Fullik.Structure = function( scene ){
 
     this.chains = [];
     this.meshChains = [];
     this.targets = [];
     this.mNumChains = 0;
+
+    this.scene = scene;
+
+    this.isWithMesh = false;
 
 }
 
@@ -76,10 +80,15 @@ Fullik.Structure.prototype = {
 
             }
 
-            for ( var j = 0; j < c.mNumBones; j++ ) {
-                b = c.getBone(j);
-                m[j].position.copy( b.getStartLocation() );
-                m[j].lookAt( b.getEndLocation() );
+            // update 3d mesh
+
+            if( this.isWithMesh ){
+                for ( var j = 0; j < c.mNumBones; j++ ) {
+                    b = c.getBone(j);
+                    m[j].position.copy( b.getStartLocation() );
+                    m[j].lookAt( b.getEndLocation() );
+                }
+
             }
 
         }
@@ -87,6 +96,8 @@ Fullik.Structure.prototype = {
     },
 
     clear:function(){
+
+        this.clearAllBoneMesh();
 
         var i, j;
 
@@ -101,14 +112,18 @@ Fullik.Structure.prototype = {
 
     },
 
-    add:function( chain, meshBone, target ){
+    add:function( chain, target, meshBone ){
 
-        this.chains.push( chain ); 
-        if( meshBone ) this.meshChains.push( meshBone );  
-        this.targets.push( target );  
+        this.chains.push( chain );
+         
+        this.targets.push( target ); 
         this.mNumChains ++;
 
+        if( meshBone ) this.addChainMeshs( chain );; 
+
     },
+
+    
 
     remove:function( id ){
 
@@ -138,13 +153,14 @@ Fullik.Structure.prototype = {
 
     },
 
-    connectChain : function( newChain, existingChainNumber, existingBoneNumber, boneConnectionPoint, meshBone, target ){
+    connectChain : function( newChain, existingChainNumber, existingBoneNumber, boneConnectionPoint, target, meshBone, color ){
 
         if ( existingChainNumber > this.mNumChains ) return;
         if ( existingBoneNumber > this.chains[existingChainNumber].getNumBones() ) return;
 
         // Make a copy of the provided chain so any changes made to the original do not affect this chain
         var relativeChain = newChain.clone();//new Fullik.Chain( newChain );
+        if( color !== undefined ) relativeChain.setColor( color );
 
         // Connect the copy of the provided chain to the specified chain and bone in this structure
         relativeChain.connectToStructure( this, existingChainNumber, existingBoneNumber );
@@ -178,9 +194,61 @@ Fullik.Structure.prototype = {
             relativeChain.getBone(i).setEndLocation(translatedEnd);
         }
         
-        this.add( relativeChain , meshBone, target );
+        this.add( relativeChain, target, meshBone );
 
     },
 
-    
+
+    // 3D THREE
+
+    addChainMeshs:function( chain, id ){
+
+        this.isWithMesh = true;
+
+        var meshBone = [];
+        var lng  = chain.bones.length;
+        for(var i = 0; i<lng; i++ ){
+            meshBone.push( this.addBoneMesh( chain.bones[i] ) );
+        }
+
+        this.meshChains.push( meshBone );
+
+    },
+
+    addBoneMesh:function( bone ){
+
+        var size = bone.mLength;
+        var color = bone.color;
+        var g = new THREE.CylinderBufferGeometry ( 1, 0.5, size, 4 );
+        g.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) )
+        g.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0, size*0.5 ) );
+        var m = new THREE.MeshStandardMaterial();
+        m.color.setHex( color );
+        var b = new THREE.Mesh( g,  m );
+        this.scene.add( b );
+        return b;
+
+    },
+
+    clearAllBoneMesh:function(){
+
+        if(!this.isWithMesh) return;
+
+        var i, j, b;
+
+        i = this.meshChains.length;
+        while(i--){
+            j = this.meshChains[i].length;
+            while(j--){
+                b = this.meshChains[i][j];
+                this.scene.remove( b );
+                b.geometry.dispose();
+                b.material.dispose();
+            }
+            this.meshChains[i] = [];
+        }
+        this.meshChains = [];
+
+    }
+
 }
