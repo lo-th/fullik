@@ -16,8 +16,8 @@ Fullik.PRECISION = 0.001;
 Fullik.PRECISION_DEG = 0.01;
 
 // point position
-Fullik.START = 0; 
-Fullik.END = 1;
+//Fullik.START = 0; 
+//Fullik.END = 1;
 
 // joint Type
 Fullik.J_BALL = 1;  // ball-joint constraint about the previous bone in the chain

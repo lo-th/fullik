@@ -6,7 +6,7 @@ Fullik.Bone = function( startLocation, endLocation, directionUV, length, color )
     this.mStartLocation = new Fullik.V3();
     this.mEndLocation = new Fullik.V3();
     
-    this.mBoneConnectionPoint = Fullik.END;
+    this.mBoneConnectionPoint = 'end';
     this.mLength = 0;
 
     this.color = color || 0xFFFFFF;

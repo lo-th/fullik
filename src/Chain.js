@@ -117,37 +117,38 @@ Fullik.Chain.prototype = {
 
     },
 
-    addConsecutiveFreelyRotatingHingedBone : function ( directionUV, length, jointType, hingeRotationAxis ){
+    addConsecutiveFreelyRotatingHingedBone : function ( directionUV, length, type, hingeRotationAxis ){
 
-        this.addConsecutiveHingedBone( directionUV, length, jointType, hingeRotationAxis, 180.0, 180.0, Fullik.genPerpendicularVectorQuick( hingeRotationAxis ) );
+        this.addConsecutiveHingedBone( directionUV, length, type, hingeRotationAxis, 180.0, 180.0, Fullik.genPerpendicularVectorQuick( hingeRotationAxis ) );
 
     },
 
-    addConsecutiveHingedBone: function( directionUV, length, jointType, hingeRotationAxis, clockwiseDegs, anticlockwiseDegs, hingeReferenceAxis ){
+    addConsecutiveHingedBone: function( directionUV, length, type, hingeRotationAxis, clockwiseDegs, anticlockwiseDegs, hingeReferenceAxis ){
         // Cannot add a consectuive bone of any kind if the there is no basebone
         if ( this.mNumBones === 0 ) return;
 
         // Normalise the direction and hinge rotation axis 
-        directionUV.normalize();
-        hingeRotationAxis.normalize();
+        directionUV = directionUV.normalised();
+        hingeRotationAxis = hingeRotationAxis.normalised();
             
         // Get the end location of the last bone, which will be used as the start location of the new bone
         var prevBoneEnd = this.bones[this.mNumBones-1].getEndLocation();//.clone();
             
         // Create a bone
-        var bone = new Fullik.Bone( prevBoneEnd, undefined, directionUV, length );
+        var bone = new Fullik.Bone( prevBoneEnd, undefined, directionUV, length, this.color );
+
+        type = type || 'global';
         
         // ...then create and set up a joint which we'll apply to that bone.
         var joint = new Fullik.Joint();
-        switch (jointType){
-            case Fullik.J_GLOBAL_HINGE:
+        switch (type){
+            case 'global':
                 joint.setAsGlobalHinge( hingeRotationAxis, clockwiseDegs, anticlockwiseDegs, hingeReferenceAxis );
                 break;
-            case Fullik.J_LOCAL_HINGE:
+            case 'local':
                 joint.setAsLocalHinge( hingeRotationAxis, clockwiseDegs, anticlockwiseDegs, hingeReferenceAxis );
                 break;
-            default:
-                //throw new IllegalArgumentException("Hinge joint types may be only Fullik.J_GLOBAL_HINGE or Fullik.J_LOCAL_HINGE.");
+
         }
         
         // Set the joint we just set up on the the new bone we just created
@@ -158,13 +159,14 @@ Fullik.Chain.prototype = {
 
     },
 
-    addConsecutiveRotorConstrainedBone:function( boneDirectionUV, lng, constraintAngleDegs ){
+    addConsecutiveRotorConstrainedBone:function( boneDirectionUV, length, constraintAngleDegs ){
 
         if (this.mNumBones === 0) return;
 
         // Create the bone starting at the end of the previous bone, set its direction, constraint angle and colour
         // then add it to the chain. Note: The default joint type of a new FullikBone3D is Fullik.J_BALL.
-        var bone = new Fullik.Bone( this.bones[ this.mNumBones-1 ].getEndLocation(), undefined , boneDirectionUV.normalize(), lng );
+        boneDirectionUV = boneDirectionUV.normalised();
+        var bone = new Fullik.Bone( this.bones[ this.mNumBones-1 ].getEndLocation(), undefined , boneDirectionUV, length );
         bone.setBallJointConstraintDegs( constraintAngleDegs );
         this.addBone( bone );
 
@@ -255,17 +257,17 @@ Fullik.Chain.prototype = {
     setBaseboneRelativeConstraintUV: function( constraintUV ){ this.mBaseboneRelativeConstraintUV = constraintUV; },
     setBaseboneRelativeReferenceConstraintUV: function( constraintUV ){ this.mBaseboneRelativeReferenceConstraintUV = constraintUV; },
 
-    setRotorBaseboneConstraint : function( rotorType, constraintAxis, angleDegs ){
+    setRotorBaseboneConstraint : function( type, constraintAxis, angleDegs ){
 
         // Sanity checking
         if (this.mNumBones === 0) return;// throw new RuntimeException("Chain must contain a basebone before we can specify the basebone constraint type.");       
         if ( !(constraintAxis.length() > 0) ) return;//  throw new IllegalArgumentException("Constraint axis cannot be zero.");                                             
         if (angleDegs < 0  ) angleDegs = 0;                                                                                                  
         if (angleDegs > 180) angleDegs = 180;                                                                                                    
-        if ( !(rotorType === Fullik.BB_GLOBAL_ROTOR || rotorType === Fullik.BB_LOCAL_ROTOR) ) return;//throw new IllegalArgumentException("The only valid rotor types for this method are GLOBAL_ROTOR and LOCAL_ROTOR.");
-                
+        //if ( !(rotorType === Fullik.BB_GLOBAL_ROTOR || rotorType === Fullik.BB_LOCAL_ROTOR) ) return;//throw new IllegalArgumentException("The only valid rotor types for this method are GLOBAL_ROTOR and LOCAL_ROTOR.");
+        type = type || 'global';       
         // Set the constraint type, axis and angle
-        this.mBaseboneConstraintType = rotorType;
+        this.mBaseboneConstraintType = type === 'global' ? Fullik.BB_GLOBAL_ROTOR : Fullik.BB_LOCAL_ROTOR;
         this.mBaseboneConstraintUV   = constraintAxis.normalised();
         this.mBaseboneRelativeConstraintUV.copy( this.mBaseboneConstraintUV );
         this.getBone(0).getJoint().setAsBallJoint( angleDegs );
@@ -274,22 +276,24 @@ Fullik.Chain.prototype = {
 
     },
 
-    setHingeBaseboneConstraint : function( hingeType, hingeRotationAxis, cwConstraintDegs, acwConstraintDegs, hingeReferenceAxis ){
+    setHingeBaseboneConstraint : function( type, hingeRotationAxis, cwConstraintDegs, acwConstraintDegs, hingeReferenceAxis ){
 
         // Sanity checking
         if ( this.mNumBones === 0)  return;// throw new RuntimeException("Chain must contain a basebone before we can specify the basebone constraint type.");       
         if ( !( hingeRotationAxis.length() > 0) ) return;// throw new IllegalArgumentException("Hinge rotation axis cannot be zero.");            
         if ( !( hingeReferenceAxis.length() > 0) ) return;// throw new IllegalArgumentException("Hinge reference axis cannot be zero.");            
        // if ( !( Fullik.perpendicular( hingeRotationAxis, hingeReferenceAxis ) ) ) return;// throw new IllegalArgumentException("The hinge reference axis must be in the plane of the hinge rotation axis, that is, they must be perpendicular."); 
-        if ( !(hingeType === Fullik.BB_GLOBAL_HINGE || hingeType === Fullik.BB_LOCAL_HINGE) ) return;//throw new IllegalArgumentException("The only valid hinge types for this method are GLOBAL_HINGE and LOCAL_HINGE.");
+        //if ( !(hingeType === Fullik.BB_GLOBAL_HINGE || hingeType === Fullik.BB_LOCAL_HINGE) ) return;//throw new IllegalArgumentException("The only valid hinge types for this method are GLOBAL_HINGE and LOCAL_HINGE.");
         
+        type = type || 'global';  
+
         // Set the constraint type, axis and angle
-        this.mBaseboneConstraintType = hingeType;
+        this.mBaseboneConstraintType = type === 'global' ? Fullik.BB_GLOBAL_HINGE : Fullik.BB_LOCAL_HINGE;
         this.mBaseboneConstraintUV.copy( hingeRotationAxis.normalised() );
         
         //var hinge = this.getBone(0).getJoint();//new Fullik.Joint();
         
-        if ( hingeType === Fullik.BB_GLOBAL_HINGE ) this.getBone(0).getJoint().setHinge( Fullik.J_GLOBAL_HINGE, hingeRotationAxis, cwConstraintDegs, acwConstraintDegs, hingeReferenceAxis );
+        if ( type === 'global' ) this.getBone(0).getJoint().setHinge( Fullik.J_GLOBAL_HINGE, hingeRotationAxis, cwConstraintDegs, acwConstraintDegs, hingeReferenceAxis );
         else this.getBone(0).getJoint().setHinge( Fullik.J_LOCAL_HINGE, hingeRotationAxis, cwConstraintDegs, acwConstraintDegs, hingeReferenceAxis );
         
         //this.getBone(0).setJoint( hinge );

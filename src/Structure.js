@@ -40,7 +40,7 @@ Fullik.Structure.prototype = {
             else{
                 hostChain = this.chains[connectedChainNumber];
                 hostBone  = hostChain.getBone( c.getConnectedBoneNumber() );
-                if( hostBone.getBoneConnectionPoint() === Fullik.START ) c.setBaseLocation( hostBone.getStartLocation() );
+                if( hostBone.getBoneConnectionPoint() === 'start' ) c.setBaseLocation( hostBone.getStartLocation() );
                 else c.setBaseLocation( hostBone.getEndLocation() );
 
                 constraintType = c.getBaseboneConstraintType();
@@ -64,7 +64,7 @@ Fullik.Structure.prototype = {
                     c.setBaseboneRelativeConstraintUV( relativeBaseboneConstraintUV );
                         
                         // Updat the relative reference constraint UV if we hav a local hinge
-                    if (constraintType === Fullik.BB_LOCAL_HINGE)
+                    if (constraintType === Fullik.BB_LOCAL_HINGE )
                         c.setBaseboneRelativeReferenceConstraintUV( connectionBoneMatrix.timesV3( c.getBone(0).getJoint().getHingeReferenceAxis() ) );
                         
                     break;
@@ -168,10 +168,10 @@ Fullik.Structure.prototype = {
         // The chain as we were provided should be centred on the origin, so we must now make it
         // relative to the start location of the given bone in the given chain.
 
-        var connectionPoint = boneConnectionPoint || this.getChain(existingChainNumber).getBone( existingBoneNumber ).getBoneConnectionPoint();
+        var connectionPoint = boneConnectionPoint || this.getChain( existingChainNumber ).getBone( existingBoneNumber ).getBoneConnectionPoint();
         var connectionLocation;
 
-        if ( connectionPoint === Fullik.START ) connectionLocation = this.chains[existingChainNumber].getBone(existingBoneNumber).getStartLocation();
+        if ( connectionPoint === 'start' ) connectionLocation = this.chains[existingChainNumber].getBone(existingBoneNumber).getStartLocation();
         else connectionLocation = this.chains[existingChainNumber].getBone(existingBoneNumber).getEndLocation();
          
 
@@ -224,8 +224,52 @@ Fullik.Structure.prototype = {
         g.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0, size*0.5 ) );
         var m = new THREE.MeshStandardMaterial();
         m.color.setHex( color );
+
+        var m2 = new THREE.MeshBasicMaterial({ wireframe : true });
+
+        var extraMesh;
+        var extraGeo;
+
+        var type = bone.getJoint().type;
+        switch(type){
+            case Fullik.J_BALL :
+                m2.color.setHex(0xFF6600);
+                var angle  = bone.getJoint().mRotorConstraintDegs;
+                if(angle === 180) break;
+                var s = size/4;
+                var r = 2;//
+
+                extraGeo = new THREE.CylinderBufferGeometry ( 0, r, s, 6 );
+                extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) )
+                extraGeo.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0, s*0.5 ) );
+                extraMesh = new THREE.Mesh( extraGeo,  m2 );
+            break;
+            case Fullik.J_GLOBAL_HINGE :
+            var a1 = bone.getJoint().mHingeClockwiseConstraintDegs * Fullik.torad;
+            var a2 = bone.getJoint().mHingeAnticlockwiseConstraintDegs * Fullik.torad;
+            var r = 2;
+            m2.color.setHex(0xFFFF00);
+            extraGeo = new THREE.CircleGeometry ( r, 12, a1, a1+a2 );
+            extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
+            extraMesh = new THREE.Mesh( extraGeo,  m2 );
+            break;
+            case Fullik.J_LOCAL_HINGE :
+            var r = 2;
+            var a1 = bone.getJoint().mHingeClockwiseConstraintDegs * Fullik.torad;
+            var a2 = bone.getJoint().mHingeAnticlockwiseConstraintDegs * Fullik.torad;
+            m2.color.setHex(0x00FFFF);
+            extraGeo = new THREE.CircleGeometry ( r, 12, a1, a1+a2 );
+            extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
+            extraMesh = new THREE.Mesh( extraGeo,  m2 );
+            break;
+        }
+
+
+
+
         var b = new THREE.Mesh( g,  m );
         this.scene.add( b );
+        if( extraMesh ) b.add( extraMesh );
         return b;
 
     },
