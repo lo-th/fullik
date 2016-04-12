@@ -27,8 +27,9 @@ Fullik.J_LOCAL_HINGE = 5; // A hinge constraint relative to the previous bone in
 // chain Basebone Constraint Type 
 Fullik.BB_NONE = 1; // No constraint - basebone may rotate freely
 Fullik.BB_GLOBAL_ROTOR = 2; // World-space rotor constraint
-Fullik.BB_LOCAL_ROTOR = 3;// Rotor constraint in the coordinate space of (i.e. relative to) the direction of the connected bone
 Fullik.BB_GLOBAL_HINGE = 4; // World-space hinge constraint
+
+Fullik.BB_LOCAL_ROTOR = 3;// Rotor constraint in the coordinate space of (i.e. relative to) the direction of the connected bone
 Fullik.BB_LOCAL_HINGE = 5;// Hinge constraint in the coordinate space of (i.e. relative to) the direction of the connected bone
 
 // the LOCAL_ROTOR and LOCAL_HINGE basebone constraint types are only available 

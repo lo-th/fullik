@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
-		<title>Three.js Bones Browser</title>
+		<title>Full IK</title>
 		<style>
 			body {
 				margin:0;
@@ -286,7 +286,7 @@
                 basebone = new Fullik.Bone( new Fullik.V3( 0, 0, 0 ), new Fullik.V3( -4, 0, 0 ) );
                 chain.addBone( basebone );
                 chain.addConsecutiveRotorConstrainedBone( Y_AXIS.negated(), 15, 90 );
-                chain.addConsecutiveHingedBone( Y_AXIS.negated(), 15, Fullik.J_GLOBAL_HINGE, Z_AXIS.negated(), 1, 120, Y_AXIS.negated() );
+                chain.addConsecutiveHingedBone( Y_AXIS.negated(), 15, Fullik.J_LOCAL_HINGE, Y_AXIS, 1, 120, Z_AXIS );
                 //chain.addConsecutiveBone( Y_AXIS.negated(), 15 );
                 //chain.addConsecutiveBone( Y_AXIS.negated(), 15  );
                 color = 0x44FF44;
@@ -303,7 +303,7 @@
                 basebone = new Fullik.Bone( new Fullik.V3( 0, 0, 0 ), new Fullik.V3( 4, 0, 0 ) );
                 chain.addBone( basebone );
                 chain.addConsecutiveRotorConstrainedBone( Y_AXIS.negated(), 15, 90 );
-                chain.addConsecutiveHingedBone( Y_AXIS.negated(), 15, Fullik.J_GLOBAL_HINGE, Z_AXIS.negated(), 1, 120, Y_AXIS.negated() );
+                chain.addConsecutiveHingedBone( Y_AXIS.negated(), 15, Fullik.J_LOCAL_HINGE, Z_AXIS.negated(), 1, 120, Z_AXIS.negated() );
                 //chain.addConsecutiveBone( Y_AXIS.negated(), 15 );
                 //chain.addConsecutiveBone( Y_AXIS.negated(), 15  );
                 color = 0x4444FF;

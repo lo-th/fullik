@@ -1,6 +1,6 @@
 
 
-Fullik.Joint = function( source ){
+Fullik.Joint = function(){
 
     this.mRotorConstraintDegs = Fullik.MAX_ANGLE_DEGS;
     this.mHingeClockwiseConstraintDegs = Fullik.MAX_ANGLE_DEGS;
@@ -10,14 +10,6 @@ Fullik.Joint = function( source ){
     this.mReferenceAxisUV = new Fullik.V3();
     this.type = Fullik.J_BALL;
 
-    if(source !== undefined){
-        this.mRotorConstraintDegs = source.mRotorConstraintDegs;
-        this.mHingeClockwiseConstraintDegs = source.mHingeClockwiseConstraintDegs;
-        this.mHingeAnticlockwiseConstraintDegs = source.mHingeAnticlockwiseConstraintDegs;
-        this.type = source.type;
-        this.mRotationAxisUV.copy( source.mRotationAxisUV );
-        this.mReferenceAxisUV.copy( source.mReferenceAxisUV );
-    }
 }
 
 Fullik.Joint.prototype = {
@@ -25,12 +17,31 @@ Fullik.Joint.prototype = {
     constructor: Fullik.Joint,
 
     clone:function(){
-        return new Fullik.Joint( this );
+
+        var j = new Fullik.Joint();
+        j.mRotorConstraintDegs = this.mRotorConstraintDegs;
+        j.mHingeClockwiseConstraintDegs = this.mHingeClockwiseConstraintDegs;
+        j.mHingeAnticlockwiseConstraintDegs = this.mHingeAnticlockwiseConstraintDegs;
+        j.type = this.type;
+        j.mRotationAxisUV.copy( this.mRotationAxisUV );
+        j.mReferenceAxisUV.copy( this.mReferenceAxisUV );
+
+        return this;
+    },
+
+    validateAngle:function( angle ){
+
+        if( angle < Fullik.MIN_ANGLE_DEGS ){ angle = Fullik.MIN_ANGLE_DEGS; console.log( '! min angle is '+ Fullik.MIN_ANGLE_DEGS ); }
+        if( angle > Fullik.MAX_ANGLE_DEGS ){ angle = Fullik.MAX_ANGLE_DEGS; console.log( '! max angle is '+ Fullik.MAX_ANGLE_DEGS ); }
+
+        return angle;
+
     },
 
     setAsBallJoint:function( constraintAngleDegs ){
+
         //this.validateConstraintAngleDegs(constraintAngleDegs);
-        this.mRotorConstraintDegs = constraintAngleDegs;
+        this.mRotorConstraintDegs = this.validateAngle( constraintAngleDegs );
         this.type = Fullik.J_BALL;
         
     },
@@ -40,8 +51,8 @@ Fullik.Joint.prototype = {
 
         // Set paramsgetHingeReferenceAxis
         this.type = type;
-        this.mHingeClockwiseConstraintDegs     = clockwiseConstraintDegs;
-        this.mHingeAnticlockwiseConstraintDegs = anticlockwiseConstraintDegs;
+        this.mHingeClockwiseConstraintDegs     = this.validateAngle( clockwiseConstraintDegs );
+        this.mHingeAnticlockwiseConstraintDegs = this.validateAngle( anticlockwiseConstraintDegs );
         this.mRotationAxisUV.copy( rotationAxis.normalised() );
         this.mReferenceAxisUV.copy( referenceAxis.normalised() );
 
@@ -84,15 +95,15 @@ Fullik.Joint.prototype = {
     },
 
     setBallJointConstraintDegs:function( angleDegs ){
-        if ( this.type === Fullik.J_BALL ) this.mRotorConstraintDegs = angleDegs;
+        if ( this.type === Fullik.J_BALL ) this.mRotorConstraintDegs = this.validateAngle( angleDegs );
     },
 
     setHingeJointClockwiseConstraintDegs:function( angleDegs ){
-        if ( !(this.type === Fullik.J_BALL) ) this.mHingeClockwiseConstraintDegs = angleDegs; 
+        if ( !(this.type === Fullik.J_BALL) ) this.mHingeClockwiseConstraintDegs = this.validateAngle( angleDegs ); 
     },
 
     setHingeJointAnticlockwiseConstraintDegs:function( angleDegs ){
-        if ( !(this.type === Fullik.J_BALL) ) this.mHingeAnticlockwiseConstraintDegs = angleDegs; 
+        if ( !(this.type === Fullik.J_BALL) ) this.mHingeAnticlockwiseConstraintDegs = this.validateAngle( angleDegs ); 
     },
 
     setHingeRotationAxis:function( axis ){

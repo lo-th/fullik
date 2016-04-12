@@ -281,7 +281,7 @@ Fullik.Chain.prototype = {
         this.mBaseboneRelativeConstraintUV.copy( this.mBaseboneConstraintUV );
         this.getBone(0).getJoint().setAsBallJoint( angleDegs );
 
-        console.log('base bone is rotor');
+        //console.log('base bone is rotor');
 
     },
 
@@ -291,21 +291,21 @@ Fullik.Chain.prototype = {
         if ( this.mNumBones === 0)  return;// throw new RuntimeException("Chain must contain a basebone before we can specify the basebone constraint type.");       
         if ( !( hingeRotationAxis.length() > 0) ) return;// throw new IllegalArgumentException("Hinge rotation axis cannot be zero.");            
         if ( !( hingeReferenceAxis.length() > 0) ) return;// throw new IllegalArgumentException("Hinge reference axis cannot be zero.");            
-        if ( !( Fullik.perpendicular( hingeRotationAxis, hingeReferenceAxis ) ) ) return;// throw new IllegalArgumentException("The hinge reference axis must be in the plane of the hinge rotation axis, that is, they must be perpendicular."); 
+       // if ( !( Fullik.perpendicular( hingeRotationAxis, hingeReferenceAxis ) ) ) return;// throw new IllegalArgumentException("The hinge reference axis must be in the plane of the hinge rotation axis, that is, they must be perpendicular."); 
         if ( !(hingeType === Fullik.BB_GLOBAL_HINGE || hingeType === Fullik.BB_LOCAL_HINGE) ) return;//throw new IllegalArgumentException("The only valid hinge types for this method are GLOBAL_HINGE and LOCAL_HINGE.");
         
         // Set the constraint type, axis and angle
         this.mBaseboneConstraintType = hingeType;
         this.mBaseboneConstraintUV.copy( hingeRotationAxis.normalised() );
         
-        var hinge = this.getBone(0).getJoint();//new Fullik.Joint();
+        //var hinge = this.getBone(0).getJoint();//new Fullik.Joint();
         
-        if ( hingeType === Fullik.BB_GLOBAL_HINGE ) hinge.setHinge( Fullik.J_GLOBAL_HINGE, hingeRotationAxis, cwConstraintDegs, acwConstraintDegs, hingeReferenceAxis );
-        else hinge.setHinge( Fullik.J_LOCAL_HINGE, hingeRotationAxis, cwConstraintDegs, acwConstraintDegs, hingeReferenceAxis );
+        if ( hingeType === Fullik.BB_GLOBAL_HINGE ) this.getBone(0).getJoint().setHinge( Fullik.J_GLOBAL_HINGE, hingeRotationAxis, cwConstraintDegs, acwConstraintDegs, hingeReferenceAxis );
+        else this.getBone(0).getJoint().setHinge( Fullik.J_LOCAL_HINGE, hingeRotationAxis, cwConstraintDegs, acwConstraintDegs, hingeReferenceAxis );
         
         //this.getBone(0).setJoint( hinge );
 
-        console.log('base bone is hinge');
+        //console.log('base bone is hinge');
 
     },
 
@@ -343,9 +343,16 @@ Fullik.Chain.prototype = {
         this.mFixedBaseLocation.copy( baseLocation );
     },
 
-    setChain : function( chain ){
+    setChain : function( bones ){
 
-        this.bones = chain;
+        //this.bones = bones;
+
+        this.bones = [];
+        var lng = bones.length;
+        for(var i = 0; i< lng; i++){
+            this.bones[i] = bones[i];
+        }
+
     },
 
     
@@ -354,7 +361,7 @@ Fullik.Chain.prototype = {
 
         // Enforce that a chain connected to another chain stays in fixed base mode (i.e. it moves with the chain it's connected to instead of independently)
         if ( !value && this.mConnectedChainNumber !== -1) return;
-        if ( this.mBaseboneConstraintType == Fullik.BB_GLOBAL_ROTOR && !value ) return;
+        if ( this.mBaseboneConstraintType === Fullik.BB_GLOBAL_ROTOR && !value ) return;
         // Above conditions met? Set the fixedBaseMode
         this.mFixedBaseMode = value;
     },
@@ -534,7 +541,6 @@ Fullik.Chain.prototype = {
                     }
                     
                     // ...and transform the hinge rotation axis into the previous bones frame of reference.
-                    //Vec3f 
                                         
                     // Project this bone's outer-to-inner direction onto the plane described by the relative hinge rotation axis
                     // Note: The returned vector is normalised.                 
