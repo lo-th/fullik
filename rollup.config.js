@@ -6,12 +6,12 @@ export default {
 		{
 			format: 'umd',
 			name: 'Fullik',
-			file: 'build/Fullik.js',
+			file: 'build/fullik.js',
 			indent: '\t'
 		},
 		{
 			format: 'es',
-			file: 'build/Fullik.module.js',
+			file: 'build/fullik.module.js',
 			indent: '\t'
 		}
 	]
