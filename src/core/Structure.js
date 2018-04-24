@@ -86,7 +86,7 @@ Structure.prototype = {
                 //else c.solveForEmbeddedTarget();
 
                 
-                c.resetTarget();//
+                //c.resetTarget();//
                 //hostChain.updateTarget( this.targets[connectedChainNumber] );
 
                 c.updateTarget( t );

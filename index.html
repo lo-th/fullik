@@ -599,9 +599,9 @@
                 for (var i = 0; i < numChains; i++ ){
 
                     switch (i){
-                        case 0: color = 0xFF0000; hingeRotationAxis = X_AXIS.clone(); hingeReferenceAxis = Y_AXIS.clone(); break;
-                        case 1: color = 0x00FF00; hingeRotationAxis = Y_AXIS.clone(); hingeReferenceAxis = X_AXIS.clone(); break;
-                        case 2: color = 0x0000FF; hingeRotationAxis = Z_AXIS.clone(); hingeReferenceAxis = Y_AXIS.clone(); break;
+                        case 0: color = 0xFF0000; hingeRotationAxis = X_AXIS; hingeReferenceAxis = Y_AXIS; break;
+                        case 1: color = 0x00FF00; hingeRotationAxis = Y_AXIS; hingeReferenceAxis = X_AXIS; break;
+                        case 2: color = 0x0000FF; hingeRotationAxis = Z_AXIS; hingeReferenceAxis = Y_AXIS; break;
                     }
 
                     var chain = new Fullik.Chain( color );
@@ -615,7 +615,7 @@
 
                     for (var j = 0; j < 6; j++) {
 
-                        if (j % 2 == 0) chain.addConsecutiveHingedBone( defaultBoneDirection, defaultBoneLength, 'local', hingeReferenceAxis, 90, 90, hingeReferenceAxis );
+                        if (j % 2 == 0) chain.addConsecutiveHingedBone( defaultBoneDirection, defaultBoneLength, 'local', hingeRotationAxis, 90, 90, hingeReferenceAxis );
                         
                         else chain.addConsecutiveBone( defaultBoneDirection, defaultBoneLength );
 

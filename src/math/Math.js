@@ -82,14 +82,7 @@ var _Math = {
 		return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z; 
 
 	},
-
-	dotProduct: function ( v1, v2 ) { 
-
-	    var v1Norm = v1.normalised();
-	    var v2Norm = v2.normalised();
-	    return v1Norm.x * v2Norm.x + v1Norm.y * v2Norm.y + v1Norm.z * v2Norm.z;
-
-	},
+	
 
 	crossProduct: function ( v1, v2 ) { 
 
@@ -143,6 +136,14 @@ var _Math = {
 
 	},
 
+	dotProduct: function ( v1, v2 ) { 
+
+	    var v1Norm = v1.normalised();
+	    var v2Norm = v2.normalised();
+	    return v1Norm.x * v2Norm.x + v1Norm.y * v2Norm.y + v1Norm.z * v2Norm.z;
+
+	},
+
 	getAngleBetweenRads: function ( v1, v2 ){ 
 
 	    return Math.acos( _Math.dotProduct( v1,  v2 ) );
@@ -151,14 +152,17 @@ var _Math = {
 
 	getAngleBetweenDegs: function( v1, v2 ){
 
-	    return _Math.getAngleBetweenRads( v1, v2 ) * _Math.toDeg;
+		var a = _Math.getAngleBetweenRads( v1, v2 ) * _Math.toDeg;
+		//console.log(a)
+	    return a;
 
 	},
 
 	getSignedAngleBetweenDegs: function ( referenceVector, otherVector, normalVector ) {
 
 	    var unsignedAngle = _Math.getAngleBetweenDegs( referenceVector, otherVector );
-	    var sign          = _Math.sign( _Math.dotProduct( _Math.crossProduct( referenceVector, otherVector ), normalVector ) );        
+	    var sign          = _Math.sign( _Math.dotProduct( _Math.crossProduct( referenceVector, otherVector ), normalVector ) ); 
+
 	    return unsignedAngle * sign;
 
 	},

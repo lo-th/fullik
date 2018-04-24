@@ -137,16 +137,16 @@ Chain.prototype = {
 
     },
 
-    addConsecutiveHingedBone: function( directionUV, length, type, hingeRotationAxis, clockwiseDegs, anticlockwiseDegs, hingeReferenceAxis ){
+    addConsecutiveHingedBone: function( DirectionUV, length, type, HingeRotationAxis, clockwiseDegs, anticlockwiseDegs, hingeReferenceAxis ){
         // Cannot add a consectuive bone of any kind if the there is no basebone
         if ( this.mNumBones === 0 ) return;
 
         // Normalise the direction and hinge rotation axis 
-        directionUV = directionUV.normalised();
-        hingeRotationAxis = hingeRotationAxis.normalised();
+        var directionUV = DirectionUV.normalised();
+        var hingeRotationAxis = HingeRotationAxis.normalised();
             
         // Get the end location of the last bone, which will be used as the start location of the new bone
-        var prevBoneEnd = this.bones[this.mNumBones-1].getEndLocation();//.clone();
+        var prevBoneEnd = this.bones[this.mNumBones-1].getEndLocation().clone();
             
         // Create a bone
         var bone = new Bone( prevBoneEnd, undefined, directionUV, length, this.color );
@@ -456,7 +456,7 @@ Chain.prototype = {
                 bestSolution = this.cloneIkChain();
                 
                 // If we are happy that this solution meets our distance requirements then we can exit the loop now
-                if ( solveDistance < this.mSolveDistanceThreshold ) break;
+                if ( solveDistance <= this.mSolveDistanceThreshold ) break;
                 
             } else {// Did not solve to our satisfaction? Okay...
             
@@ -481,6 +481,7 @@ Chain.prototype = {
         this.mLastTargetLocation.copy( newTarget );
         
         return this.mCurrentSolveDistance;
+        
     },
 
     // -------------------------------
