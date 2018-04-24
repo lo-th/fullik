@@ -22,6 +22,7 @@
 	<body>
 
 	<script src="js/libs/three.min.js"></script>
+    <script src="js/libs/tween.min.js"></script>
     <script src='js/libs/uil.min.js'></script>
 	<script src="js/controls/OrbitControls.js"></script>
     <script src="js/controls/TransformControls.js"></script>
@@ -33,6 +34,8 @@
 
 	<script>
 
+        var targetTween = null; 
+
 		var gui, scene, camera, renderer, orbit, ambientLight, lights, mesh, bones, skeletonHelper, control, ground, grid;
 
 		var target, effector;
@@ -43,11 +46,17 @@
 
         var targets = [];
 
-        var setting = {fixed:true}
+        var goal = {x:0, y:30, z:0};
+
+        var setting = {
+            fixed:true,
+            auto:false
+        }
 
 		var solver;
 
 		var X_AXIS, Y_AXIS, Z_AXIS;
+        var X_AXIS_NEG, Y_AXIS_NEG, Z_AXIS_NEG;
 		var defaultBoneDirection, defaultBoneLength;
 
 		var state = {
@@ -113,6 +122,10 @@
             Y_AXIS = new Fullik.V3( 0, 1, 0 );
             Z_AXIS = new Fullik.V3( 0, 0, 1 );
 
+            X_AXIS_NEG = X_AXIS.negated();
+            Y_AXIS_NEG = Y_AXIS.negated();
+            Z_AXIS_NEG = Z_AXIS.negated();
+
             defaultBoneDirection = Z_AXIS.negated();
             defaultBoneLength = 10;
 
@@ -147,6 +160,18 @@
             scene.add( grid );
 
         }
+
+        function updateTarget ( v ){
+
+            if(!targets[0]) return;
+
+            var n = targets[0];
+
+            n.mesh.position.copy( v );
+            n.control.position.copy( v );
+            n.position = n.mesh.position;
+
+        };
 
         function addTarget( position ){
 
@@ -185,6 +210,7 @@
             }
 
             targets = [];
+
         }
 
 
@@ -193,6 +219,9 @@
             gui = new UIL.Gui({ w:200 });
 
             gui.add('title', { name:'FULLIK', prefix:Fullik.REVISION, h:30, r:10 } );
+
+            gui.add('bool',   { name:'fixed', value:true, p:70 } ).onChange(function(v) {solver.setFixedBaseMode(v); solver.update(); });
+            gui.add('bool',   { name:'autoMove', value:false, p:70 } ).onChange(function(v) { setting.auto = v; autoMove(); });
 
             gui.add('button',   { name:'Demo 0', p:0 } ).onChange( function(v) { demo(0) });
             gui.add('button',   { name:'Demo 1', p:0 } ).onChange( function(v) { demo(1) });
@@ -208,8 +237,6 @@
             gui.add('button',   { name:'Demo 11', p:0 } ).onChange( function(v) { demo(11) });
             gui.add('button',   { name:'Demo 12', p:0 } ).onChange( function(v) { demo(12) });
 
-            gui.add('bool',   { name:'fixed', value:true, p:70 } ).onChange(function(v) {solver.setFixedBaseMode(v); solver.update(); });
-
 		}
 
         function tell(s){
@@ -217,6 +244,39 @@
             debug.innerHTML = s;
 
         };
+
+        function updateSolver () {
+
+            solver.update();
+
+        };
+
+        function autoMove () {
+
+            if(!setting.auto) return;
+
+            targetTween = new TWEEN.Tween( goal ).to( {x:Fullik._Math.randInt(-50, 50), y:Fullik._Math.randInt(0, 50), z:Fullik._Math.randInt(-50, 50)}, 2000 )
+            .easing( TWEEN.Easing.Quadratic.Out )
+            .onUpdate( function() { updateTarget(goal); updateSolver(); } )
+            .onComplete( function() { autoMove(); } )
+            .start();
+        
+
+            
+
+        };
+
+        function render () {
+
+            requestAnimationFrame( render );
+            TWEEN.update();
+            renderer.render( scene, camera );
+
+        };
+
+
+
+        //////////////////////////////////////////////
 
 	
         function demo(n){
@@ -526,6 +586,9 @@
 
                 tell("Demo 7 - Local Hinges with Reference Axis Constraints");
 
+                // We'll create a circular arrangement of 3 chains with alternate bones each constrained about different local axes.
+                // Note: Local hinge rotation axes are relative to the rotation matrix of the previous bone in the chain.
+
                 var numChains = 3;
                 var rotStep = 360 / numChains;
                 var baseBoneConstraintAngleDegs = 20;
@@ -536,14 +599,14 @@
                 for (var i = 0; i < numChains; i++ ){
 
                     switch (i){
-                        case 0: color = 0xFF0000; hingeRotationAxis = X_AXIS; hingeReferenceAxis = Y_AXIS; break;
-                        case 1: color = 0x00FF00; hingeRotationAxis = Y_AXIS; hingeReferenceAxis = X_AXIS; break;
-                        case 2: color = 0x0000FF; hingeRotationAxis = Z_AXIS; hingeReferenceAxis = Y_AXIS; break;
+                        case 0: color = 0xFF0000; hingeRotationAxis = X_AXIS.clone(); hingeReferenceAxis = Y_AXIS.clone(); break;
+                        case 1: color = 0x00FF00; hingeRotationAxis = Y_AXIS.clone(); hingeReferenceAxis = X_AXIS.clone(); break;
+                        case 2: color = 0x0000FF; hingeRotationAxis = Z_AXIS.clone(); hingeReferenceAxis = Y_AXIS.clone(); break;
                     }
 
                     var chain = new Fullik.Chain( color );
 
-                    var startLoc = new Fullik.V3(0, 0, -40);
+                    var startLoc = new Fullik.V3( 0, 0, -40 );
                     startLoc = Fullik._Math.rotateYDegs( startLoc, rotStep * i );
                     var endLoc = startLoc.plus( defaultBoneDirection.times(defaultBoneLength));
 
@@ -708,7 +771,7 @@
 
                 tell("Demo 12 - Connected Chains with Non-Freely-Rotating Global Hinge Basebone Constraints");
 
-                addTarget(new THREE.Vector3(20, 20, 20))
+                addTarget(new THREE.Vector3(20, 20, 20));
 
                 var chain = new Fullik.Chain( 0x999999 );
 
@@ -742,18 +805,7 @@
             solver.update();
         }
 
-        function updateSolver () {
-
-            solver.update();
-
-        }
-
-		function render () {
-
-			requestAnimationFrame( render );
-			renderer.render( scene, camera );
-
-		};
+        
 
 
 		initScene();

@@ -227,13 +227,13 @@ Object.assign( V3.prototype, {
 
 	negated: function () { 
 
-	    return new this.constructor( -this.x, -this.y, -this.z );
+	    return new V3( -this.x, -this.y, -this.z );
 
 	},
 
 	clone: function () {
 
-	    return new this.constructor( this.x, this.y, this.z );
+	    return new V3( this.x, this.y, this.z );
 
 	},
 
