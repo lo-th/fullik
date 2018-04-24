@@ -21,23 +21,19 @@
 	</head>
 	<body>
 
-	<script src="js/three.min.js"></script>
-	<script src="js/OrbitControls.js"></script>
-    <script src="js/TransformControls.js"></script>
-    <script src='js/uil.min.js'></script>
+	<script src="js/libs/three.min.js"></script>
+    <script src='js/libs/uil.min.js'></script>
+	<script src="js/controls/OrbitControls.js"></script>
+    <script src="js/controls/TransformControls.js"></script>
+    
 
-	<script src="src/Fullik.js"></script>
-	<script src="src/Geom.js"></script>
-	<script src="src/Joint.js"></script>
-	<script src="src/Bone.js"></script>
-	<script src="src/Chain.js"></script>
-	<script src="src/Structure.js"></script>
+	<script src="build/fullik.js"></script>
 
     <div id="debug"></div>
 
 	<script>
 
-		var gui, scene, camera, renderer, orbit, ambientLight, lights, mesh, bones, skeletonHelper, control ;
+		var gui, scene, camera, renderer, orbit, ambientLight, lights, mesh, bones, skeletonHelper, control, ground, grid;
 
 		var target, effector;
 
@@ -72,19 +68,22 @@
 			renderer = new THREE.WebGLRenderer( { antialias: true } );
 			renderer.setPixelRatio( window.devicePixelRatio );
 			renderer.setSize( window.innerWidth, window.innerHeight );
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.soft = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 			document.body.appendChild( renderer.domElement );
 
             renderer.setClearColor( 0x333333, 1 );
 
 			orbit = new THREE.OrbitControls( camera, renderer.domElement );
-			orbit.enableZoom = false;
+			//orbit.enableZoom = false;
 
 
 			ambientLight = new THREE.AmbientLight( 0x000000 );
 			scene.add( ambientLight );
 
 			lights = [];
-			lights[ 0 ] = new THREE.PointLight( 0xffffff, 1, 0 );
+			lights[ 0 ] = new THREE.SpotLight( 0xffffff, 1, 0, Math.PI / 2 );//new THREE.PointLight( 0xffffff, 1, 0 );
 			lights[ 1 ] = new THREE.PointLight( 0xffffff, 1, 0 );
 			lights[ 2 ] = new THREE.PointLight( 0xffffff, 1, 0 );
 
@@ -96,14 +95,16 @@
 			scene.add( lights[ 1 ] );
 			scene.add( lights[ 2 ] );
 
-			window.addEventListener( 'resize', function () {
+            lights[ 0 ].castShadow = true;
+            var d = 150;
+            lights[ 0 ].shadow = new THREE.LightShadow( new THREE.OrthographicCamera( d, -d, d, -d,  100, 400 ))//;new THREE.PerspectiveCamera( 50, 1, 10, 200 ) );
+            lights[ 0 ].shadow.bias = 0.0001;
+            lights[ 0 ].shadow.mapSize.width = 2048;
+            lights[ 0 ].shadow.mapSize.height = 2048;
 
-				camera.aspect = window.innerWidth / window.innerHeight;
-				camera.updateProjectionMatrix();
+            addGround();
 
-				renderer.setSize( window.innerWidth, window.innerHeight );
-
-			}, false );
+			window.addEventListener( 'resize', resize, false );
 
 		
 			initGui();
@@ -121,12 +122,41 @@
 
 		}
 
+        function resize(){
+
+            var w = window.innerWidth;
+            var h = window.innerHeight;
+
+            camera.aspect = w / h;
+            camera.updateProjectionMatrix();
+            renderer.setSize( w, h );
+
+        }
+
+        function addGround(){
+
+            ground = new THREE.Mesh( new THREE.PlaneBufferGeometry( 200, 200, 1, 1 ),  new THREE.ShadowMaterial({opacity:0.5}) );
+            ground.geometry.applyMatrix( new THREE.Matrix4().makeRotationX(-Math.PI*0.5) );
+            ground.castShadow = false;
+            ground.receiveShadow = true;
+            ground.position.y = -5;
+            scene.add( ground );
+
+            grid = new THREE.GridHelper( 200, 16, 0x111111, 0x050505 );
+            grid.position.y = -5.01;
+            scene.add( grid );
+
+        }
+
         function addTarget( position ){
 
             var n = {
-                mesh : new THREE.Mesh( new THREE.SphereBufferGeometry( 0.75 ),  new THREE.MeshStandardMaterial({color:0xFFFFFF, wireframe:true }) ),
+                mesh : new THREE.Mesh( new THREE.SphereBufferGeometry( 1 ),  new THREE.MeshStandardMaterial({color:0xFFFFFF, wireframe:true }) ),
                 control : new THREE.TransformControls( camera, renderer.domElement ),
             }
+
+            n.mesh.castShadow = true;
+            n.mesh.receiveShadow = false;
 
             scene.add( n.mesh );
             n.mesh.position.copy(position);
@@ -160,26 +190,25 @@
 
 		function initGui () {
 
-            gui = new UIL.Gui();
+            gui = new UIL.Gui({ w:200 });
 
-            gui.add('title', { name:'FULL IK', prefix:0.1, h:30, r:10 } );
+            gui.add('title', { name:'FULLIK', prefix:Fullik.REVISION, h:30, r:10 } );
 
-            gui.add('button',   { name:'Demo 0' } ).onChange( function(v) { demo(0) });
+            gui.add('button',   { name:'Demo 0', p:0 } ).onChange( function(v) { demo(0) });
+            gui.add('button',   { name:'Demo 1', p:0 } ).onChange( function(v) { demo(1) });
+            gui.add('button',   { name:'Demo 2', p:0 } ).onChange( function(v) { demo(2) });
+            gui.add('button',   { name:'Demo 3', p:0 } ).onChange( function(v) { demo(3) });
+            gui.add('button',   { name:'Demo 4', p:0 } ).onChange( function(v) { demo(4) });
+            gui.add('button',   { name:'Demo 5', p:0 } ).onChange( function(v) { demo(5) });
+            gui.add('button',   { name:'Demo 6', p:0 } ).onChange( function(v) { demo(6) });
+            gui.add('button',   { name:'Demo 7', p:0 } ).onChange( function(v) { demo(7) });
+            gui.add('button',   { name:'Demo 8', p:0 } ).onChange( function(v) { demo(8) });
+            gui.add('button',   { name:'Demo 9', p:0 } ).onChange( function(v) { demo(9) });
+            gui.add('button',   { name:'Demo 10', p:0 } ).onChange( function(v) { demo(10) });
+            gui.add('button',   { name:'Demo 11', p:0 } ).onChange( function(v) { demo(11) });
+            gui.add('button',   { name:'Demo 12', p:0 } ).onChange( function(v) { demo(12) });
 
-            gui.add('button',   { name:'Demo 1' } ).onChange( function(v) { demo(1) });
-            gui.add('button',   { name:'Demo 2' } ).onChange( function(v) { demo(2) });
-            gui.add('button',   { name:'Demo 3' } ).onChange( function(v) { demo(3) });
-            gui.add('button',   { name:'Demo 4' } ).onChange( function(v) { demo(4) });
-            gui.add('button',   { name:'Demo 5' } ).onChange( function(v) { demo(5) });
-            gui.add('button',   { name:'Demo 6' } ).onChange( function(v) { demo(6) });
-            gui.add('button',   { name:'Demo 7' } ).onChange( function(v) { demo(7) });
-            gui.add('button',   { name:'Demo 8' } ).onChange( function(v) { demo(8) });
-            gui.add('button',   { name:'Demo 9' } ).onChange( function(v) { demo(9) });
-            gui.add('button',   { name:'Demo 10' } ).onChange( function(v) { demo(10) });
-            gui.add('button',   { name:'Demo 11' } ).onChange( function(v) { demo(11) });
-            gui.add('button',   { name:'Demo 12' } ).onChange( function(v) { demo(12) });
-
-            gui.add('bool',   { name:'fixed', value:true} ).onChange(function(v) {solver.setFixedBaseMode(v); solver.update(); });
+            gui.add('bool',   { name:'fixed', value:true, p:70 } ).onChange(function(v) {solver.setFixedBaseMode(v); solver.update(); });
 
 		}
 
@@ -331,7 +360,7 @@
                     var chain = new Fullik.Chain( color )
 
                     var startLoc = new Fullik.V3(0, 0, -40);
-                    startLoc = Fullik.rotateYDegs( startLoc, rotStep * i );
+                    startLoc = Fullik._Math.rotateYDegs( startLoc, rotStep * i );
                     var endLoc = startLoc.clone();
                     endLoc.z -= defaultBoneLength;
 
@@ -370,7 +399,7 @@
                     var chain = new Fullik.Chain( color );
 
                     var startLoc = new Fullik.V3(0, 0, -40);
-                    startLoc = Fullik.rotateYDegs( startLoc, rotStep * i );
+                    startLoc = Fullik._Math.rotateYDegs( startLoc, rotStep * i );
                     var endLoc = startLoc.plus( defaultBoneDirection.times(defaultBoneLength * 2));
                     //endLoc.z -= defaultBoneLength;
 
@@ -411,7 +440,7 @@
                     var chain = new Fullik.Chain( color );
 
                     var startLoc = new Fullik.V3(0, 0, -40);
-                    startLoc = Fullik.rotateYDegs( startLoc, rotStep * i );
+                    startLoc = Fullik._Math.rotateYDegs( startLoc, rotStep * i );
                     var endLoc = startLoc.plus( defaultBoneDirection.times(defaultBoneLength));
 
                     var basebone = new Fullik.Bone( startLoc, endLoc );
@@ -474,7 +503,7 @@
                     var chain = new Fullik.Chain( color );
 
                     var startLoc = new Fullik.V3(0, 0, -40);
-                    startLoc = Fullik.rotateYDegs( startLoc, rotStep * i );
+                    startLoc = Fullik._Math.rotateYDegs( startLoc, rotStep * i );
                     var endLoc = startLoc.plus( defaultBoneDirection.times(defaultBoneLength));
 
                     var basebone = new Fullik.Bone( startLoc, endLoc );
@@ -515,7 +544,7 @@
                     var chain = new Fullik.Chain( color );
 
                     var startLoc = new Fullik.V3(0, 0, -40);
-                    startLoc = Fullik.rotateYDegs( startLoc, rotStep * i );
+                    startLoc = Fullik._Math.rotateYDegs( startLoc, rotStep * i );
                     var endLoc = startLoc.plus( defaultBoneDirection.times(defaultBoneLength));
 
                     var basebone = new Fullik.Bone( startLoc, endLoc );
