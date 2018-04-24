@@ -18,9 +18,8 @@ function M3( m00, m01, m02, m10, m11, m12, m20, m21, m22 ){
 
 }
 
-M3.prototype = {
+Object.assign( M3.prototype, {
 
-	constructor: M3,
 	isMatrix3: true,
 
 	setV3: function ( xAxis, yAxis, zAxis ) {
@@ -226,6 +225,6 @@ M3.prototype = {
 	}
 
 
-}
+} );
 
 export { M3 };

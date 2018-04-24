@@ -9,9 +9,8 @@ function V3( x, y, z ){
 
 }
 
-V3.prototype = {
+Object.assign( V3.prototype, {
 
-	constructor: V3,
 	isVector3: true,
 
 	set: function( x, y, z ){
@@ -175,7 +174,6 @@ V3.prototype = {
 	},
 
 
-
-}
+} );
 
 export { V3 };

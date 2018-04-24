@@ -7,9 +7,8 @@ function V2( x, y ){
     this.y = y || 0;
 }
 
-V2.prototype = {
+Object.assign( V2.prototype, {
 
-	constructor: V2,
 	isVector2: true,
 
 	set: function( x, y ){
@@ -175,6 +174,6 @@ V2.prototype = {
 		
 	},
 
-}
+} );
 
 export { V2 };

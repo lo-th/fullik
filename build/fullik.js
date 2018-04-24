@@ -107,9 +107,8 @@
 
 	}
 
-	V3.prototype = {
+	Object.assign( V3.prototype, {
 
-		constructor: V3,
 		isVector3: true,
 
 		set: function( x, y, z ){
@@ -273,8 +272,7 @@
 		},
 
 
-
-	};
+	} );
 
 	function V2( x, y ){
 
@@ -282,9 +280,8 @@
 	    this.y = y || 0;
 	}
 
-	V2.prototype = {
+	Object.assign( V2.prototype, {
 
-		constructor: V2,
 		isVector2: true,
 
 		set: function( x, y ){
@@ -450,7 +447,7 @@
 			
 		},
 
-	};
+	} );
 
 	function M3( m00, m01, m02, m10, m11, m12, m20, m21, m22 ){
 
@@ -468,9 +465,8 @@
 
 	}
 
-	M3.prototype = {
+	Object.assign( M3.prototype, {
 
-		constructor: M3,
 		isMatrix3: true,
 
 		setV3: function ( xAxis, yAxis, zAxis ) {
@@ -676,7 +672,7 @@
 		}
 
 
-	};
+	} );
 
 	var _Math = {
 
@@ -1065,10 +1061,6 @@
 	 
 		},
 
-
-		/////
-
-		
 
 
 	};

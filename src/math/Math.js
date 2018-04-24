@@ -311,7 +311,7 @@ var _Math = {
 	    }
 
 	    var mtx = new M3();
-	    mtx.setV3( xAxis, yAxis, zAxis )
+	    mtx.setV3( xAxis, yAxis, zAxis );
 	     
 	    return mtx;
 
@@ -391,11 +391,7 @@ var _Math = {
 	},
 
 
-	/////
 
-	
-
-
-}
+};
 
 export { _Math };
