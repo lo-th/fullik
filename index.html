@@ -15,811 +15,339 @@
 			}
 
 			canvas { width: 100%; height: 100% }
-            #debug { position:absolute; top:10px; left:10px; width:200px; text-align:left; pointer-events:none;}
+            #debug { position:absolute; top:10px; left:10px; width:400px; text-align:left; pointer-events:none;}
+            #link { position:absolute; bottom:10px; left:10px; width:200px; text-align:left; pointer-events:auto; cursor:pointer; }
 
 		</style>
 	</head>
-	<body>
+<body>
 
-	<script src="js/libs/three.min.js"></script>
-    <script src="js/libs/tween.min.js"></script>
-    <script src='js/libs/uil.min.js'></script>
-	<script src="js/controls/OrbitControls.js"></script>
-    <script src="js/controls/TransformControls.js"></script>
-    
+<script src="js/libs/three.min.js"></script>
+<script src="js/libs/tween.min.js"></script>
+<script src='js/libs/uil.min.js'></script>
+<script src="js/controls/OrbitControls.js"></script>
+<script src="js/controls/TransformControls.js"></script>
 
-	<script src="build/fullik.js"></script>
 
-    <div id="debug"></div>
+<script src="build/fullik.js"></script>
 
-	<script>
+<div id="debug"></div>
+<div id="link">FULLIK GITHUB</div>
 
-        var targetTween = null; 
+<script>
 
-		var gui, scene, camera, renderer, controler, ambientLight, lights, mesh, bones, skeletonHelper, control, ground, grid;
+    var debug = document.getElementById('debug');
 
-		var target, effector;
+    var link = document.getElementById('link');
+    link.addEventListener('click', function(){window.location.assign('https://github.com/lo-th/fullik');}, false );
 
-		var boxTarget , boxEffector;
+    var fileName = '';
 
-		var box = [];
+    var targetTween = null; 
 
-        var targets = [];
+	var gui, scene, camera, renderer, controler, ambientLight, lights, mesh, bones, skeletonHelper, control, ground, grid;
 
-        var goal = {x:0, y:30, z:0};
+	var target, effector;
 
-        var setting = {
-            fixed:true,
-            auto:false
-        }
+	var boxTarget , boxEffector;
 
-		var solver;
+	var box = [];
 
-		var X_AXIS, Y_AXIS, Z_AXIS;
-        var X_AXIS_NEG, Y_AXIS_NEG, Z_AXIS_NEG;
-		var defaultBoneDirection, defaultBoneLength;
+    var targets = [];
 
-		var state = {
+    var goal = {x:0, y:30, z:0};
 
-			animateBones : false
+    var setting = {
+        fixed:true,
+        auto:false
+    }
 
-		};
+	var solver;
 
+	var X_AXIS, Y_AXIS, Z_AXIS;
+    var X_AXIS_NEG, Y_AXIS_NEG, Z_AXIS_NEG;
+	var defaultBoneDirection, defaultBoneLength;
 
-		function initScene () {
 
-            var w = window.innerWidth;
-            var h = window.innerHeight;
 
-			renderer = new THREE.WebGLRenderer( { antialias: true } );
-			renderer.setPixelRatio( window.devicePixelRatio );
-			renderer.setSize( w, h );
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMap.soft = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            renderer.gammaInput = true;
-            renderer.gammaOutput = true;
-			document.body.appendChild( renderer.domElement );
+	function initScene () {
 
-            renderer.setClearColor( 0x333333, 1 );
+        var w = window.innerWidth;
+        var h = window.innerHeight;
 
+		renderer = new THREE.WebGLRenderer( { antialias: true } );
+		renderer.setPixelRatio( window.devicePixelRatio );
+		renderer.setSize( w, h );
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.soft = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.gammaInput = true;
+        renderer.gammaOutput = true;
+		document.body.appendChild( renderer.domElement );
 
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera( 60, w / h, 0.1, 2000 );
-            camera.position.set(0,30,100);
+        renderer.setClearColor( 0x333333, 1 );
 
-			controler = new THREE.OrbitControls( camera, renderer.domElement );
-            controler.enableKeys = false;
-			//controler.enableZoom = false;
 
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera( 60, w / h, 0.1, 2000 );
+        camera.position.set(0,30,100);
 
-			ambientLight = new THREE.AmbientLight( 0x101010 );
-			scene.add( ambientLight );
+		controler = new THREE.OrbitControls( camera, renderer.domElement );
+        controler.enableKeys = false;
+		//controler.enableZoom = false;
 
-			lights = [];
-			lights[ 0 ] = new THREE.SpotLight( 0xffffff, 1, 0, Math.PI / 2 );//new THREE.PointLight( 0xffffff, 1, 0 );
-			lights[ 1 ] = new THREE.PointLight( 0xFF8822, 1, 0 );
-			lights[ 2 ] = new THREE.PointLight( 0x2288FF, 1, 0 );
 
-			lights[ 0 ].position.set( 0, 200, 0 );
-			lights[ 1 ].position.set( 100, 200, 100 );
-			lights[ 2 ].position.set( - 100, - 200, - 100 );
+		ambientLight = new THREE.AmbientLight( 0x101010 );
+		scene.add( ambientLight );
 
-			scene.add( lights[ 0 ] );
-			scene.add( lights[ 1 ] );
-			scene.add( lights[ 2 ] );
+		lights = [];
+		lights[ 0 ] = new THREE.SpotLight( 0xffffff, 1, 0, Math.PI / 2 );//new THREE.PointLight( 0xffffff, 1, 0 );
+		lights[ 1 ] = new THREE.PointLight( 0xFF8822, 1, 0 );
+		lights[ 2 ] = new THREE.PointLight( 0x2288FF, 1, 0 );
 
-            lights[ 0 ].castShadow = true;
-            var d = 150;
-            lights[ 0 ].shadow = new THREE.LightShadow( new THREE.OrthographicCamera( d, -d, d, -d,  100, 400 ))//;new THREE.PerspectiveCamera( 50, 1, 10, 200 ) );
-            lights[ 0 ].shadow.bias = 0.0001;
-            lights[ 0 ].shadow.mapSize.width = 2048;
-            lights[ 0 ].shadow.mapSize.height = 2048;
+		lights[ 0 ].position.set( 0, 200, 0 );
+		lights[ 1 ].position.set( 100, 200, 100 );
+		lights[ 2 ].position.set( - 100, - 200, - 100 );
 
-            addGround();
+		scene.add( lights[ 0 ] );
+		scene.add( lights[ 1 ] );
+		scene.add( lights[ 2 ] );
 
-			window.addEventListener( 'resize', resize, false );
+        lights[ 0 ].castShadow = true;
+        var d = 150;
+        lights[ 0 ].shadow = new THREE.LightShadow( new THREE.OrthographicCamera( d, -d, d, -d,  100, 400 ))//;new THREE.PerspectiveCamera( 50, 1, 10, 200 ) );
+        lights[ 0 ].shadow.bias = 0.0001;
+        lights[ 0 ].shadow.mapSize.width = 2048;
+        lights[ 0 ].shadow.mapSize.height = 2048;
 
-		
-			initGui();
+        addGround();
 
-            X_AXIS = new Fullik.V3( 1, 0, 0 );
-            Y_AXIS = new Fullik.V3( 0, 1, 0 );
-            Z_AXIS = new Fullik.V3( 0, 0, 1 );
-
-            X_AXIS_NEG = X_AXIS.negated();
-            Y_AXIS_NEG = Y_AXIS.negated();
-            Z_AXIS_NEG = Z_AXIS.negated();
-
-            defaultBoneDirection = Z_AXIS.negated();
-            defaultBoneLength = 10;
-
-            solver = new Fullik.Structure( scene );
-
-            demo( 1 );
-
-		}
-
-        function resize(){
-
-            var w = window.innerWidth;
-            var h = window.innerHeight;
-
-            camera.aspect = w / h;
-            camera.updateProjectionMatrix();
-            renderer.setSize( w, h );
-
-        }
-
-        function addGround(){
-
-            ground = new THREE.Mesh( new THREE.PlaneBufferGeometry( 200, 200, 1, 1 ),  new THREE.ShadowMaterial({opacity:0.5}) );
-            ground.geometry.applyMatrix( new THREE.Matrix4().makeRotationX(-Math.PI*0.5) );
-            ground.castShadow = false;
-            ground.receiveShadow = true;
-            ground.position.y = -5;
-            scene.add( ground );
-
-            /*grid = new THREE.GridHelper( 200, 16, 0x111111, 0x050505 );
-            grid.position.y = -5.01;
-            scene.add( grid );*/
-
-            grid = new THREE.PolarGridHelper( 100, 16, 8, 64, 0x202020, 0x404040 );
-            grid.position.y = -5.01;
-            scene.add( grid );
-
-        }
-
-        function updateTarget ( v ){
-
-            if(!targets[0]) return;
-
-            var n = targets[0];
-
-            n.mesh.position.copy( v );
-            n.control.position.copy( v );
-            n.position = n.mesh.position;
-
-        };
-
-        function addTarget( position ){
-
-            var n = {
-                mesh : new THREE.Mesh( new THREE.SphereBufferGeometry( 1 ),  new THREE.MeshStandardMaterial({color:0xFFFFFF, wireframe:true }) ),
-                control : new THREE.TransformControls( camera, renderer.domElement ),
-            }
-
-            n.mesh.castShadow = true;
-            n.mesh.receiveShadow = false;
-
-            scene.add( n.mesh );
-            n.mesh.position.copy(position);
-            n.control.addEventListener( 'change', updateSolver );
-            n.control.attach( n.mesh );
-            n.control.setSize(0.75);
-            scene.add( n.control );
-
-            n.position = n.mesh.position;
-
-            targets.push(n);
-
-        };
-
-        function clearAllTargets(){
-            var n;
-            for(var i = 0; i < targets.length; i++ ){
-
-                n = targets[i];
-                n.control.detach( n.mesh );
-                scene.remove(n.mesh);
-
-                n.control.removeEventListener( 'change', updateSolver );
-                scene.remove(n.control);
-
-            }
-
-            targets = [];
-
-        }
-
-
-		function initGui () {
-
-            gui = new UIL.Gui({ w:200 });
-
-            gui.add('title', { name:'FULLIK', prefix:Fullik.REVISION, h:30, r:10 } );
-
-            gui.add('bool',   { name:'fixed', value:true, p:70 } ).onChange(function(v) {solver.setFixedBaseMode(v); solver.update(); });
-            gui.add('bool',   { name:'autoMove', value:false, p:70 } ).onChange(function(v) { setting.auto = v; autoMove(); });
-
-            gui.add('button',   { name:'Demo 0', p:0 } ).onChange( function(v) { demo(0) });
-            gui.add('button',   { name:'Demo 1', p:0 } ).onChange( function(v) { demo(1) });
-            gui.add('button',   { name:'Demo 2', p:0 } ).onChange( function(v) { demo(2) });
-            gui.add('button',   { name:'Demo 3', p:0 } ).onChange( function(v) { demo(3) });
-            gui.add('button',   { name:'Demo 4', p:0 } ).onChange( function(v) { demo(4) });
-            gui.add('button',   { name:'Demo 5', p:0 } ).onChange( function(v) { demo(5) });
-            gui.add('button',   { name:'Demo 6', p:0 } ).onChange( function(v) { demo(6) });
-            gui.add('button',   { name:'Demo 7', p:0 } ).onChange( function(v) { demo(7) });
-            gui.add('button',   { name:'Demo 8', p:0 } ).onChange( function(v) { demo(8) });
-            gui.add('button',   { name:'Demo 9', p:0 } ).onChange( function(v) { demo(9) });
-            gui.add('button',   { name:'Demo 10', p:0 } ).onChange( function(v) { demo(10) });
-            gui.add('button',   { name:'Demo 11', p:0 } ).onChange( function(v) { demo(11) });
-            gui.add('button',   { name:'Demo 12', p:0 } ).onChange( function(v) { demo(12) });
-
-		}
-
-        function tell(s){
-
-            debug.innerHTML = s;
-
-        };
-
-        function updateSolver () {
-
-            solver.update();
-
-        };
-
-        function autoMove () {
-
-            if(!setting.auto) return;
-
-            targetTween = new TWEEN.Tween( goal ).to( {x:Fullik._Math.randInt(-50, 50), y:Fullik._Math.randInt(0, 50), z:Fullik._Math.randInt(-50, 50)}, 2000 )
-            .easing( TWEEN.Easing.Quadratic.Out )
-            .onUpdate( function() { updateTarget(goal); updateSolver(); } )
-            .onComplete( function() { autoMove(); } )
-            .start();
-        
-
-            
-
-        };
-
-        function render () {
-
-            requestAnimationFrame( render );
-            TWEEN.update();
-            renderer.render( scene, camera );
-
-        };
-
-
-
-        //////////////////////////////////////////////
+		window.addEventListener( 'resize', resize, false );
 
 	
-        function demo(n){
+		initGui();
 
-            clearAllTargets();
-            solver.clear();
+        X_AXIS = new Fullik.V3( 1, 0, 0 );
+        Y_AXIS = new Fullik.V3( 0, 1, 0 );
+        Z_AXIS = new Fullik.V3( 0, 0, 1 );
 
+        X_AXIS_NEG = X_AXIS.negated();
+        Y_AXIS_NEG = Y_AXIS.negated();
+        Z_AXIS_NEG = Z_AXIS.negated();
 
-            // add basic target
-            addTarget( new THREE.Vector3(0, 30, 0) );
-            target = targets[0].position;
-            
+        defaultBoneDirection = Z_AXIS.negated();
+        defaultBoneLength = 10;
 
-            switch( n ){
-                case 0:
-                tell("Demo 0 - Human bones");
+        solver = new Fullik.Structure( scene );
 
-                addTarget(new THREE.Vector3(-30, 15, 0));
-                addTarget(new THREE.Vector3(30, 15, 0));
-                addTarget(new THREE.Vector3(-8, -40, 0));
-                addTarget(new THREE.Vector3( 8, -40, 0));
+        //demo( 1 );
 
-                var startLoc = new Fullik.V3();
+        var s = location.hash.substr( 1 ); 
+        load( s || 'demo_1' );
 
-                var chain, basebone;
+	}
 
-                // 0 spine
+    function resize(){
 
-                chain = new Fullik.Chain( 0xFFFF00 );
-                basebone = new Fullik.Bone( startLoc, new Fullik.V3( 0, 2, 0 ) );
-                chain.addBone( basebone );
-                chain.addConsecutiveRotorConstrainedBone( Y_AXIS, 5, 30 );
-                chain.addConsecutiveRotorConstrainedBone( Y_AXIS, 5, 30 );
-                chain.addConsecutiveRotorConstrainedBone( Y_AXIS, 5, 30 );
-                chain.addConsecutiveRotorConstrainedBone( Y_AXIS, 5, 30 );
+        var w = window.innerWidth;
+        var h = window.innerHeight;
 
-                solver.add( chain, targets[0].position, true );
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize( w, h );
 
-                // 1 left arm
+    }
 
-                chain = new Fullik.Chain();
-                basebone = new Fullik.Bone( new Fullik.V3( 0, 20, 0 ), new Fullik.V3( -5, 20, 0 ) );
-                chain.addBone( basebone );
-                chain.addConsecutiveRotorConstrainedBone( X_AXIS.negated(), 10, 90 );
-                chain.addConsecutiveHingedBone( X_AXIS.negated(), 10, 'global', Y_AXIS, 90, 120, X_AXIS.negated() );
-                //chain.addConsecutiveHingedBone( X_AXIS.negated(), 10, Fullik.J_GLOBAL_HINGE, Y_AXIS, 90, 90, Z_AXIS );
-                //chain.addConsecutiveBone( X_AXIS.negated(), 10 );
-                //chain.addConsecutiveBone( X_AXIS.negated(), 10 );
-                //chain.addConsecutiveBone( X_AXIS.negated(), 5 );
+    function addGround(){
 
-                chain.setRotorBaseboneConstraint( 'local', X_AXIS.negated(), 10 );
-                solver.connectChain( chain, 0, 3, 'end', targets[1].position, true, 0x44FF44 );
+        ground = new THREE.Mesh( new THREE.PlaneBufferGeometry( 200, 200, 1, 1 ),  new THREE.ShadowMaterial({opacity:0.5}) );
+        ground.geometry.applyMatrix( new THREE.Matrix4().makeRotationX(-Math.PI*0.5) );
+        ground.castShadow = false;
+        ground.receiveShadow = true;
+        ground.position.y = -5;
+        scene.add( ground );
 
-                // 2 right arm
+        /*grid = new THREE.GridHelper( 200, 16, 0x111111, 0x050505 );
+        grid.position.y = -5.01;
+        scene.add( grid );*/
 
-                chain = new Fullik.Chain();
-                basebone = new Fullik.Bone( new Fullik.V3( 0, 20, 0 ), new Fullik.V3( -5, 20, 0 ) );
-                chain.addBone( basebone );
-                chain.addConsecutiveRotorConstrainedBone( X_AXIS, 10, 90 );
-                chain.addConsecutiveHingedBone( X_AXIS.negated(), 10, 'global', Y_AXIS, 90, 120, X_AXIS );
-                //chain.addConsecutiveBone( X_AXIS, 10 );
-                //chain.addConsecutiveBone( X_AXIS, 10 );
-                //chain.addConsecutiveBone( X_AXIS, 5 );
+        grid = new THREE.PolarGridHelper( 100, 16, 8, 64, 0x202020, 0x404040 );
+        grid.position.y = -5.01;
+        scene.add( grid );
 
-                chain.setRotorBaseboneConstraint( 'local', X_AXIS, 10 );
-                solver.connectChain( chain, 0, 3, 'end', targets[2].position, true, 0x4444FF );
+    }
 
+    function updateTarget ( v ){
 
-                // 5 left leg
+        if(!targets[0]) return;
 
-                chain = new Fullik.Chain();
-                basebone = new Fullik.Bone( new Fullik.V3( 0, 0, 0 ), new Fullik.V3( -4, 0, 0 ) );
-                chain.addBone( basebone );
-                chain.addConsecutiveRotorConstrainedBone( Y_AXIS.negated(), 15, 90 );
-                chain.addConsecutiveHingedBone( Y_AXIS.negated(), 15, 'local', Y_AXIS, 1, 120, Z_AXIS );
-                //chain.addConsecutiveBone( Y_AXIS.negated(), 15 );
-                //chain.addConsecutiveBone( Y_AXIS.negated(), 15  );
+        var n = targets[0];
 
-                chain.setRotorBaseboneConstraint( 'local', X_AXIS.negated(), 10 );
-                solver.connectChain( chain, 0, 0, 'start', targets[3].position, true, 0x44FF44 );
+        n.mesh.position.copy( v );
+        n.control.position.copy( v );
+        n.position = n.mesh.position;
 
+    };
 
-                // 5 left right
+    function addTarget( position ){
 
-                chain = new Fullik.Chain();
-                basebone = new Fullik.Bone( new Fullik.V3( 0, 0, 0 ), new Fullik.V3( 4, 0, 0 ) );
-                chain.addBone( basebone );
-                chain.addConsecutiveRotorConstrainedBone( Y_AXIS.negated(), 15, 90 );
-                chain.addConsecutiveHingedBone( Y_AXIS.negated(), 15, 'local', Z_AXIS.negated(), 1, 120, Z_AXIS.negated() );
-                //chain.addConsecutiveBone( Y_AXIS.negated(), 15 );
-                //chain.addConsecutiveBone( Y_AXIS.negated(), 15  );
-
-                chain.setRotorBaseboneConstraint( 'local', X_AXIS, 10 );
-                solver.connectChain( chain, 0, 0, 'start', targets[4].position, true, 0x4444FF );
-
-                
-
-                break;
-                case 1:
-
-                tell("Demo 1 - Unconstrained bones");
-
-                var numChains = 20;
-
-                for( var i=0; i<numChains; i++ ){
-
-                    var chain = new Fullik.Chain( 0x999999 );
-
-                    var startLoc = new Fullik.V3(-40+(i*4),0,40);
-                    var endLoc = startLoc.plus( defaultBoneDirection.times(defaultBoneLength));
-
-                    var basebone = new Fullik.Bone( startLoc, endLoc );
-                    chain.addBone( basebone );
-
-                    for (var j = 0; j < 7; j++) {
-                        chain.addConsecutiveBone( defaultBoneDirection, defaultBoneLength );
-                    };
-
-                    solver.add( chain, target, true );
-
-                }
-
-                break;
-                case 2:
-
-                tell("Demo 2 - Rotor / Ball Joint Constrained Bones");
-
-                var numChains = 3;
-                var rotStep = 360 / numChains;
-                var constraintAngleDegs = 45;
-                var color = 0xFF0000;
-
-                for (var i = 0; i < numChains; i++ ){
-
-                    switch (i){
-                        case 0: color = 0x550000;   break;
-                        case 1: color = 0x005500; break;
-                        case 2: color = 0x000055;  break;
-                    }
-
-                    var chain = new Fullik.Chain( color )
-
-                    var startLoc = new Fullik.V3(0, 0, -40);
-                    startLoc = Fullik._Math.rotateYDegs( startLoc, rotStep * i );
-                    var endLoc = startLoc.clone();
-                    endLoc.z -= defaultBoneLength;
-
-                    var basebone = new Fullik.Bone( startLoc, endLoc );
-                    chain.addBone( basebone );
-
-                    for (var j = 0; j < 7; j++) {
-
-                        chain.addConsecutiveRotorConstrainedBone( defaultBoneDirection, defaultBoneLength, constraintAngleDegs );
-
-                    };
-
-                    solver.add( chain, target, true );
-
-                }
-
-                break;
-                case 3:
-
-                tell("Demo 3 - Rotor Constrained Base Bones");
-
-                var numChains = 3;
-                var rotStep = 360 / numChains;
-                var baseBoneConstraintAngleDegs = 20;
-                var baseBoneConstraintAxis;
-                var color = 0xFF0000;
-
-                for (var i = 0; i < numChains; i++ ){
-
-                    switch (i){
-                        case 0: color = 0xFF0000; baseBoneConstraintAxis = X_AXIS;  break;
-                        case 1: color = 0x00FF00; baseBoneConstraintAxis = Y_AXIS;  break;
-                        case 2: color = 0x0000FF; baseBoneConstraintAxis = Z_AXIS.negated();  break;
-                    }
-
-                    var chain = new Fullik.Chain( color );
-
-                    var startLoc = new Fullik.V3(0, 0, -40);
-                    startLoc = Fullik._Math.rotateYDegs( startLoc, rotStep * i );
-                    var endLoc = startLoc.plus( defaultBoneDirection.times(defaultBoneLength * 2));
-                    //endLoc.z -= defaultBoneLength;
-
-                    var basebone = new Fullik.Bone( startLoc, endLoc );
-                    chain.addBone( basebone );
-                    chain.setRotorBaseboneConstraint( 'global', baseBoneConstraintAxis, baseBoneConstraintAngleDegs);
-
-                    for (var j = 0; j < 7; j++) {
-
-                        chain.addConsecutiveBone( defaultBoneDirection, defaultBoneLength );
-
-                    };
-
-                    solver.add( chain, target, true );
-
-                }
-
-
-                break;
-                case 4:
-
-                tell("Demo 4 - Freely Rotating Global Hinges");
-
-                var numChains = 3;
-                var rotStep = 360 / numChains;
-                var baseBoneConstraintAngleDegs = 20;
-                var globalHingeAxis;
-                var color = 0xFF0000;
-
-                for (var i = 0; i < numChains; i++ ){
-
-                    switch (i){
-                        case 0: color = 0xFF0000; globalHingeAxis = X_AXIS;  break;
-                        case 1: color = 0x00FF00; globalHingeAxis = Y_AXIS;  break;
-                        case 2: color = 0x0000FF; globalHingeAxis = Z_AXIS;  break;
-                    }
-
-                    var chain = new Fullik.Chain( color );
-
-                    var startLoc = new Fullik.V3(0, 0, -40);
-                    startLoc = Fullik._Math.rotateYDegs( startLoc, rotStep * i );
-                    var endLoc = startLoc.plus( defaultBoneDirection.times(defaultBoneLength));
-
-                    var basebone = new Fullik.Bone( startLoc, endLoc );
-                    chain.addBone( basebone );
-
-
-                    for (var j = 0; j < 7; j++) {
-
-                        if (j % 2 == 0) chain.addConsecutiveFreelyRotatingHingedBone( defaultBoneDirection, defaultBoneLength, 'global', globalHingeAxis );
-                        else chain.addConsecutiveBone( defaultBoneDirection, defaultBoneLength );
-
-                    };
-
-                    solver.add( chain, target, true );
-
-                }
-
-                break;
-                case 5:
-
-                tell("Demo 5 - Global Hinges With Reference Axis Constraints");
-
-                var chain = new Fullik.Chain( 0x999999 );
-
-                var startLoc = new Fullik.V3( 0, 30, -40 );
-                var endLoc = startLoc.clone();
-                endLoc.z -= defaultBoneLength;
-
-                var basebone = new Fullik.Bone( startLoc, endLoc );
-                chain.addBone( basebone );
-
-                for (var j = 0; j < 8; j++) {
-
-                    if (j % 2 == 0) chain.addConsecutiveHingedBone( Y_AXIS.negated(), defaultBoneLength, 'global', Z_AXIS, 120, 120, Y_AXIS.negated() );
-                    else chain.addConsecutiveBone( Y_AXIS.negated(), defaultBoneLength )
-
-                };
-
-                solver.add( chain, target, true );
-
-                break;
-                case 6:
-
-                tell("Demo 6 - Freely Rotating Local Hinges");
-
-                var numChains = 3;
-                var rotStep = 360 / numChains;
-                var baseBoneConstraintAngleDegs = 20;
-                var hingeRotationAxis;
-                var color = 0xFF0000;
-
-                for (var i = 0; i < numChains; i++ ){
-
-                    switch (i){
-                        case 0: color = 0xFF0000; hingeRotationAxis = X_AXIS; break;
-                        case 1: color = 0x00FF00; hingeRotationAxis = Y_AXIS; break;
-                        case 2: color = 0x0000FF; hingeRotationAxis = Z_AXIS; break;
-                    }
-
-                    var chain = new Fullik.Chain( color );
-
-                    var startLoc = new Fullik.V3(0, 0, -40);
-                    startLoc = Fullik._Math.rotateYDegs( startLoc, rotStep * i );
-                    var endLoc = startLoc.plus( defaultBoneDirection.times(defaultBoneLength));
-
-                    var basebone = new Fullik.Bone( startLoc, endLoc );
-                    chain.addBone( basebone );
-
-                    for (var j = 0; j < 7; j++) {
-
-                        if (j % 2 == 0) chain.addConsecutiveFreelyRotatingHingedBone( defaultBoneDirection, defaultBoneLength, 'local', hingeRotationAxis );
-                        else chain.addConsecutiveBone( defaultBoneDirection, defaultBoneLength );
-
-                    };
-
-                    solver.add( chain, target, true );
-
-                }
-
-                break;
-
-                case 7:
-
-                tell("Demo 7 - Local Hinges with Reference Axis Constraints");
-
-                // We'll create a circular arrangement of 3 chains with alternate bones each constrained about different local axes.
-                // Note: Local hinge rotation axes are relative to the rotation matrix of the previous bone in the chain.
-
-                var numChains = 3;
-                var rotStep = 360 / numChains;
-                var baseBoneConstraintAngleDegs = 20;
-                var hingeRotationAxis;
-                var hingeReferenceAxis;
-                var color = 0xFF0000;
-
-                for (var i = 0; i < numChains; i++ ){
-
-                    switch (i){
-                        case 0: color = 0xFF0000; hingeRotationAxis = X_AXIS; hingeReferenceAxis = Y_AXIS; break;
-                        case 1: color = 0x00FF00; hingeRotationAxis = Y_AXIS; hingeReferenceAxis = X_AXIS; break;
-                        case 2: color = 0x0000FF; hingeRotationAxis = Z_AXIS; hingeReferenceAxis = Y_AXIS; break;
-                    }
-
-                    var chain = new Fullik.Chain( color );
-
-                    var startLoc = new Fullik.V3( 0, 0, -40 );
-                    startLoc = Fullik._Math.rotateYDegs( startLoc, rotStep * i );
-                    var endLoc = startLoc.plus( defaultBoneDirection.times(defaultBoneLength));
-
-                    var basebone = new Fullik.Bone( startLoc, endLoc );
-                    chain.addBone( basebone );
-
-                    for (var j = 0; j < 6; j++) {
-
-                        if (j % 2 == 0) chain.addConsecutiveHingedBone( defaultBoneDirection, defaultBoneLength, 'local', hingeRotationAxis, 90, 90, hingeReferenceAxis );
-                        
-                        else chain.addConsecutiveBone( defaultBoneDirection, defaultBoneLength );
-
-                    };
-
-                    solver.add( chain, target, true );
-
-                }
-
-                break;
-                case 8:
-
-                tell("Demo 8 - Connected Chains");
-
-                var chain = new Fullik.Chain( 0x999999 );
-
-                var startLoc = new Fullik.V3( 0, 0, 40 );
-                var endLoc = startLoc.plus( defaultBoneDirection.times(defaultBoneLength) );
-
-                var basebone = new Fullik.Bone( startLoc, endLoc );
-                chain.addBone( basebone );
-
-                for (var j = 0; j < 8; j++) {
-
-                    chain.addConsecutiveBone( defaultBoneDirection, defaultBoneLength );
-
-                };
-
-                solver.add( chain, target, true );
-
-                var chain2 = new Fullik.Chain( 0xFF9999 );
-                var base = new Fullik.Bone( new Fullik.V3(100, 0, 0), new Fullik.V3(110, 0, 0) );
-                chain2.addBone(base);
-                chain2.addConsecutiveBone( X_AXIS, 20 );
-                chain2.addConsecutiveBone( Y_AXIS, 20 );
-                chain2.addConsecutiveBone( Z_AXIS, 20 );
-
-                solver.connectChain( chain2, 0, 0, 'start', target, true, 0xFF0000 );
-                solver.connectChain( chain2, 0, 2, 'start', target, true, 0x00FF00 );
-                solver.connectChain( chain2, 0, 4, 'end'  , target, true, 0x0000FF );
-
-                break;
-                case 9:
-
-                tell("Demo 9 - Global Rotor Constrained Connected Chains");
-
-                var chain = new Fullik.Chain( 0x999999 );
-
-                var startLoc = new Fullik.V3(0, 0, 40);
-                var endLoc = startLoc.plus( defaultBoneDirection.times(defaultBoneLength) );
-
-                var basebone = new Fullik.Bone( startLoc, endLoc );
-                chain.addBone( basebone );
-
-                for (var j = 0; j < 7; j++) {
-                    chain.addConsecutiveBone( defaultBoneDirection, defaultBoneLength );
-                };
-
-                solver.add( chain, target, true );
-
-                var chain2 = new Fullik.Chain();
-                var base = new Fullik.Bone( new Fullik.V3(0, 0, 0), new Fullik.V3(15, 0, 0) );
-                chain2.addBone(base);
-                chain2.setRotorBaseboneConstraint( 'global', X_AXIS, 45);
-                chain2.addConsecutiveBone( X_AXIS, 15 );
-                chain2.addConsecutiveBone( X_AXIS, 15 );
-                chain2.addConsecutiveBone( X_AXIS, 15 );
-
-                solver.connectChain( chain2, 0, 3, 'start', target, true, 0xFF0000 );
-
-                var chain3 = new Fullik.Chain();
-                var base = new Fullik.Bone( new Fullik.V3(0, 0, 0), new Fullik.V3(0, 15, 0) );
-                chain3.addBone(base);
-                chain3.setRotorBaseboneConstraint( 'global', Y_AXIS, 45);
-                chain3.addConsecutiveBone( Y_AXIS, 15 );
-                chain3.addConsecutiveBone( Y_AXIS, 15 );
-                chain3.addConsecutiveBone( Y_AXIS, 15 );
-
-                solver.connectChain( chain3, 0, 6, 'start', target, true, 0x00FF00 );
-
-             
-
-                break;
-                case 10:
-
-                tell("Demo 10 - Local Rotor Constrained Connected Chains");
-
-                addTarget(new THREE.Vector3(20, 20, 20))
-
-                var chain = new Fullik.Chain( 0x999999 );
-
-                var startLoc = new Fullik.V3(0, 0, 40);
-                var endLoc = startLoc.plus( defaultBoneDirection.times(defaultBoneLength) );
-
-                var basebone = new Fullik.Bone( startLoc, endLoc );
-                chain.addBone( basebone );
-
-                for (var j = 0; j < 7; j++) {
-                    chain.addConsecutiveBone( defaultBoneDirection, defaultBoneLength );
-                };
-
-                solver.add( chain, target, true );
-
-                var chain2 = new Fullik.Chain();
-                var base = new Fullik.Bone( new Fullik.V3(0, 0, 0), new Fullik.V3(15, 0, 0) );
-                chain2.addBone(base);
-                
-                chain2.setRotorBaseboneConstraint( 'local', X_AXIS, 45 );
-
-                chain2.addConsecutiveBone( X_AXIS, 15 );
-                chain2.addConsecutiveBone( X_AXIS, 15 );
-                chain2.addConsecutiveBone( X_AXIS, 15 );
-
-                solver.connectChain( chain2, 0, 3, 'start', targets[1].position, true, 0xFF0000 );
-
-                break;
-                case 11:
-
-                tell("Demo 11 - Connected Chains with Freely-Rotating Global Hinged Basebone Constraints");
-
-                addTarget(new THREE.Vector3(20, 20, 20))
-
-                var chain = new Fullik.Chain( 0x999999 );
-
-                var startLoc = new Fullik.V3(0, 0, 40);
-                var endLoc = startLoc.plus( defaultBoneDirection.times(defaultBoneLength) );
-
-                var basebone = new Fullik.Bone( startLoc, endLoc );
-                chain.addBone( basebone );
-
-                for (var j = 0; j < 7; j++) {
-                    chain.addConsecutiveBone( defaultBoneDirection, defaultBoneLength );
-                };
-
-                solver.add( chain, target, true );
-
-                var chain2 = new Fullik.Chain();
-                var base = new Fullik.Bone( new Fullik.V3(0, 0, 0), new Fullik.V3(15, 0, 0) );
-                chain2.addBone(base);
-
-                // Set this second chain to have a freely rotating global hinge which rotates about the Y axis
-                // Note: We MUST add the basebone to the chain before we can set the basebone constraint on it.
-                chain2.setFreelyRotatingGlobalHingedBasebone( Y_AXIS );
-
-                chain2.addConsecutiveBone( X_AXIS, 15 );
-                chain2.addConsecutiveBone( X_AXIS, 15 );
-                chain2.addConsecutiveBone( X_AXIS, 15 );
-
-                solver.connectChain( chain2, 0, 3, 'start', targets[1].position, true, 0xFF0000 );
-
-                break;
-                case 12:
-
-                tell("Demo 12 - Connected Chains with Non-Freely-Rotating Global Hinge Basebone Constraints");
-
-                addTarget(new THREE.Vector3(20, 20, 20));
-
-                var chain = new Fullik.Chain( 0x999999 );
-
-                var startLoc = new Fullik.V3(0, 0, 40);
-                var endLoc = startLoc.plus( defaultBoneDirection.times(defaultBoneLength) );
-
-                var basebone = new Fullik.Bone( startLoc, endLoc );
-                chain.addBone( basebone );
-
-                for (var j = 0; j < 7; j++) {
-                    chain.addConsecutiveBone( defaultBoneDirection, defaultBoneLength );
-                };
-
-                solver.add( chain, target, true );
-
-                var chain2 = new Fullik.Chain();
-                var base = new Fullik.Bone( new Fullik.V3(0, 0, 0), new Fullik.V3(15, 0, 0) );
-                chain2.addBone(base);
-                chain2.setHingeBaseboneConstraint( 'global', Y_AXIS, 90, 45, X_AXIS);
-                chain2.addConsecutiveBone( X_AXIS, 15 );
-                chain2.addConsecutiveBone( X_AXIS, 10 );
-                chain2.addConsecutiveBone( X_AXIS, 10 );
-
-                solver.connectChain( chain2, 0, 3, 'start', targets[1].position, true, 0xFF0000 );
-
-                break;
-
-            }
-
-
-            solver.update();
+        var n = {
+            mesh : new THREE.Mesh( new THREE.SphereBufferGeometry( 1 ),  new THREE.MeshStandardMaterial({color:0xFFFF00, wireframe:true }) ),
+            control : new THREE.TransformControls( camera, renderer.domElement ),
         }
 
-        
+        n.mesh.castShadow = true;
+        n.mesh.receiveShadow = false;
+
+        scene.add( n.mesh );
+        n.mesh.position.copy(position);
+        n.control.addEventListener( 'change', updateSolver );
+        n.control.attach( n.mesh );
+        n.control.setSize(0.75);
+        scene.add( n.control );
+
+        n.position = n.mesh.position;
+
+        targets.push(n);
+
+    };
+
+    function clearAllTargets(){
+        var n;
+        for(var i = 0; i < targets.length; i++ ){
+
+            n = targets[i];
+            n.control.detach( n.mesh );
+            scene.remove(n.mesh);
+
+            n.control.removeEventListener( 'change', updateSolver );
+            scene.remove(n.control);
+
+        }
+
+        targets = [];
+
+    }
 
 
-		initScene();
-		render();
+	function initGui () {
 
-	</script>
-	</body>
+        gui = new UIL.Gui({ w:200 });
+
+        gui.add('title', { name:'FULLIK', prefix:Fullik.REVISION, h:30, r:10 } );
+
+        gui.add('bool',   { name:'fixed', value:true, p:70 } ).onChange(function(v) {solver.setFixedBaseMode(v); solver.update(); });
+        gui.add('bool',   { name:'autoMove', value:false, p:70 } ).onChange(function(v) { setting.auto = v; autoMove(); });
+
+        gui.add('button',   { name:'Demo 0', p:0 } ).onChange( function(v) { demo(0) });
+        gui.add('button',   { name:'Demo 1', p:0 } ).onChange( function(v) { demo(1) });
+        gui.add('button',   { name:'Demo 2', p:0 } ).onChange( function(v) { demo(2) });
+        gui.add('button',   { name:'Demo 3', p:0 } ).onChange( function(v) { demo(3) });
+        gui.add('button',   { name:'Demo 4', p:0 } ).onChange( function(v) { demo(4) });
+        gui.add('button',   { name:'Demo 5', p:0 } ).onChange( function(v) { demo(5) });
+        gui.add('button',   { name:'Demo 6', p:0 } ).onChange( function(v) { demo(6) });
+        gui.add('button',   { name:'Demo 7', p:0 } ).onChange( function(v) { demo(7) });
+        gui.add('button',   { name:'Demo 8', p:0 } ).onChange( function(v) { demo(8) });
+        gui.add('button',   { name:'Demo 9', p:0 } ).onChange( function(v) { demo(9) });
+        gui.add('button',   { name:'Demo 10', p:0 } ).onChange( function(v) { demo(10) });
+        gui.add('button',   { name:'Demo 11', p:0 } ).onChange( function(v) { demo(11) });
+        gui.add('button',   { name:'Demo 12', p:0 } ).onChange( function(v) { demo(12) });
+
+	}
+
+    function tell(s){
+
+        debug.innerHTML = s;
+
+    };
+
+    function updateSolver () {
+
+        solver.update();
+
+    };
+
+    function autoMove () {
+
+        if(!setting.auto) return;
+
+        targetTween = new TWEEN.Tween( goal ).to( {x:Fullik._Math.randInt(-50, 50), y:Fullik._Math.randInt(0, 50), z:Fullik._Math.randInt(-50, 50)}, 2000 )
+        .easing( TWEEN.Easing.Quadratic.Out )
+        .onUpdate( function() { updateTarget(goal); updateSolver(); } )
+        .onComplete( function() { autoMove(); } )
+        .start();
+
+    };
+
+    function render () {
+
+        requestAnimationFrame( render );
+        TWEEN.update();
+        renderer.render( scene, camera );
+
+    };
+
+
+    function load ( name ) {
+
+        if( name === fileName ) return;
+
+        location.hash.substr( 1 );
+
+        fileName = name;
+        var url = './demos/3d/'+ name +'.js';
+
+        var xhr = new XMLHttpRequest();
+        xhr.overrideMimeType('text/plain; charset=x-user-defined'); 
+        xhr.open('GET', url, true);
+        xhr.onload = function(){ startDemo( xhr.responseText ); }
+        xhr.send();
+
+    }
+
+
+    function resetDemo () {
+
+        clearAllTargets();
+        solver.clear();
+
+        // add basic target
+        addTarget( new THREE.Vector3(0, 30, 0) );
+        target = targets[0].position;
+
+    }
+
+    function startDemo ( code ) {
+
+        resetDemo();
+
+        location.hash = fileName;
+
+        var oScript = document.createElement("script");
+        oScript.language = "javascript";
+        oScript.type = "text/javascript";
+        oScript.text = code;
+        document.getElementsByTagName('BODY').item(0).appendChild(oScript);
+
+        solver.update();
+
+    }
+
+    function demo ( n ) {
+
+        load( 'demo_' + n );
+
+    }
+
+    function goLink(){
+
+        window.location.assign('https://github.com/lo-th/fullik');
+
+    }
+
+	initScene();
+	render();
+
+</script>
+</body>
 </html>
