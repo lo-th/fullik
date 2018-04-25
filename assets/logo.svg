@@ -1,0 +1,88 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="none" x="0px" y="0px" width="300px" height="220px" viewBox="0 0 300 220">
+<defs>
+<g id="Symbole_1444_0_Layer0_0_FILL">
+<path fill="#CCCCCC" stroke="none" d="
+M 187.85 17.25
+L 182.95 17.25 182.95 41.7 187.85 41.7 187.85 30.8 196.75 41.7 202.95 41.7 192.6 29.4 202.65 17.25 196.75 17.25 187.85 28.25 187.85 17.25
+M 172.2 17.25
+L 172.2 41.7 177.1 41.7 177.1 17.25 172.2 17.25
+M 157 15.8
+L 152.1 15.8 152.1 41.7 157 41.7 157 15.8
+M 141.35 15.8
+L 141.35 41.7 146.25 41.7 146.25 15.8 141.35 15.8
+M 135.5 22.3
+L 130.6 22.3 130.6 33
+Q 130.55 35.35 129.4 36.55 128.25 37.75 126.25 37.8 124.25 37.75 123.1 36.55 121.95 35.35 121.95 33
+L 121.95 22.3 117.05 22.3 117.05 33.7
+Q 117.05 36.35 118.05 38.2 119.05 40.05 120.8 41 122.55 41.95 124.8 41.95 126.65 41.95 128.15 41.2 129.65 40.5 130.6 39.25
+L 130.6 41.7 135.5 41.7 135.5 22.3
+M 102.6 21.25
+L 112.8 21.25 112.8 17.25 97.7 17.25 97.7 41.7 102.6 41.7 102.6 31.4 110.4 31.4 110.4 27.5 102.6 27.5 102.6 21.25 Z"/>
+</g>
+
+<g id="Symbole_2444_0_Layer1_0_FILL">
+<path fill="#939393" stroke="none" d="
+M -6.35 42.1
+Q -9 44.75 -9 48.5 -9 52.2 -6.35 54.85 -3.7 57.5 0 57.5 3.75 57.5 6.35 54.85 9 52.2 9 48.5 9 44.75 6.35 42.1 3.75 39.5 0 39.5 -3.7 39.5 -6.35 42.1 Z"/>
+</g>
+
+<g id="Symbole_2444_0_Layer1_1_FILL">
+<path fill="#939393" stroke="none" d="
+M -47.4 -33.4
+Q -50.05 -30.75 -50.05 -27 -50.05 -23.3 -47.4 -20.65 -44.75 -18 -41.05 -18 -37.3 -18 -34.7 -20.65 -32.05 -23.3 -32.05 -27 -32.05 -30.75 -34.7 -33.4 -37.3 -36 -41.05 -36 -44.75 -36 -47.4 -33.4 Z"/>
+</g>
+
+<g id="Symbole_2444_0_Layer1_2_FILL">
+<path fill="#916E2F" stroke="none" d="
+M 34.7 -33.4
+Q 32.05 -30.75 32.05 -27 32.05 -23.3 34.7 -20.65 37.35 -18 41.05 -18 44.8 -18 47.4 -20.65 50.05 -23.3 50.05 -27 50.05 -30.75 47.4 -33.4 44.8 -36 41.05 -36 37.35 -36 34.7 -33.4 Z"/>
+</g>
+
+<path id="Symbole_2444_0_Layer4_0_1_STROKES" stroke="#CCCCCC" stroke-width="5" stroke-linejoin="round" stroke-linecap="square" fill="none" d="
+M -72.75 33.925
+Q -80 18.4919921875 -80 0.05 -80 -33.1 -56.6 -56.55 -33.15 -80 0 -80 18.4951171875 -80 33.95 -72.725
+M 72.725 -33.9
+Q 80 -18.4345703125 80 0.05 80 33.2 56.6 56.6 33.2 80 0 80 -18.4375 80 -33.875 72.75"/>
+
+<path id="Symbole_2444_0_Layer3_0_1_STROKES" stroke="#C99942" stroke-width="36" stroke-linejoin="round" stroke-linecap="round" fill="none" d="
+M 41.05 -27
+L 0 48.5"/>
+
+<path id="Symbole_2444_0_Layer2_0_1_STROKES" stroke="#CCCCCC" stroke-width="36" stroke-linejoin="round" stroke-linecap="round" fill="none" d="
+M -41.05 -27
+L 0 48.5"/>
+</defs>
+
+<g transform="matrix( 1, 0, 0, 1, 0,164.1) ">
+<g transform="matrix( 1, 0, 0, 1, 0,0) ">
+<use xlink:href="#Symbole_1444_0_Layer0_0_FILL"/>
+</g>
+</g>
+
+<g transform="matrix( 1, 0, 0, 1, 150,90) ">
+<g transform="matrix( 1, 0, 0, 1, 0,0) ">
+<use xlink:href="#Symbole_2444_0_Layer4_0_1_STROKES"/>
+</g>
+
+<g transform="matrix( 1, 0, 0, 1, 0,0) ">
+<use xlink:href="#Symbole_2444_0_Layer3_0_1_STROKES"/>
+</g>
+
+<g transform="matrix( 1, 0, 0, 1, 0,0) ">
+<use xlink:href="#Symbole_2444_0_Layer2_0_1_STROKES"/>
+</g>
+
+<g transform="matrix( 1, 0, 0, 1, 0,0) ">
+<use xlink:href="#Symbole_2444_0_Layer1_0_FILL"/>
+</g>
+
+<g transform="matrix( 1, 0, 0, 1, 0,0) ">
+<use xlink:href="#Symbole_2444_0_Layer1_1_FILL"/>
+</g>
+
+<g transform="matrix( 1, 0, 0, 1, 0,0) ">
+<use xlink:href="#Symbole_2444_0_Layer1_2_FILL"/>
+</g>
+</g>
+</svg>
