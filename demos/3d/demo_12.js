@@ -1,6 +1,6 @@
 tell("Demo 12 - Connected Chains with Non-Freely-Rotating Global Hinge Basebone Constraints");
 
-addTarget(new THREE.Vector3(20, 20, 20));
+addTarget( new THREE.Vector3(20, 20, 20) );
 
 var chain = new FIK.Chain3D( 0x999999 );
 
