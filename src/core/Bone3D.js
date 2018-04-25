@@ -1,10 +1,10 @@
-import { Joint } from './Joint.js';
+import { Joint3D } from './Joint3D.js';
 import { _Math } from '../math/Math.js';
 import { V3 } from '../math/V3.js';
 
-function Bone ( startLocation, endLocation, directionUV, length, color ){
+function Bone3D ( startLocation, endLocation, directionUV, length, color ){
 
-    this.mJoint = new Joint();
+    this.mJoint = new Joint3D();
     this.mStartLocation = new V3();
     this.mEndLocation = new V3();
     
@@ -18,9 +18,7 @@ function Bone ( startLocation, endLocation, directionUV, length, color ){
 
 };
 
-Bone.prototype = {
-
-    constructor: Bone,
+Object.assign( Bone3D.prototype, {
 
     init:function( startLocation, endLocation, directionUV, length ){
 
@@ -36,7 +34,7 @@ Bone.prototype = {
     },
 
     clone:function(){
-        var b = new Bone( this.mStartLocation, this.mEndLocation );
+        var b = new Bone3D( this.mStartLocation, this.mEndLocation );
         b.mJoint = this.mJoint.clone();
         return b;
     },
@@ -137,6 +135,6 @@ Bone.prototype = {
         return this.mJoint;
     },
 
-}
+} );
 
-export { Bone };
+export { Bone3D };

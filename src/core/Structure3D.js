@@ -1,7 +1,7 @@
 import { BB_NONE, BB_GLOBAL_ROTOR, BB_GLOBAL_HINGE, BB_LOCAL_ROTOR, BB_LOCAL_HINGE, J_BALL, J_GLOBAL_HINGE, J_LOCAL_HINGE } from '../constants.js';
 import { _Math } from '../math/Math.js';
 
-function Structure ( scene ) {
+function Structure3D ( scene ) {
 
     this.chains = [];
     this.meshChains = [];
@@ -14,9 +14,7 @@ function Structure ( scene ) {
 
 }
 
-Structure.prototype = {
-
-    constructor: Structure,
+Object.assign( Structure3D.prototype, {
 
     update:function(){
 
@@ -320,6 +318,6 @@ Structure.prototype = {
 
     }
 
-}
+} );
 
-export { Structure };
+export { Structure3D };

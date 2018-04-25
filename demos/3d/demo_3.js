@@ -14,14 +14,14 @@ for (var i = 0; i < numChains; i++ ){
         case 2: color = 0x0000FF; baseBoneConstraintAxis = Z_AXIS.negated();  break;
     }
 
-    var chain = new Fullik.Chain( color );
+    var chain = new FIK.Chain3D( color );
 
-    var startLoc = new Fullik.V3(0, 0, -40);
-    startLoc = Fullik._Math.rotateYDegs( startLoc, rotStep * i );
+    var startLoc = new FIK.V3(0, 0, -40);
+    startLoc = FIK._Math.rotateYDegs( startLoc, rotStep * i );
     var endLoc = startLoc.plus( defaultBoneDirection.times(defaultBoneLength * 2));
     //endLoc.z -= defaultBoneLength;
 
-    var basebone = new Fullik.Bone( startLoc, endLoc );
+    var basebone = new FIK.Bone3D( startLoc, endLoc );
     chain.addBone( basebone );
     chain.setRotorBaseboneConstraint( 'global', baseBoneConstraintAxis, baseBoneConstraintAngleDegs);
 

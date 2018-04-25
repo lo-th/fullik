@@ -2,7 +2,7 @@ import { V3 } from '../math/V3.js';
 import { _Math } from '../math/Math.js';
 import { J_BALL, J_GLOBAL_HINGE, J_LOCAL_HINGE } from '../constants.js';
 
-function Joint(){
+function Joint3D(){
 
     this.mRotorConstraintDegs = _Math.MAX_ANGLE_DEGS;
     this.mHingeClockwiseConstraintDegs = _Math.MAX_ANGLE_DEGS;
@@ -14,13 +14,11 @@ function Joint(){
 
 }
 
-Joint.prototype = {
-
-    constructor: Joint,
+Object.assign( Joint3D.prototype, {
 
     clone:function(){
 
-        var j = new Joint();
+        var j = new Joint3D();
         j.mRotorConstraintDegs = this.mRotorConstraintDegs;
         j.mHingeClockwiseConstraintDegs = this.mHingeClockwiseConstraintDegs;
         j.mHingeAnticlockwiseConstraintDegs = this.mHingeAnticlockwiseConstraintDegs;
@@ -117,6 +115,6 @@ Joint.prototype = {
 
     
     
-}
+} );
 
-export { Joint };
+export { Joint3D };

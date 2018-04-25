@@ -1,11 +1,11 @@
 tell("Demo 8 - Connected Chains");
 
-var chain = new Fullik.Chain( 0x999999 );
+var chain = new FIK.Chain3D( 0x999999 );
 
-var startLoc = new Fullik.V3( 0, 0, 40 );
+var startLoc = new FIK.V3( 0, 0, 40 );
 var endLoc = startLoc.plus( defaultBoneDirection.times(defaultBoneLength) );
 
-var basebone = new Fullik.Bone( startLoc, endLoc );
+var basebone = new FIK.Bone3D( startLoc, endLoc );
 chain.addBone( basebone );
 
 for (var j = 0; j < 8; j++) {
@@ -16,8 +16,8 @@ for (var j = 0; j < 8; j++) {
 
 solver.add( chain, target, true );
 
-var chain2 = new Fullik.Chain( 0xFF9999 );
-var base = new Fullik.Bone( new Fullik.V3(100, 0, 0), new Fullik.V3(110, 0, 0) );
+var chain2 = new FIK.Chain3D( 0xFF9999 );
+var base = new FIK.Bone3D( new FIK.V3(100, 0, 0), new FIK.V3(110, 0, 0) );
 chain2.addBone(base);
 chain2.addConsecutiveBone( X_AXIS, 20 );
 chain2.addConsecutiveBone( Y_AXIS, 20 );

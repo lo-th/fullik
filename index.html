@@ -29,7 +29,7 @@
 <script src="js/controls/TransformControls.js"></script>
 
 
-<script src="build/fullik.js"></script>
+<script src="build/fik.js"></script>
 
 <div id="debug"></div>
 <div id="link">FULLIK GITHUB</div>
@@ -127,9 +127,9 @@
 	
 		initGui();
 
-        X_AXIS = new Fullik.V3( 1, 0, 0 );
-        Y_AXIS = new Fullik.V3( 0, 1, 0 );
-        Z_AXIS = new Fullik.V3( 0, 0, 1 );
+        X_AXIS = new FIK.V3( 1, 0, 0 );
+        Y_AXIS = new FIK.V3( 0, 1, 0 );
+        Z_AXIS = new FIK.V3( 0, 0, 1 );
 
         X_AXIS_NEG = X_AXIS.negated();
         Y_AXIS_NEG = Y_AXIS.negated();
@@ -138,7 +138,7 @@
         defaultBoneDirection = Z_AXIS.negated();
         defaultBoneLength = 10;
 
-        solver = new Fullik.Structure( scene );
+        solver = new FIK.Structure3D( scene );
 
         //demo( 1 );
 
@@ -234,7 +234,7 @@
 
         gui = new UIL.Gui({ w:200 });
 
-        gui.add('title', { name:'FULLIK', prefix:Fullik.REVISION, h:30, r:10 } );
+        gui.add('title', { name:'FULLIK', prefix:FIK.REVISION, h:30, r:10 } );
 
         gui.add('bool',   { name:'fixed', value:true, p:70 } ).onChange(function(v) {solver.setFixedBaseMode(v); solver.update(); });
         gui.add('bool',   { name:'autoMove', value:false, p:70 } ).onChange(function(v) { setting.auto = v; autoMove(); });
@@ -271,7 +271,7 @@
 
         if(!setting.auto) return;
 
-        targetTween = new TWEEN.Tween( goal ).to( {x:Fullik._Math.randInt(-50, 50), y:Fullik._Math.randInt(0, 50), z:Fullik._Math.randInt(-50, 50)}, 2000 )
+        targetTween = new TWEEN.Tween( goal ).to( {x:FIK._Math.randInt(-50, 50), y:FIK._Math.randInt(0, 50), z:FIK._Math.randInt(-50, 50)}, 2000 )
         .easing( TWEEN.Easing.Quadratic.Out )
         .onUpdate( function() { updateTarget(goal); updateSolver(); } )
         .onComplete( function() { autoMove(); } )

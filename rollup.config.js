@@ -5,13 +5,13 @@ export default {
 	output: [
 		{
 			format: 'umd',
-			name: 'Fullik',
-			file: 'build/fullik.js',
+			name: 'FIK',
+			file: 'build/fik.js',
 			indent: '\t'
 		},
 		{
 			format: 'es',
-			file: 'build/fullik.module.js',
+			file: 'build/fik.module.js',
 			indent: '\t'
 		}
 	]

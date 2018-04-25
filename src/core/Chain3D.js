@@ -1,11 +1,11 @@
 import { BB_NONE, BB_GLOBAL_ROTOR, BB_GLOBAL_HINGE, BB_LOCAL_ROTOR, BB_LOCAL_HINGE, J_BALL, J_GLOBAL_HINGE, J_LOCAL_HINGE, END, START } from '../constants.js';
 import { _Math } from '../math/Math.js';
 import { V3 } from '../math/V3.js';
-import { Bone } from './Bone.js';
-import { Joint } from './Joint.js';
+import { Bone3D } from './Bone3D.js';
+import { Joint3D } from './Joint3D.js';
 import { Tools } from './Tools.js';
 
- function Chain ( color ){
+ function Chain3D ( color ){
 
     this.bones = [];
     this.name = '';
@@ -42,13 +42,11 @@ import { Tools } from './Tools.js';
 
 }
 
-Chain.prototype = {
-
-    constructor: Chain,
+Object.assign( Chain3D.prototype, {
 
     clone:function(){
 
-        var c = new Chain();
+        var c = new Chain3D();
 
         c.bones = this.cloneIkChain();
         c.mFixedBaseLocation.copy( this.mFixedBaseLocation );
@@ -126,7 +124,7 @@ Chain.prototype = {
                 
             // Add a bone to the end of this IK chain
             // Note: We use a normalised version of the bone direction
-            this.addBone( new Bone( prevBoneEnd, undefined, directionUV.normalised(), length ) );
+            this.addBone( new Bone3D( prevBoneEnd, undefined, directionUV.normalised(), length ) );
         }
 
     },
@@ -149,12 +147,12 @@ Chain.prototype = {
         var prevBoneEnd = this.bones[this.mNumBones-1].getEndLocation().clone();
             
         // Create a bone
-        var bone = new Bone( prevBoneEnd, undefined, directionUV, length, this.color );
+        var bone = new Bone3D( prevBoneEnd, undefined, directionUV, length, this.color );
 
         type = type || 'global';
         
         // ...then create and set up a joint which we'll apply to that bone.
-        var joint = new Joint();
+        var joint = new Joint3D();
         switch (type){
             case 'global':
                 joint.setAsGlobalHinge( hingeRotationAxis, clockwiseDegs, anticlockwiseDegs, hingeReferenceAxis );
@@ -180,7 +178,7 @@ Chain.prototype = {
         // Create the bone starting at the end of the previous bone, set its direction, constraint angle and colour
         // then add it to the chain. Note: The default joint type of a new Bone is J_BALL.
         boneDirectionUV = boneDirectionUV.normalised();
-        var bone = new Bone( this.bones[ this.mNumBones-1 ].getEndLocation(), undefined , boneDirectionUV, length );
+        var bone = new Bone3D( this.bones[ this.mNumBones-1 ].getEndLocation(), undefined , boneDirectionUV, length );
         bone.setBallJointConstraintDegs( constraintAngleDegs );
         this.addBone( bone );
 
@@ -307,7 +305,7 @@ Chain.prototype = {
         this.mBaseboneConstraintType = type === 'global' ? BB_GLOBAL_HINGE : BB_LOCAL_HINGE;
         this.mBaseboneConstraintUV.copy( hingeRotationAxis.normalised() );
         
-        var hinge = new Joint();
+        var hinge = new Joint3D();
         
         if ( type === 'global' ) hinge.setHinge( J_GLOBAL_HINGE, hingeRotationAxis, cwConstraintDegs, acwConstraintDegs, hingeReferenceAxis );
         else hinge.setHinge( J_LOCAL_HINGE, hingeRotationAxis, cwConstraintDegs, acwConstraintDegs, hingeReferenceAxis );
@@ -896,6 +894,6 @@ Chain.prototype = {
 
 // end
 
-}
+} );
 
-export { Chain };
+export { Chain3D };

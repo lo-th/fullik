@@ -2,17 +2,17 @@
   "name": "fullik",
   "version": "1.3.3",
   "description": "JavaScript 3D library",
-  "main": "build/fullik.js",
+  "main": "build/fik.js",
   "repository": "lo-th/Fullik",
-  "jsnext:main": "build/fullik.module.js",
-  "module": "build/fullik.module.js",
+  "jsnext:main": "build/fik.module.js",
+  "module": "build/fik.module.js",
   "files": [
     "package.json",
     "LICENSE",
     "README.md",
-    "build/fullik.js",
-    "build/fullik.min.js",
-    "build/fullik.module.js",
+    "build/fik.js",
+    "build/fik.min.js",
+    "build/fik.module.js",
     "src",
     "examples/js",
     "examples/fonts"
@@ -25,15 +25,16 @@
   },
   "scripts": {
     "build": "rollup -c",
-    "build-uglify": "rollup -c && uglifyjs build/fullik.js -cm --preamble \"// lo-th.github.io/Fullik/license\" > build/fullik.min.js",
-    "build-closure": "rollup -c && java -jar node_modules/google-closure-compiler/compiler.jar --warning_level=VERBOSE --jscomp_off=globalThis --jscomp_off=checkTypes --externs utils/build/externs.js --language_in=ECMASCRIPT5_STRICT --js build/fullik.js --js_output_file build/fullik.min.js",
+    "build-uglify": "rollup -c && uglifyjs build/fik.js -cm --preamble \"// lo-th.github.io/Fullik/license\" > build/fik.min.js",
+    "build-closure": "rollup -c && java -jar node_modules/google-closure-compiler/compiler.jar --warning_level=VERBOSE --jscomp_off=globalThis --jscomp_off=checkTypes --externs utils/build/externs.js --language_in=ECMASCRIPT5_STRICT --js build/fik.js --js_output_file build/fik.min.js",
     "dev": "rollup -c -w",
     "lint": "eslint src",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
     "fullik",
-    "fullik.js",
+    "fik",
+    "fik.js",
     "ui"
   ],
   "author": "lo-th",
