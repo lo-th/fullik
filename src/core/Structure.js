@@ -86,7 +86,7 @@ Structure.prototype = {
                 //else c.solveForEmbeddedTarget();
 
                 
-                //c.resetTarget();//
+                c.resetTarget();//
                 //hostChain.updateTarget( this.targets[connectedChainNumber] );
 
                 c.updateTarget( t );
@@ -239,9 +239,10 @@ Structure.prototype = {
         var g = new THREE.CylinderBufferGeometry ( 1, 0.5, size, 4 );
         g.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) )
         g.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0, size*0.5 ) );
-        var m = new THREE.MeshStandardMaterial({ color:color, wireframe : false, shadowSide:false});
+        var m = new THREE.MeshStandardMaterial({ color:color, wireframe:false, shadowSide:false, transparent:true, opacity:0.6 });
 
-        var m2 = new THREE.MeshBasicMaterial({ wireframe : true });
+        var m2 = new THREE.MeshBasicMaterial({ wireframe : true, transparent:true, opacity:0.3 });
+        var m4 = new THREE.MeshBasicMaterial({ wireframe : true, color:color, transparent:true, opacity:0.3 });
 
         var extraMesh = null;
         var extraGeo;
@@ -281,10 +282,12 @@ Structure.prototype = {
             break;
         }
 
-
-
+        var axe = new THREE.AxesHelper(1);
+        var bw = new THREE.Mesh( g,  m4 );
 
         var b = new THREE.Mesh( g,  m );
+        b.add(axe);
+        b.add(bw);
         this.scene.add( b );
 
         b.castShadow = true;

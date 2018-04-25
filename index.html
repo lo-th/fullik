@@ -36,7 +36,7 @@
 
         var targetTween = null; 
 
-		var gui, scene, camera, renderer, orbit, ambientLight, lights, mesh, bones, skeletonHelper, control, ground, grid;
+		var gui, scene, camera, renderer, controler, ambientLight, lights, mesh, bones, skeletonHelper, control, ground, grid;
 
 		var target, effector;
 
@@ -68,33 +68,38 @@
 
 		function initScene () {
 
-			
-			scene = new THREE.Scene();
-			camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 2000 );
-			camera.position.z = 70;
-			//camera.position.y = 30;
+            var w = window.innerWidth;
+            var h = window.innerHeight;
 
 			renderer = new THREE.WebGLRenderer( { antialias: true } );
 			renderer.setPixelRatio( window.devicePixelRatio );
-			renderer.setSize( window.innerWidth, window.innerHeight );
+			renderer.setSize( w, h );
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.soft = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.gammaInput = true;
+            renderer.gammaOutput = true;
 			document.body.appendChild( renderer.domElement );
 
             renderer.setClearColor( 0x333333, 1 );
 
-			orbit = new THREE.OrbitControls( camera, renderer.domElement );
-			//orbit.enableZoom = false;
+
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera( 60, w / h, 0.1, 2000 );
+            camera.position.set(0,30,100);
+
+			controler = new THREE.OrbitControls( camera, renderer.domElement );
+            controler.enableKeys = false;
+			//controler.enableZoom = false;
 
 
-			ambientLight = new THREE.AmbientLight( 0x000000 );
+			ambientLight = new THREE.AmbientLight( 0x101010 );
 			scene.add( ambientLight );
 
 			lights = [];
 			lights[ 0 ] = new THREE.SpotLight( 0xffffff, 1, 0, Math.PI / 2 );//new THREE.PointLight( 0xffffff, 1, 0 );
-			lights[ 1 ] = new THREE.PointLight( 0xffffff, 1, 0 );
-			lights[ 2 ] = new THREE.PointLight( 0xffffff, 1, 0 );
+			lights[ 1 ] = new THREE.PointLight( 0xFF8822, 1, 0 );
+			lights[ 2 ] = new THREE.PointLight( 0x2288FF, 1, 0 );
 
 			lights[ 0 ].position.set( 0, 200, 0 );
 			lights[ 1 ].position.set( 100, 200, 100 );
@@ -155,7 +160,11 @@
             ground.position.y = -5;
             scene.add( ground );
 
-            grid = new THREE.GridHelper( 200, 16, 0x111111, 0x050505 );
+            /*grid = new THREE.GridHelper( 200, 16, 0x111111, 0x050505 );
+            grid.position.y = -5.01;
+            scene.add( grid );*/
+
+            grid = new THREE.PolarGridHelper( 100, 16, 8, 64, 0x202020, 0x404040 );
             grid.position.y = -5.01;
             scene.add( grid );
 
