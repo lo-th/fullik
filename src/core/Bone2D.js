@@ -65,19 +65,31 @@ Bone2D.prototype = {
         this.mBoneConnectionPoint = bcp;
     },
 
-    setHingeJointClockwiseConstraintDegs:function( angleDegs ){
+
+    setClockwiseConstraintDegs:function( angleDegs ){
+        this.mJoint.setClockwiseConstraintDegs( angleDegs );
+    },
+
+    setAnticlockwiseConstraintDegs:function( angleDegs ){
+        this.mJoint.setAnticlockwiseConstraintDegs( angleDegs );
+    },
+
+
+
+
+    /*setHingeJointClockwiseConstraintDegs:function( angleDegs ){
         this.mJoint.setHingeJointClockwiseConstraintDegs( angleDegs );
     },
 
     setHingeJointAnticlockwiseConstraintDegs:function( angleDegs ){
         this.mJoint.setHingeJointAnticlockwiseConstraintDegs( angleDegs );
-    },
+    },*/
 
-    setBallJointConstraintDegs:function( angleDegs ){
+    /*setBallJointConstraintDegs:function( angleDegs ){
         if (angleDegs < 0 ) angleDegs = 0;
         if (angleDegs > 180 ) angleDegs = 180;
         this.mJoint.setBallJointConstraintDegs( angleDegs );
-    },
+    },*/
 
     setStartLocation:function( location ){
         this.mStartLocation.copy( location );
@@ -98,13 +110,17 @@ Bone2D.prototype = {
 
     // GET
 
-    getHingeJointClockwiseConstraintDegs: function(){
-        return this.mJoint.getHingeClockwiseConstraintDegs();
+    getClockwiseConstraintDegs: function(){
+        return this.mJoint.getClockwiseConstraintDegs();
     },
 
     
-    getHingeJointAnticlockwiseConstraintDegs: function(){
-        return this.mJoint.getHingeAnticlockwiseConstraintDegs();
+    getAnticlockwiseConstraintDegs: function(){
+        return this.mJoint.getAnticlockwiseConstraintDegs();
+    },
+
+    getJointConstraintCoordinateSystem: function () {
+        return this.mJoint.getConstraintCoordinateSystem();
     },
 
     
@@ -126,9 +142,9 @@ Bone2D.prototype = {
         return this.mEndLocation;
     },
 
-    getJointType : function(){
+    /*getJointType : function(){
         return this.mJoint.getJointType();
-    },
+    },*/
 
     getLength : function(){
         return this.mLength;

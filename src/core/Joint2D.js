@@ -1,9 +1,11 @@
 import { _Math } from '../math/Math.js';
+import { J_LOCAL, J_GLOBAL } from '../constants.js';
 
-function Joint2D( clockwiseConstraintDegs, antiClockwiseConstraintDegs ){
+function Joint2D( clockwiseConstraintDegs, antiClockwiseConstraintDegs, constraintCoordSystem ){
 
     this.mClockwiseConstraintDegs = clockwiseConstraintDegs || _Math.MAX_ANGLE_DEGS;
     this.mAnticlockwiseConstraintDegs = antiClockwiseConstraintDegs || _Math.MAX_ANGLE_DEGS;
+    this.mConstraintCoordinateSystem = constraintCoordSystem || J_LOCAL;
 
 }
 
@@ -49,6 +51,12 @@ Joint2D.prototype = {
         
     },
 
+    setConstraintCoordinateSystem:function(coordSystem){
+
+        this.mConstraintCoordinateSystem = coordSystem;
+
+    },
+
 
     // GET
 
@@ -61,6 +69,12 @@ Joint2D.prototype = {
     getAnticlockwiseConstraintDegs:function(){
 
         return this.mAnticlockwiseConstraintDegs;
+
+    },
+
+    getConstraintCoordinateSystem:function(){
+
+        return this.mConstraintCoordinateSystem;
 
     },
 
