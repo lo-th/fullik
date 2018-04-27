@@ -44,9 +44,9 @@ Structure2D.prototype = {
             // If this chain is not connected to another chain and the basebone constraint type of this chain is not global absolute
             // then we must update the basebone constraint UV for LOCAL_RELATIVE and the basebone relative constraint UV for LOCAL_ABSOLUTE connection types.
             // Note: For NONE or GLOBAL_ABSOLUTE we don't need to update anything before calling updateTarget().
-            if (hostChainNumber != -1 && constraintType !== BB_GLOBAL_ABSOLUTE) {   
+            if (hostChainNumber !== -1 && constraintType !== BB_GLOBAL_ABSOLUTE) {   
                 // Get the bone which this chain is connected to in the 'host' chain
-                var hostBone = c.get(hostChainNumber).getBone( c.getConnectedBoneNumber() );
+                var hostBone = this.chains[hostChainNumber].getBone( c.getConnectedBoneNumber() );
                 
                 // If we're connecting this chain to the start location of the bone in the 'host' chain...
                 if( c.getBoneConnectionPoint() === START ){
@@ -130,10 +130,12 @@ Structure2D.prototype = {
                 }*/
 
                 
-                //c.resetTarget();//
+            //c.resetTarget();//
                 //hostChain.updateTarget( this.targets[hostChainNumber] );
 
-            if ( !c.getEmbeddedTargetMode() ) c.updateTarget( t );
+            //c.updateTarget( t );
+
+            if ( !c.mUseEmbeddedTarget ) c.updateTarget( t );
             else c.solveForEmbeddedTarget();
 
 
@@ -230,12 +232,18 @@ Structure2D.prototype = {
         if ( existingChainNumber > this.mNumChains ) return;
         if ( existingBoneNumber > this.chains[existingChainNumber].getNumBones() ) return;
 
+        newChain.setBoneConnectionPoint( boneConnectionPoint === 'end' ? END : START );
+
         // Make a copy of the provided chain so any changes made to the original do not affect this chain
         var relativeChain = newChain.clone();//new Fullik.Chain( newChain );
-        if( color !== undefined ) relativeChain.setColor( color );
+
+        relativeChain.setConnectedChainNumber(existingChainNumber);
+        relativeChain.setConnectedBoneNumber(existingBoneNumber);
+        //if( color !== undefined ) relativeChain.setColor( color );
+        //else color = newChain.color;
 
         // Connect the copy of the provided chain to the specified chain and bone in this structure
-        relativeChain.connectToStructure( this, existingChainNumber, existingBoneNumber );
+        //relativeChain.connectToStructure( this, existingChainNumber, existingBoneNumber );
 
         // The chain as we were provided should be centred on the origin, so we must now make it
         // relative to the start location of the given bone in the given chain.
@@ -278,6 +286,7 @@ Structure2D.prototype = {
         this.isWithMesh = true;
 
         var meshBone = [];
+
         var lng  = chain.bones.length;
         for(var i = 0; i<lng; i++ ){
             meshBone.push( this.addBoneMesh( chain.bones[i] ) );
@@ -291,6 +300,7 @@ Structure2D.prototype = {
 
         var size = bone.mLength;
         var color = bone.color;
+        //console.log(bone.color)
         var g = new THREE.CylinderBufferGeometry ( 1, 0.5, size, 4 );
         g.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) )
         g.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0, size*0.5 ) );

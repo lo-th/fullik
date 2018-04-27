@@ -3,9 +3,9 @@ import { Joint2D } from './Joint2D.js';
 import { _Math } from '../math/Math.js';
 import { V2 } from '../math/V2.js';
 
-function Bone2D ( startLocation, endLocation, directionUV, length, color ){
+function Bone2D ( startLocation, endLocation, directionUV, length, clockwiseDegs, anticlockwiseDegs, color ){
 
-    this.mJoint = new Joint2D();
+    this.mJoint = new Joint2D( clockwiseDegs, anticlockwiseDegs );
     this.mStartLocation = new V2();
     this.mEndLocation = new V2();
 
@@ -41,6 +41,9 @@ Bone2D.prototype = {
 
     clone:function(){
         var b = new Bone2D( this.mStartLocation, this.mEndLocation );
+        b.mGlobalConstraintUV = this.mGlobalConstraintUV;
+        b.mBoneConnectionPoint = this.mBoneConnectionPoint;
+        b.color = this.color;
         b.mJoint = this.mJoint.clone();
         return b;
     },
@@ -129,7 +132,7 @@ Bone2D.prototype = {
     getDirectionUV:function(){
         return _Math.getDirectionUV( this.mStartLocation, this.mEndLocation );
     },
-    
+
     getStartLocation : function(){
         return this.mStartLocation;
     },

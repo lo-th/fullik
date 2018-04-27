@@ -18,6 +18,7 @@ Joint2D.prototype = {
         var j = new Joint2D();
         j.mClockwiseConstraintDegs = this.mClockwiseConstraintDegs;
         j.mAnticlockwiseConstraintDegs = this.mAnticlockwiseConstraintDegs;
+        j.mConstraintCoordinateSystem = this.mConstraintCoordinateSystem;
         return j;
 
     },
@@ -36,8 +37,11 @@ Joint2D.prototype = {
 
     set: function ( sourceJoint ) {
 
-        this.setClockwiseConstraintDegs(sourceJoint.mClockwiseConstraintDegs);
-        this.setAnticlockwiseConstraintDegs(sourceJoint.mAnticlockwiseConstraintDegs);
+        //this.setClockwiseConstraintDegs(sourceJoint.mClockwiseConstraintDegs);
+        //this.setAnticlockwiseConstraintDegs(sourceJoint.mAnticlockwiseConstraintDegs);
+        this.mClockwiseConstraintDegs = sourceJoint.mClockwiseConstraintDegs;
+        this.mAnticlockwiseConstraintDegs = sourceJoint.mAnticlockwiseConstraintDegs;
+        this.mConstraintCoordinateSystem = sourceJoint.mConstraintCoordinateSystem;
 
     },
 
@@ -53,7 +57,7 @@ Joint2D.prototype = {
         
     },
 
-    setConstraintCoordinateSystem:function(coordSystem){
+    setConstraintCoordinateSystem:function( coordSystem ){
 
         this.mConstraintCoordinateSystem = coordSystem;
 
