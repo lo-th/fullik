@@ -1,10 +1,10 @@
-import { BB_NONE, BB_GLOBAL_ABSOLUTE, BB_LOCAL_RELATIVE, BB_LOCAL_ABSOLUTE, END, START } from '../constants.js';
+import { UP, BB_NONE, BB_GLOBAL_ABSOLUTE, BB_LOCAL_RELATIVE, BB_LOCAL_ABSOLUTE, END, START } from '../constants.js';
 import { _Math } from '../math/Math.js';
 import { V2 } from '../math/V2.js';
 
 function Structure2D ( scene ) {
 
-    this.UP = new V2( 0, 1 );
+    //this.UP = new V2( 0, 1 );
     this.mFixedBaseMode = true;
 
     this.chains = [];
@@ -24,27 +24,77 @@ Structure2D.prototype = {
 
     update:function(){
 
-        var c, m, b, t;
-        var connectedChainNumber;
+        var c, m, b, t, pos, pos2, tmp = new THREE.Vector3( );
+        var hostChainNumber;
         var hostChain, hostBone, constraintType;
 
-        //var i =  this.mNumChains;
-
-        //while(i--){
-
-        for(var i = 0; i < this.mNumChains ; i++){
+        for( var i = 0; i < this.mNumChains; i++ ){
 
             c = this.chains[i];
             m = this.meshChains[i];
             t = this.targets[i];
 
-            connectedChainNumber = c.getConnectedChainNumber();
+            //console.log(t)
+
+            hostChainNumber = c.getConnectedChainNumber();
+
+            // Get the basebone constraint type of the chain we're working on
+            constraintType = c.getBaseboneConstraintType();
+
+            // If this chain is not connected to another chain and the basebone constraint type of this chain is not global absolute
+            // then we must update the basebone constraint UV for LOCAL_RELATIVE and the basebone relative constraint UV for LOCAL_ABSOLUTE connection types.
+            // Note: For NONE or GLOBAL_ABSOLUTE we don't need to update anything before calling updateTarget().
+            if (hostChainNumber != -1 && constraintType !== BB_GLOBAL_ABSOLUTE) {   
+                // Get the bone which this chain is connected to in the 'host' chain
+                var hostBone = c.get(hostChainNumber).getBone( c.getConnectedBoneNumber() );
+                
+                // If we're connecting this chain to the start location of the bone in the 'host' chain...
+                if( c.getBoneConnectionPoint() === START ){
+                    // ...set the base location of this bone to be the start location of the bone it's connected to.
+                    c.setBaseLocation( hostBone.getStartLocation() );
+                } else {
+                    // If the bone connection point is BoneConnectionPoint.END...
+                   
+                    // ...set the base location of the chain to be the end location of the bone we're connecting to.
+                    c.setBaseLocation( hostBone.getEndLocation() );
+                }
+                
+                // If the basebone is constrained to the direction of the bone it's connected to...
+                var hostBoneUV = hostBone.getDirectionUV();
+
+                if (constraintType === BB_LOCAL_RELATIVE){   
+
+                    // ...then set the basebone constraint UV to be the direction of the bone we're connected to.
+                    c.setBaseboneConstraintUV(hostBoneUV);
+
+                } else if (constraintType === BB_LOCAL_ABSOLUTE) {   
+
+                    // Note: LOCAL_ABSOLUTE directions are directions which are in the local coordinate system of the host bone.
+                    // For example, if the baseboneConstraintUV is Vec2f(-1.0f, 0.0f) [i.e. left], then the baseboneConnectionConstraintUV
+                    // will be updated to be left with regard to the host bone.
+                    
+                    // Get the angle between UP and the hostbone direction
+                    var angleDegs = UP.getSignedAngleDegsTo(hostBoneUV);
+
+
+                    
+                    // ...then apply that same rotation to this chain's basebone constraint UV to get the relative constraint UV... 
+                    var relativeConstraintUV = _Math.rotateDegs( c.getBaseboneConstraintUV(), angleDegs );
+                    
+                    // ...which we then update.
+                    c.setBaseboneRelativeConstraintUV(relativeConstraintUV);      
+
+                }
+                
+                // NOTE: If the basebone constraint type is NONE then we don't do anything with the basebone constraint of the connected chain.
+                
+            } // End of if chain is connected to another chain section
 
             //this.chains[0].updateTarget( this.targets[0] );
 
-            if (connectedChainNumber === -1) c.updateTarget( t );
+            /*if (hostChainNumber === -1) c.updateTarget( t );
             else{
-                hostChain = this.chains[connectedChainNumber];
+                hostChain = this.chains[hostChainNumber];
                 hostBone  = hostChain.getBone( c.getConnectedBoneNumber() );
                 if( hostBone.getBoneConnectionPoint() === START ) c.setBaseLocation( hostBone.getStartLocation() );
                 else c.setBaseLocation( hostBone.getEndLocation() );
@@ -67,7 +117,7 @@ Structure2D.prototype = {
                     // will be updated to be left with regard to the host bone.
 
                     // Get the angle between UP and the hostbone direction
-                    var angleDegs = this.UP.getSignedAngleDegsTo( hostBoneUV );
+                    var angleDegs = UP.getSignedAngleDegsTo( hostBoneUV );
 
                     // ...then apply that same rotation to this chain's basebone constraint UV to get the relative constraint UV... 
                     var relativeConstraintUV = _Math.rotateDegs( thisChain.getBaseboneConstraintUV(), angleDegs);
@@ -77,34 +127,39 @@ Structure2D.prototype = {
 
                     break;
 
-                }
+                }*/
 
                 
-                c.resetTarget();//
-                //hostChain.updateTarget( this.targets[connectedChainNumber] );
+                //c.resetTarget();//
+                //hostChain.updateTarget( this.targets[hostChainNumber] );
 
-                if ( !c.getEmbeddedTargetMode() ) c.updateTarget( t );
-                else c.solveForEmbeddedTarget();
+            if ( !c.getEmbeddedTargetMode() ) c.updateTarget( t );
+            else c.solveForEmbeddedTarget();
 
-
-            }
 
             // update 3d mesh
 
             if( this.isWithMesh ){
                 for ( var j = 0; j < c.mNumBones; j++ ) {
                     b = c.getBone(j);
-                    m[j].position.copy( b.getStartLocation() );
-                    m[j].lookAt( b.getEndLocation() );
+                    pos = b.getStartLocation();
+                    pos2 = b.getEndLocation();
+                    m[j].position.set( pos.x, pos.y, 0 );
+                    m[j].lookAt( tmp.set( pos2.x, pos2.y, 0 ) );
                 }
 
             }
 
+
         }
+
+                
+
+       // }
 
     },
 
-    setFixedBaseMode:function( b ){
+    setFixedBaseMode: function( b ){
 
         // Update our flag and set the fixed base mode on the first (i.e. 0th) chain in this structure.
         this.mFixedBaseMode = b; 
@@ -132,6 +187,8 @@ Structure2D.prototype = {
     add:function( chain, target, meshBone ){
 
         this.chains.push( chain );
+
+        //if( target.isVector3 ) target = new V2(target.x, target.y);
          
         this.targets.push( target ); 
         this.mNumChains ++;
@@ -237,8 +294,9 @@ Structure2D.prototype = {
         var g = new THREE.CylinderBufferGeometry ( 1, 0.5, size, 4 );
         g.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) )
         g.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0, size*0.5 ) );
-        var m = new THREE.MeshStandardMaterial();
-        m.color.setHex( color );
+        //var m = new THREE.MeshStandardMaterial({ color:color });
+        var m = new THREE.MeshStandardMaterial({ color:color, wireframe:false, shadowSide:false, transparent:true, opacity:0.6 });
+        //m.color.setHex( color );
 
         var m2 = new THREE.MeshBasicMaterial({ wireframe : true });
 

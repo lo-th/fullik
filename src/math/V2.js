@@ -48,7 +48,7 @@ Object.assign( V2.prototype, {
 
 	normalised: function () {
 
-	    return new V2( this.x, this.y ).normalize();//this.clone().normalize();
+	    return new V2( this.x, this.y ).normalize();
 	
 	},
 
@@ -81,13 +81,14 @@ Object.assign( V2.prototype, {
 
 	divideBy: function ( value ) {
 
-	    return new V2( this.x / value, this.y / value );
+	    return new V2( this.x, this.y ).divideScalar( value );
 	
 	},
 
-	times: function ( scale ) {
+	times: function ( s ) {
 
-	    return new V2( this.x * scale, this.y * scale );
+	    if( s.isVector2 ) return new V2( this.x * s.x, this.y * s.y );
+	    else return new V2( this.x * s, this.y * s, this.z * s );
 
 	},
 
@@ -98,7 +99,7 @@ Object.assign( V2.prototype, {
 
 	},
 
-	projectOnPlane: function ( planeNormal ) {
+	/*projectOnPlane: function ( planeNormal ) {
 
 	    if ( planeNormal.length() <= 0 ){ Tools.error("Plane normal cannot be a zero vector."); return; }
 	        
@@ -108,7 +109,7 @@ Object.assign( V2.prototype, {
         var n = planeNormal.normalised();     
         return b.minus( n.times( _Math.dotProduct( b, planeNormal ) ) ).normalize();// b.sub( n.multiply( Fullik.dotProduct(b, planeNormal) ) ).normalize();
 
-	},
+	},*/
 
 	/*cross: function( v ) { 
 
@@ -134,13 +135,13 @@ Object.assign( V2.prototype, {
 
 	negated: function () { 
 
-	    return new this.constructor( -this.x, -this.y );
+	    return new V2( -this.x, -this.y );
 
 	},
 
 	clone: function () {
 
-	    return new this.constructor( this.x, this.y );
+	    return new V2( this.x, this.y );
 
 	},
 

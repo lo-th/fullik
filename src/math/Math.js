@@ -1,7 +1,7 @@
 import { V3 } from './V3.js';
 import { V2 } from './V2.js';
 import { M3 } from './M3.js';
-
+import { Tools } from '../core/Tools.js';
 
 var _Math = {
 
@@ -384,13 +384,13 @@ var _Math = {
 
 	validateDirectionUV: function( directionUV ) {
 
-		if( directionUV.length() < 0) throw new Error("vector direction unit vector cannot be zero.");
+		if( directionUV.length() < 0) Tools.error("vector direction unit vector cannot be zero.");
  
 	},
 
 	validateLength: function( length ) {
 
-		if(length < 0) throw new Error("Length must be a greater than or equal to zero.");
+		if(length < 0) Tools.error("Length must be a greater than or equal to zero.");
  
 	},
 
