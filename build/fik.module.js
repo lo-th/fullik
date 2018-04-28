@@ -2492,10 +2492,10 @@ Object.assign( Structure3D.prototype, {
         var g = new THREE.CylinderBufferGeometry ( 1, 0.5, size, 4 );
         g.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
         g.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0, size*0.5 ) );
-        var m = new THREE.MeshStandardMaterial({ color:color, wireframe:false, shadowSide:false, transparent:true, opacity:0.6 });
+        var m = new THREE.MeshStandardMaterial({ color:color, wireframe:false, shadowSide:false });
 
         var m2 = new THREE.MeshBasicMaterial({ wireframe : true, transparent:true, opacity:0.3 });
-        var m4 = new THREE.MeshBasicMaterial({ wireframe : true, color:color, transparent:true, opacity:0.3 });
+        //var m4 = new THREE.MeshBasicMaterial({ wireframe : true, color:color, transparent:true, opacity:0.3 });
 
         var extraMesh = null;
         var extraGeo;
@@ -2536,11 +2536,11 @@ Object.assign( Structure3D.prototype, {
         }
 
         var axe = new THREE.AxesHelper(1);
-        var bw = new THREE.Mesh( g,  m4 );
+        //var bw = new THREE.Mesh( g,  m4 );
 
         var b = new THREE.Mesh( g,  m );
         b.add(axe);
-        b.add(bw);
+        //b.add(bw);
         this.scene.add( b );
 
         b.castShadow = true;
@@ -2583,9 +2583,9 @@ function Joint2D( clockwiseConstraintDegs, antiClockwiseConstraintDegs, constrai
 
 }
 
-Joint2D.prototype = {
+Object.assign( Joint2D.prototype, {
 
-    constructor: Joint2D,
+    isJoint2D: true,
 
     clone:function(){
 
@@ -2658,7 +2658,7 @@ Joint2D.prototype = {
 
     },
 
-};
+} );
 
 function Bone2D ( startLocation, endLocation, directionUV, length, clockwiseDegs, anticlockwiseDegs, color ){
 
@@ -2671,26 +2671,30 @@ function Bone2D ( startLocation, endLocation, directionUV, length, clockwiseDegs
     this.mBoneConnectionPoint = END;
     this.mLength = 0;
 
-    this.color = color || 0xFFFFFF;
+    this.color = color || null;
     this.name = '';
 
     this.init( startLocation, endLocation, directionUV, length );
 
 }
-Bone2D.prototype = {
+Object.assign( Bone2D.prototype, {
 
-    constructor: Bone2D,
+    isBone2D: true,
 
     init:function( startLocation, endLocation, directionUV, length ){
 
         this.setStartLocation( startLocation );
-        if( endLocation !== undefined ){ 
+        //if( endLocation !== undefined ){ 
+        if( endLocation ){ 
+
             this.setEndLocation( endLocation );
             this.setLength( _Math.distanceBetween( this.mStartLocation, this.mEndLocation ) );
 
         } else {
+
             this.setLength( length );
             this.setEndLocation( this.mStartLocation.plus( directionUV.normalised().times( length ) ) );
+            
         }
 
     },
@@ -2810,7 +2814,7 @@ Bone2D.prototype = {
 
     
 
-};
+} );
 
 function Chain2D ( color ){
 
@@ -2850,9 +2854,9 @@ function Chain2D ( color ){
 
 }
 
-Chain2D.prototype = {
+Object.assign( Chain2D.prototype, {
 
-    constructor: Chain2D,
+    isChain2D: true,
 
     clone:function(){
 
@@ -2901,7 +2905,7 @@ Chain2D.prototype = {
 
     addBone: function( bone ){
 
-        bone.setColor( this.color );
+        if( bone.color === null )bone.setColor( this.color );
 
         // Add the new bone to the end of the ArrayList of bones
         this.bones.push( bone );
@@ -2932,31 +2936,48 @@ Chain2D.prototype = {
         }
     },
 
-    /*addConsecutiveBone : function( directionUV, length ){
-         
-        this.addConsecutiveConstrainedBone( directionUV, length, 180, 180 );
-
-    },*/
 
     addConsecutiveBone : function( directionUV, length, clockwiseDegs, anticlockwiseDegs, color ){
 
-        if (this.mNumBones === 0) return;
+        if (this.mNumBones === 0){ Tools.error('Chain is empty ! need first bone'); return }
+        if(directionUV.isBone2D){ // first argument is bone
 
-        color = color || this.color;
-         
-        // Validate the direction unit vector - throws an IllegalArgumentException if it has a magnitude of zero
-        _Math.validateDirectionUV( directionUV );
-        
-        // Validate the length of the bone - throws an IllegalArgumentException if it is not a positive value
-        _Math.validateLength( length );
-                
-        if (this.mNumBones > 0) { 
-	        // Get the end location of the last bone, which will be used as the start location of the new bone
-	        var prevBoneEnd = this.bones[ this.mNumBones-1 ].getEndLocation();
-	                
-	        // Add a bone to the end of this IK chain
-	        this.addBone( new Bone2D( prevBoneEnd, undefined, directionUV.normalised(), length, clockwiseDegs, anticlockwiseDegs, color ) );
-	    }
+            var bone = directionUV;
+
+            // Validate the direction unit vector - throws an IllegalArgumentException if it has a magnitude of zero
+            var dir = bone.getDirectionUV();
+            _Math.validateDirectionUV( dir );
+            
+            // Validate the length of the bone - throws an IllegalArgumentException if it is not a positive value
+            var len = bone.length();
+            _Math.validateLength( len );
+
+            var prevBoneEnd = this.bones[ this.mNumBones-1 ].getEndLocation();
+
+            bone.setStartLocation( prevBoneEnd );
+            bone.setEndLocation( prevBoneEnd.plus(dir.times(len)) );
+            
+            // Add a bone to the end of this IK chain
+            this.addBone( bone );
+
+        } else {
+            
+            color = color || this.color;
+             
+            // Validate the direction unit vector - throws an IllegalArgumentException if it has a magnitude of zero
+            _Math.validateDirectionUV( directionUV );
+            
+            // Validate the length of the bone - throws an IllegalArgumentException if it is not a positive value
+            _Math.validateLength( length );
+                    
+            // Get the end location of the last bone, which will be used as the start location of the new bone
+            var prevBoneEnd = this.bones[ this.mNumBones-1 ].getEndLocation();
+                    
+            // Add a bone to the end of this IK chain
+            this.addBone( new Bone2D( prevBoneEnd, undefined, directionUV.normalised(), length, clockwiseDegs, anticlockwiseDegs, color ) );
+            
+
+        }
         
     },
 
@@ -3528,7 +3549,7 @@ Chain2D.prototype = {
 
 // end
 
-};
+} );
 
 function Structure2D ( scene ) {
 
@@ -3546,9 +3567,9 @@ function Structure2D ( scene ) {
 
 }
 
-Structure2D.prototype = {
+Object.assign( Structure2D.prototype, {
 
-    constructor: Structure2D,
+    isStructure2D: true,
 
     update:function(){
 
@@ -3832,7 +3853,7 @@ Structure2D.prototype = {
         g.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
         g.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0, size*0.5 ) );
         //var m = new THREE.MeshStandardMaterial({ color:color });
-        var m = new THREE.MeshStandardMaterial({ color:color, wireframe:false, shadowSide:false, transparent:true, opacity:0.6 });
+        var m = new THREE.MeshStandardMaterial({ color:color, wireframe:false, shadowSide:false });
         //m.color.setHex( color );
 
         var m2 = new THREE.MeshBasicMaterial({ wireframe : true });
@@ -3877,6 +3898,10 @@ Structure2D.prototype = {
 
 
         var b = new THREE.Mesh( g,  m );
+
+        b.castShadow = true;
+        b.receiveShadow = true;
+        
         this.scene.add( b );
         if( extraMesh ) b.add( extraMesh );
         return b;
@@ -3904,6 +3929,6 @@ Structure2D.prototype = {
 
     }
 
-};
+} );
 
 export { _Math, V2, V3, M3, Joint3D, Bone3D, Chain3D, Structure3D, Joint2D, Bone2D, Chain2D, Structure2D, REVISION, BB_NONE, BB_GLOBAL_ROTOR, BB_GLOBAL_HINGE, BB_LOCAL_ROTOR, BB_LOCAL_HINGE, J_BALL, J_GLOBAL_HINGE, J_LOCAL_HINGE, BB_GLOBAL_ABSOLUTE, BB_LOCAL_RELATIVE, BB_LOCAL_ABSOLUTE, START, END, J_LOCAL, J_GLOBAL, X_AXE, Y_AXE, Z_AXE, X_NEG, Y_NEG, Z_NEG, UP, DOWN, LEFT, RIGHT };

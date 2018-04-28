@@ -14,10 +14,10 @@ chain.setBaseboneConstraintType( FIK.BB_GLOBAL_ABSOLUTE );
 chain.setBaseboneConstraintUV( new FIK.V2(0, 1) );
 
 // Create and add the second bone - 50 clockwise, 90 anti-clockwise
-chain.addConsecutiveConstrainedBone(new FIK.V2(0, 1), boneLength, 50, 90);
+chain.addConsecutiveBone(new FIK.V2(0, 1), boneLength, 50, 90);
 
 // Create and add the third bone - 75 clockwise, 90 anti-clockwise
-chain.addConsecutiveConstrainedBone(new FIK.V2(0, 1), boneLength, 75, 90);
+chain.addConsecutiveBone(new FIK.V2(0, 1), boneLength, 75, 90);
 
 // Finally, add the chain to the structure
 solver.add( chain, target, true );

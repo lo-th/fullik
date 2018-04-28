@@ -18,9 +18,9 @@ function Structure2D ( scene ) {
 
 }
 
-Structure2D.prototype = {
+Object.assign( Structure2D.prototype, {
 
-    constructor: Structure2D,
+    isStructure2D: true,
 
     update:function(){
 
@@ -305,7 +305,7 @@ Structure2D.prototype = {
         g.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) )
         g.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0, size*0.5 ) );
         //var m = new THREE.MeshStandardMaterial({ color:color });
-        var m = new THREE.MeshStandardMaterial({ color:color, wireframe:false, shadowSide:false, transparent:true, opacity:0.6 });
+        var m = new THREE.MeshStandardMaterial({ color:color, wireframe:false, shadowSide:false });
         //m.color.setHex( color );
 
         var m2 = new THREE.MeshBasicMaterial({ wireframe : true });
@@ -351,6 +351,10 @@ Structure2D.prototype = {
 
 
         var b = new THREE.Mesh( g,  m );
+
+        b.castShadow = true;
+        b.receiveShadow = true;
+        
         this.scene.add( b );
         if( extraMesh ) b.add( extraMesh );
         return b;
@@ -378,6 +382,6 @@ Structure2D.prototype = {
 
     }
 
-}
+} );
 
 export { Structure2D };

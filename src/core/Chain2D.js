@@ -3,6 +3,7 @@ import { _Math } from '../math/Math.js';
 import { V2 } from '../math/V2.js';
 import { Bone2D } from './Bone2D.js';
 import { Joint2D } from './Joint2D.js';
+import { Tools } from './Tools.js';
 
  function Chain2D ( color ){
 
@@ -42,9 +43,9 @@ import { Joint2D } from './Joint2D.js';
 
 }
 
-Chain2D.prototype = {
+Object.assign( Chain2D.prototype, {
 
-    constructor: Chain2D,
+    isChain2D: true,
 
     clone:function(){
 
@@ -93,7 +94,7 @@ Chain2D.prototype = {
 
     addBone: function( bone ){
 
-        bone.setColor( this.color );
+        if( bone.color === null )bone.setColor( this.color );
 
         // Add the new bone to the end of the ArrayList of bones
         this.bones.push( bone );
@@ -124,31 +125,49 @@ Chain2D.prototype = {
         }
     },
 
-    /*addConsecutiveBone : function( directionUV, length ){
-         
-        this.addConsecutiveConstrainedBone( directionUV, length, 180, 180 );
-
-    },*/
 
     addConsecutiveBone : function( directionUV, length, clockwiseDegs, anticlockwiseDegs, color ){
 
-        if (this.mNumBones === 0) return;
+        if (this.mNumBones === 0){ Tools.error('Chain is empty ! need first bone'); return };
 
-        color = color || this.color;
-         
-        // Validate the direction unit vector - throws an IllegalArgumentException if it has a magnitude of zero
-        _Math.validateDirectionUV( directionUV );
-        
-        // Validate the length of the bone - throws an IllegalArgumentException if it is not a positive value
-        _Math.validateLength( length );
-                
-        if (this.mNumBones > 0) { 
-	        // Get the end location of the last bone, which will be used as the start location of the new bone
-	        var prevBoneEnd = this.bones[ this.mNumBones-1 ].getEndLocation();
-	                
-	        // Add a bone to the end of this IK chain
-	        this.addBone( new Bone2D( prevBoneEnd, undefined, directionUV.normalised(), length, clockwiseDegs, anticlockwiseDegs, color ) );
-	    }
+        if(directionUV.isBone2D){ // first argument is bone
+
+            var bone = directionUV;
+
+            // Validate the direction unit vector - throws an IllegalArgumentException if it has a magnitude of zero
+            var dir = bone.getDirectionUV();
+            _Math.validateDirectionUV( dir );
+            
+            // Validate the length of the bone - throws an IllegalArgumentException if it is not a positive value
+            var len = bone.length();
+            _Math.validateLength( len );
+
+            var prevBoneEnd = this.bones[ this.mNumBones-1 ].getEndLocation();
+
+            bone.setStartLocation( prevBoneEnd );
+            bone.setEndLocation( prevBoneEnd.plus(dir.times(len)) );
+            
+            // Add a bone to the end of this IK chain
+            this.addBone( bone );
+
+        } else {
+            
+            color = color || this.color;
+             
+            // Validate the direction unit vector - throws an IllegalArgumentException if it has a magnitude of zero
+            _Math.validateDirectionUV( directionUV );
+            
+            // Validate the length of the bone - throws an IllegalArgumentException if it is not a positive value
+            _Math.validateLength( length );
+                    
+            // Get the end location of the last bone, which will be used as the start location of the new bone
+            var prevBoneEnd = this.bones[ this.mNumBones-1 ].getEndLocation();
+                    
+            // Add a bone to the end of this IK chain
+            this.addBone( new Bone2D( prevBoneEnd, undefined, directionUV.normalised(), length, clockwiseDegs, anticlockwiseDegs, color ) );
+            
+
+        }
         
     },
 
@@ -720,6 +739,6 @@ Chain2D.prototype = {
 
 // end
 
-}
+} );
 
 export { Chain2D };

@@ -14,27 +14,31 @@ function Bone2D ( startLocation, endLocation, directionUV, length, clockwiseDegs
     this.mBoneConnectionPoint = END;
     this.mLength = 0;
 
-    this.color = color || 0xFFFFFF;
+    this.color = color || null;
     this.name = '';
 
     this.init( startLocation, endLocation, directionUV, length );
 
 };
 
-Bone2D.prototype = {
+Object.assign( Bone2D.prototype, {
 
-    constructor: Bone2D,
+    isBone2D: true,
 
     init:function( startLocation, endLocation, directionUV, length ){
 
         this.setStartLocation( startLocation );
-        if( endLocation !== undefined ){ 
+        //if( endLocation !== undefined ){ 
+        if( endLocation ){ 
+
             this.setEndLocation( endLocation );
             this.setLength( _Math.distanceBetween( this.mStartLocation, this.mEndLocation ) );
 
         } else {
+
             this.setLength( length );
             this.setEndLocation( this.mStartLocation.plus( directionUV.normalised().times( length ) ) );
+            
         }
 
     },
@@ -154,6 +158,6 @@ Bone2D.prototype = {
 
     
 
-}
+} );
 
 export { Bone2D };

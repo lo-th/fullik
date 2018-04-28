@@ -9,9 +9,9 @@ function Joint2D( clockwiseConstraintDegs, antiClockwiseConstraintDegs, constrai
 
 }
 
-Joint2D.prototype = {
+Object.assign( Joint2D.prototype, {
 
-    constructor: Joint2D,
+    isJoint2D: true,
 
     clone:function(){
 
@@ -84,6 +84,6 @@ Joint2D.prototype = {
 
     },
 
-}
+} );
 
 export { Joint2D };
