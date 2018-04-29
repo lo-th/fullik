@@ -19,9 +19,9 @@ solver.add( chain, target, true );
 var chain2 = new FIK.Chain3D( 0xFF9999 );
 var base = new FIK.Bone3D( new FIK.V3(100, 0, 0), new FIK.V3(110, 0, 0) );
 chain2.addBone(base);
-chain2.addConsecutiveBone( X_AXIS, 20 );
-chain2.addConsecutiveBone( Y_AXIS, 20 );
-chain2.addConsecutiveBone( Z_AXIS, 20 );
+chain2.addConsecutiveBone( FIK.X_AXE, 20 );
+chain2.addConsecutiveBone( FIK.Y_AXE, 20 );
+chain2.addConsecutiveBone( FIK.Z_AXE, 20 );
 
 solver.connectChain( chain2, 0, 0, 'start', target, true, 0xFF0000 );
 solver.connectChain( chain2, 0, 2, 'start', target, true, 0x00FF00 );

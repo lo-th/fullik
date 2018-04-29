@@ -1,6 +1,6 @@
 import { V3 } from '../math/V3.js';
 import { _Math } from '../math/Math.js';
-import { J_BALL, J_GLOBAL_HINGE, J_LOCAL_HINGE } from '../constants.js';
+import { J_BALL, J_GLOBAL, J_LOCAL } from '../constants.js';
 
 function Joint3D(){
 
@@ -86,11 +86,11 @@ Object.assign( Joint3D.prototype, {
     // SET
 
     setAsGlobalHinge:function( globalRotationAxis, cwConstraintDegs, acwConstraintDegs, globalReferenceAxis ){
-        this.setHinge( J_GLOBAL_HINGE, globalRotationAxis, cwConstraintDegs, acwConstraintDegs, globalReferenceAxis );
+        this.setHinge( J_GLOBAL, globalRotationAxis, cwConstraintDegs, acwConstraintDegs, globalReferenceAxis );
     },
 
     setAsLocalHinge:function( localRotationAxis, cwConstraintDegs, acwConstraintDegs, localReferenceAxis ){
-        this.setHinge( J_LOCAL_HINGE, localRotationAxis, cwConstraintDegs, acwConstraintDegs, localReferenceAxis );
+        this.setHinge( J_LOCAL, localRotationAxis, cwConstraintDegs, acwConstraintDegs, localReferenceAxis );
     },
 
     setBallJointConstraintDegs:function( angleDegs ){

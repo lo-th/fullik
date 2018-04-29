@@ -14,7 +14,7 @@ chain.addBone( basebone );
 
 // Fix the base bone to its current location, and constrain it to the positive Y-axis
 chain.setFixedBaseMode(true);       
-chain.setBaseboneConstraintType(FIK.BB_GLOBAL_ABSOLUTE);
+chain.setBaseboneConstraintType(FIK.GLOBAL_ABSOLUTE);
 chain.setBaseboneConstraintUV(FIK.UP);
 
 // Add second and third bones
@@ -30,7 +30,7 @@ solver.add( chain, target, true );
 basebone = new FIK.Bone2D( new FIK.V2(), new FIK.V2(-boneLength/6, 0) );
 // Create the chain and add the basebone to it
 var leftChain = new FIK.Chain2D( 0x00ff00 );
-leftChain.setBaseboneConstraintType(FIK.BB_LOCAL_RELATIVE);
+leftChain.setBaseboneConstraintType(FIK.LOCAL_RELATIVE);
 
 // Add fifteen bones
 leftChain.addBone(basebone);
@@ -51,7 +51,7 @@ basebone.setAnticlockwiseConstraintDegs(60);
 
 // Create the chain and add the basebone to it
 var rightChain = new FIK.Chain2D( 0xff0000 );
-rightChain.setBaseboneConstraintType(FIK.BB_LOCAL_ABSOLUTE);
+rightChain.setBaseboneConstraintType(FIK.LOCAL_ABSOLUTE);
 rightChain.setBaseboneRelativeConstraintUV(FIK.RIGHT);
 
 // Add ten bones

@@ -22,10 +22,10 @@ chain2.addBone(base);
 
 // Set this second chain to have a freely rotating global hinge which rotates about the Y axis
 // Note: We MUST add the basebone to the chain before we can set the basebone constraint on it.
-chain2.setFreelyRotatingGlobalHingedBasebone( Y_AXIS );
+chain2.setFreelyRotatingGlobalHingedBasebone( FIK.Y_AXE );
 
-chain2.addConsecutiveBone( X_AXIS, 15 );
-chain2.addConsecutiveBone( X_AXIS, 15 );
-chain2.addConsecutiveBone( X_AXIS, 15 );
+chain2.addConsecutiveBone( FIK.X_AXE, 15 );
+chain2.addConsecutiveBone( FIK.X_AXE, 15 );
+chain2.addConsecutiveBone( FIK.X_AXE, 15 );
 
 solver.connectChain( chain2, 0, 3, 'start', targets[1].position, true, 0xFF0000 );

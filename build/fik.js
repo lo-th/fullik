@@ -1081,29 +1081,25 @@
 
 	// chain Basebone Constraint Type
 
-	var BB_NONE = 1; // No constraint
+	var NONE = 1; // No constraint
 	// 3D
-	var BB_GLOBAL_ROTOR = 2;// World-space rotor constraint
-	var BB_GLOBAL_HINGE = 3;// World-space hinge constraint
-	var BB_LOCAL_ROTOR = 4;// Rotor constraint in the coordinate space of (i.e. relative to) the direction of the connected bone
-	var BB_LOCAL_HINGE = 5;// Hinge constraint in the coordinate space of (i.e. relative to) the direction of the connected bone
-
-	// 3D joint Type
-	var J_BALL = 10;
-	var J_GLOBAL_HINGE = 11;
-	var J_LOCAL_HINGE = 12;
-
+	var GLOBAL_ROTOR = 2;// World-space rotor constraint
+	var GLOBAL_HINGE = 3;// World-space hinge constraint
+	var LOCAL_ROTOR = 4;// Rotor constraint in the coordinate space of (i.e. relative to) the direction of the connected bone
+	var LOCAL_HINGE = 5;// Hinge constraint in the coordinate space of (i.e. relative to) the direction of the connected bone
 	// 2D
-	var BB_GLOBAL_ABSOLUTE = 6; // Constrained about a world-space direction
-	var BB_LOCAL_RELATIVE = 7; // Constrained about the direction of the connected bone
-	var BB_LOCAL_ABSOLUTE = 8; // Constrained about a direction with relative to the direction of the connected bone
+	var GLOBAL_ABSOLUTE = 6; // Constrained about a world-space direction
+	var LOCAL_RELATIVE = 7; // Constrained about the direction of the connected bone
+	var LOCAL_ABSOLUTE = 8; // Constrained about a direction with relative to the direction of the connected bone
+
+	// joint Type
+	var J_BALL = 10;
+	var J_LOCAL = 11;
+	var J_GLOBAL = 12;
+
 
 	var START = 20;
 	var END = 21;
-
-	// 2D joint Type
-	var J_LOCAL = 40;
-	var J_GLOBAL = 41;
 
 	// Define world-space axis
 
@@ -1207,11 +1203,11 @@
 	    // SET
 
 	    setAsGlobalHinge:function( globalRotationAxis, cwConstraintDegs, acwConstraintDegs, globalReferenceAxis ){
-	        this.setHinge( J_GLOBAL_HINGE, globalRotationAxis, cwConstraintDegs, acwConstraintDegs, globalReferenceAxis );
+	        this.setHinge( J_GLOBAL, globalRotationAxis, cwConstraintDegs, acwConstraintDegs, globalReferenceAxis );
 	    },
 
 	    setAsLocalHinge:function( localRotationAxis, cwConstraintDegs, acwConstraintDegs, localReferenceAxis ){
-	        this.setHinge( J_LOCAL_HINGE, localRotationAxis, cwConstraintDegs, acwConstraintDegs, localReferenceAxis );
+	        this.setHinge( J_LOCAL, localRotationAxis, cwConstraintDegs, acwConstraintDegs, localReferenceAxis );
 	    },
 
 	    setBallJointConstraintDegs:function( angleDegs ){
@@ -1390,7 +1386,7 @@
 	    this.mFixedBaseLocation = new V3();
 	    this.mFixedBaseMode = true;
 
-	    this.mBaseboneConstraintType = BB_NONE;
+	    this.mBaseboneConstraintType = NONE;
 
 	    this.mBaseboneConstraintUV = new V3();
 	    this.mBaseboneRelativeConstraintUV = new V3();
@@ -1421,7 +1417,7 @@
 	        c.mLastBaseLocation.copy( this.mLastBaseLocation );
 	                
 	        // Copy the basebone constraint UV if there is one to copy
-	        if ( !(this.mBaseboneConstraintType === BB_NONE) ){
+	        if ( !(this.mBaseboneConstraintType === NONE) ){
 	            c.mBaseboneConstraintUV.copy( this.mBaseboneConstraintUV );
 	            c.mBaseboneRelativeConstraintUV.copy( this.mBaseboneRelativeConstraintUV );
 	        }       
@@ -1577,7 +1573,7 @@
 	        return this.mBaseboneConstraintType;
 	    },
 	    getBaseboneConstraintUV:function(){
-	        if ( !(this.mBaseboneConstraintType === BB_NONE) ) return this.mBaseboneConstraintUV;
+	        if ( !(this.mBaseboneConstraintType === NONE) ) return this.mBaseboneConstraintUV;
 	    },
 	    getBaseLocation:function(){
 	        return this.bones[0].getStartLocation();
@@ -1644,11 +1640,11 @@
 	        _Math.clamp( angleDegs, 0, 180 );
 	        //if (angleDegs < 0  ) angleDegs = 0;                                                                                                  
 	        //if (angleDegs > 180) angleDegs = 180; 
-	        //if(type !== BB_GLOBAL_ROTOR || type !== BB_LOCAL_ROTOR ) console.log                                                                                                  
-	        //if ( !(rotorType === BB_GLOBAL_ROTOR || rotorType === BB_LOCAL_ROTOR) ) return;//throw new IllegalArgumentException("The only valid rotor types for this method are GLOBAL_ROTOR and LOCAL_ROTOR.");
+	        //if(type !== GLOBAL_ROTOR || type !== LOCAL_ROTOR ) console.log                                                                                                  
+	        //if ( !(rotorType === GLOBAL_ROTOR || rotorType === LOCAL_ROTOR) ) return;//throw new IllegalArgumentException("The only valid rotor types for this method are GLOBAL_ROTOR and LOCAL_ROTOR.");
 	        type = type || 'global';       
 	        // Set the constraint type, axis and angle
-	        this.mBaseboneConstraintType = type === 'global' ? BB_GLOBAL_ROTOR : BB_LOCAL_ROTOR;
+	        this.mBaseboneConstraintType = type === 'global' ? GLOBAL_ROTOR : LOCAL_ROTOR;
 	        this.mBaseboneConstraintUV = constraintAxis.normalised();
 	        this.mBaseboneRelativeConstraintUV.copy( this.mBaseboneConstraintUV );
 	        this.getBone(0).getJoint().setAsBallJoint( angleDegs );
@@ -1664,18 +1660,18 @@
 	        if ( hingeRotationAxis.length() <= 0 ) Tools.error("Hinge rotation axis cannot be zero."); return;            
 	        if ( hingeReferenceAxis.length() <= 0 ) Tools.error("Hinge reference axis cannot be zero."); return;      
 	        if ( !( _Math.perpendicular( hingeRotationAxis, hingeReferenceAxis ) ) ) Tools.error("The hinge reference axis must be in the plane of the hinge rotation axis, that is, they must be perpendicular."); return;
-	        //if ( !(hingeType === BB_GLOBAL_HINGE || hingeType === BB_LOCAL_HINGE) ) return;//throw new IllegalArgumentException("The only valid hinge types for this method are GLOBAL_HINGE and LOCAL_HINGE.");
+	        //if ( !(hingeType === GLOBAL_HINGE || hingeType === LOCAL_HINGE) ) return;//throw new IllegalArgumentException("The only valid hinge types for this method are GLOBAL_HINGE and LOCAL_HINGE.");
 	        
 	        type = type || 'global';  
 
 	        // Set the constraint type, axis and angle
-	        this.mBaseboneConstraintType = type === 'global' ? BB_GLOBAL_HINGE : BB_LOCAL_HINGE;
+	        this.mBaseboneConstraintType = type === 'global' ? GLOBAL_HINGE : LOCAL_HINGE;
 	        this.mBaseboneConstraintUV.copy( hingeRotationAxis.normalised() );
 	        
 	        var hinge = new Joint3D();
 	        
-	        if ( type === 'global' ) hinge.setHinge( J_GLOBAL_HINGE, hingeRotationAxis, cwConstraintDegs, acwConstraintDegs, hingeReferenceAxis );
-	        else hinge.setHinge( J_LOCAL_HINGE, hingeRotationAxis, cwConstraintDegs, acwConstraintDegs, hingeReferenceAxis );
+	        if ( type === 'global' ) hinge.setHinge( J_GLOBAL, hingeRotationAxis, cwConstraintDegs, acwConstraintDegs, hingeReferenceAxis );
+	        else hinge.setHinge( J_LOCAL, hingeRotationAxis, cwConstraintDegs, acwConstraintDegs, hingeReferenceAxis );
 	        
 	        this.getBone(0).setJoint( hinge );
 
@@ -1683,27 +1679,27 @@
 
 	    setFreelyRotatingGlobalHingedBasebone : function( hingeRotationAxis ){
 
-	        this.setHingeBaseboneConstraint( BB_GLOBAL_HINGE, hingeRotationAxis, 180, 180, _Math.genPerpendicularVectorQuick( hingeRotationAxis ) );
+	        this.setHingeBaseboneConstraint( GLOBAL_HINGE, hingeRotationAxis, 180, 180, _Math.genPerpendicularVectorQuick( hingeRotationAxis ) );
 	    },
 
 	    setFreelyRotatingLocalHingedBasebone : function( hingeRotationAxis ){
 
-	        this.setHingeBaseboneConstraint( BB_LOCAL_HINGE, hingeRotationAxis, 180, 180, _Math.genPerpendicularVectorQuick( hingeRotationAxis ) );
+	        this.setHingeBaseboneConstraint( LOCAL_HINGE, hingeRotationAxis, 180, 180, _Math.genPerpendicularVectorQuick( hingeRotationAxis ) );
 	    },
 
 	    setLocalHingedBasebone : function( hingeRotationAxis, cwDegs, acwDegs, hingeReferenceAxis ){
 
-	        this.setHingeBaseboneConstraint( BB_LOCAL_HINGE, hingeRotationAxis, cwDegs, acwDegs, hingeReferenceAxis );
+	        this.setHingeBaseboneConstraint( LOCAL_HINGE, hingeRotationAxis, cwDegs, acwDegs, hingeReferenceAxis );
 	    },
 
 	    setGlobalHingedBasebone : function( hingeRotationAxis, cwDegs, acwDegs, hingeReferenceAxis ){
 
-	        this.setHingeBaseboneConstraint( BB_GLOBAL_HINGE, hingeRotationAxis, cwDegs, acwDegs, hingeReferenceAxis );
+	        this.setHingeBaseboneConstraint( GLOBAL_HINGE, hingeRotationAxis, cwDegs, acwDegs, hingeReferenceAxis );
 	    },
 
 	    setBaseboneConstraintUV : function( constraintUV ){
 
-	        if ( this.mBaseboneConstraintType === BB_NONE ) return;
+	        if ( this.mBaseboneConstraintType === NONE ) return;
 
 	        this.constraintUV.normalize();
 	        this.mBaseboneConstraintUV.copy( constraintUV );
@@ -1733,7 +1729,7 @@
 
 	        // Enforce that a chain connected to another chain stays in fixed base mode (i.e. it moves with the chain it's connected to instead of independently)
 	        if ( !value && this.mConnectedChainNumber !== -1) return;
-	        if ( this.mBaseboneConstraintType === BB_GLOBAL_ROTOR && !value ) return;
+	        if ( this.mBaseboneConstraintType === GLOBAL_ROTOR && !value ) return;
 	        // Above conditions met? Set the fixedBaseMode
 	        this.mFixedBaseMode = value;
 	    },
@@ -1894,7 +1890,7 @@
 	                        boneOuterToInnerUV = _Math.getAngleLimitedUnitVectorDegs( boneOuterToInnerUV, outerBoneOuterToInnerUV, constraintAngleDegs );
 	                    }
 	                }
-	                else if ( jointType === J_GLOBAL_HINGE ) {  
+	                else if ( jointType === J_GLOBAL ) {  
 
 	                    // Project this bone outer-to-inner direction onto the hinge rotation axis
 	                    // Note: The returned vector is normalised.
@@ -1902,7 +1898,7 @@
 	                    
 	                    // NOTE: Constraining about the hinge reference axis on this forward pass leads to poor solutions... so we won't.
 	                }
-	                else if ( jointType === J_LOCAL_HINGE ) {   
+	                else if ( jointType === J_LOCAL ) {   
 	                    // Not a basebone? Then construct a rotation matrix based on the previous bones inner-to-to-inner direction...
 	                    var m; // M3
 	                    var relativeHingeRotationAxis; // V3
@@ -1949,12 +1945,12 @@
 	                    case J_BALL:
 	                        // Ball joints do not get constrained on this forward pass
 	                    break;                      
-	                    case J_GLOBAL_HINGE:
+	                    case J_GLOBAL:
 	                        // Global hinges get constrained to the hinge rotation axis, but not the reference axis within the hinge plane
 
 	                        boneOuterToInnerUV = boneOuterToInnerUV.projectOnPlane( joint.getHingeRotationAxis() );//.normalize();
 	                    break;
-	                    case J_LOCAL_HINGE:
+	                    case J_LOCAL:
 	                        // Local hinges get constrained to the hinge rotation axis, but not the reference axis within the hinge plane
 	                        
 	                        // Construct a rotation matrix based on the previous bones inner-to-to-inner direction...
@@ -2012,7 +2008,7 @@
 	                        boneInnerToOuterUV = _Math.getAngleLimitedUnitVectorDegs( boneInnerToOuterUV, prevBoneInnerToOuterUV, constraintAngleDegs );
 	                    }
 	                }
-	                else if ( jointType === J_GLOBAL_HINGE ) {                   
+	                else if ( jointType === J_GLOBAL ) {                   
 	                    // Get the hinge rotation axis and project our inner-to-outer UV onto it
 	                    var hingeRotationAxis  = joint.getHingeRotationAxis();
 	                    boneInnerToOuterUV = boneInnerToOuterUV.projectOnPlane(hingeRotationAxis).normalize();
@@ -2035,7 +2031,7 @@
 	                        
 	                    }
 	                }
-	                else if ( jointType === J_LOCAL_HINGE ){   
+	                else if ( jointType === J_LOCAL ){   
 	                    // Transform the hinge rotation axis to be relative to the previous bone in the chain
 	                    var hingeRotationAxis  = joint.getHingeRotationAxis();
 	                    
@@ -2094,7 +2090,7 @@
 	                }
 	                
 	                // If the basebone is unconstrained then process it as usual...
-	                if ( this.mBaseboneConstraintType === BB_NONE ) {
+	                if ( this.mBaseboneConstraintType === NONE ) {
 	                    // Set the new end location of this bone, and if there are more bones,
 	                    // then set the start location of the next bone to be the end location of this bone
 	                    var newEndLocation = bone.getStartLocation().plus( bone.getDirectionUV().times( lng ) );
@@ -2103,7 +2099,7 @@
 	                    if ( this.mNumBones > 1 ) { this.bones[1].setStartLocation( newEndLocation ); }
 	                } else {// ...otherwise we must constrain it to the basebone constraint unit vector
 	                  
-	                    if ( this.mBaseboneConstraintType === BB_GLOBAL_ROTOR ){   
+	                    if ( this.mBaseboneConstraintType === GLOBAL_ROTOR ){   
 	                        // Get the inner-to-outer direction of this bone
 	                        var boneInnerToOuterUV = bone.getDirectionUV();
 	                                
@@ -2121,7 +2117,7 @@
 	                        // Also, set the start location of the next bone to be the end location of this bone
 	                        if ( this.mNumBones > 1 ) { this.bones[1].setStartLocation( newEndLocation ); }
 	                    }
-	                    else if ( this.mBaseboneConstraintType === BB_LOCAL_ROTOR ){
+	                    else if ( this.mBaseboneConstraintType === LOCAL_ROTOR ){
 	                        // Note: The mBaseboneRelativeConstraintUV is updated in the Structure.updateTarget()
 	                        // method BEFORE this Chain.updateTarget() method is called. We no knowledge of the
 	                        // direction of the bone we're connected to in another chain and so cannot calculate this 
@@ -2145,7 +2141,7 @@
 	                        // Also, set the start location of the next bone to be the end location of this bone
 	                        if ( this.mNumBones > 1 ) { this.bones[1].setStartLocation(newEndLocation); }
 
-	                    } else if ( this.mBaseboneConstraintType === BB_GLOBAL_HINGE ) {
+	                    } else if ( this.mBaseboneConstraintType === GLOBAL_HINGE ) {
 
 	                        joint = bone.getJoint();
 	                        var hingeRotationAxis  =  joint.getHingeRotationAxis();
@@ -2176,7 +2172,7 @@
 	                        // Also, set the start location of the next bone to be the end location of this bone
 	                        if ( this.mNumBones > 1 ) { this.bones[1].setStartLocation(newEndLocation); }
 
-	                    } else if ( this.mBaseboneConstraintType === BB_LOCAL_HINGE ){
+	                    } else if ( this.mBaseboneConstraintType === LOCAL_HINGE ){
 
 	                        joint = bone.getJoint();
 	                        var hingeRotationAxis  =  this.mBaseboneRelativeConstraintUV;          // Basebone relative constraint is our hinge rotation axis!
@@ -2310,14 +2306,14 @@
 
 	                constraintType = c.getBaseboneConstraintType();
 	                switch (constraintType){
-	                    case BB_NONE:         // Nothing to do because there's no basebone constraint
-	                    case BB_GLOBAL_ROTOR: // Nothing to do because the basebone constraint is not relative to bones in other chains in this structure
-	                    case BB_GLOBAL_HINGE: // Nothing to do because the basebone constraint is not relative to bones in other chains in this structure
+	                    case NONE:         // Nothing to do because there's no basebone constraint
+	                    case GLOBAL_ROTOR: // Nothing to do because the basebone constraint is not relative to bones in other chains in this structure
+	                    case GLOBAL_HINGE: // Nothing to do because the basebone constraint is not relative to bones in other chains in this structure
 	                        break;
 	                        
 	                    // If we have a local rotor or hinge constraint then we must calculate the relative basebone constraint before calling updateTarget
-	                    case BB_LOCAL_ROTOR:
-	                    case BB_LOCAL_HINGE:
+	                    case LOCAL_ROTOR:
+	                    case LOCAL_HINGE:
 
 	                    // Get the direction of the bone this chain is connected to and create a rotation matrix from it.
 	                    var connectionBoneMatrix = _Math.createRotationMatrix( hostBone.getDirectionUV() );
@@ -2330,14 +2326,14 @@
 	                    c.setBaseboneRelativeConstraintUV( relativeBaseboneConstraintUV );
 	                        
 	                    // Updat the relative reference constraint UV if we hav a local hinge
-	                    if (constraintType === BB_LOCAL_HINGE )
+	                    if (constraintType === LOCAL_HINGE )
 	                        c.setBaseboneRelativeReferenceConstraintUV( connectionBoneMatrix.times( c.getBone(0).getJoint().getHingeReferenceAxis() ) );
 	                        
 	                    break;
 
 	                }
 
-	                // NOTE: If the base bone constraint type is BB_NONE then we don't do anything with the base bone constraint of the connected chain.
+	                // NOTE: If the base bone constraint type is NONE then we don't do anything with the base bone constraint of the connected chain.
 	                
 	                // Finally, update the target and solve the chain
 	                // Update the target and solve the chain
@@ -2519,7 +2515,7 @@
 	                extraGeo.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0, s*0.5 ) );
 	                extraMesh = new THREE.Mesh( extraGeo,  m2 );
 	            break;
-	            case J_GLOBAL_HINGE :
+	            case J_GLOBAL :
 	            var a1 = bone.getJoint().mHingeClockwiseConstraintDegs * _Math.toRad;
 	            var a2 = bone.getJoint().mHingeAnticlockwiseConstraintDegs * _Math.toRad;
 	            var r = 2;
@@ -2529,7 +2525,7 @@
 	            extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
 	            extraMesh = new THREE.Mesh( extraGeo,  m2 );
 	            break;
-	            case J_LOCAL_HINGE :
+	            case J_LOCAL :
 	            var r = 2;
 	            var a1 = bone.getJoint().mHingeClockwiseConstraintDegs * _Math.toRad;
 	            var a2 = bone.getJoint().mHingeAnticlockwiseConstraintDegs * _Math.toRad;
@@ -2837,7 +2833,7 @@
 	    this.mBaseLocation = new V2();
 	    this.mFixedBaseMode = true;
 
-	    this.mBaseboneConstraintType = BB_NONE;
+	    this.mBaseboneConstraintType = NONE;
 
 
 	    this.mBaseboneConstraintUV = new V2();
@@ -2874,7 +2870,7 @@
 	        c.mLastBaseLocation.copy( this.mLastBaseLocation );
 	                
 	        // Copy the basebone constraint UV if there is one to copy
-	        //if ( !(this.mBaseboneConstraintType === BB_NONE) ){
+	        //if ( !(this.mBaseboneConstraintType === NONE) ){
 	            c.mBaseboneConstraintUV.copy( this.mBaseboneConstraintUV );
 	            c.mBaseboneRelativeConstraintUV.copy( this.mBaseboneRelativeConstraintUV );
 	            //c.mBaseboneRelativeReferenceConstraintUV.copy( this.mBaseboneRelativeReferenceConstraintUV );
@@ -3035,7 +3031,7 @@
 	        return this.mBaseboneConstraintType;
 	    },
 	    getBaseboneConstraintUV:function(){
-	        if ( !(this.mBaseboneConstraintType === BB_NONE) ) return this.mBaseboneConstraintUV;
+	        if ( !(this.mBaseboneConstraintType === NONE) ) return this.mBaseboneConstraintUV;
 	    },
 	    getBaseLocation:function(){
 	        return this.bones[0].getStartLocation();
@@ -3115,7 +3111,7 @@
 
 	    setBaseboneConstraintUV: function( constraintUV ){
 
-	        //if ( this.mBaseboneConstraintType === BB_NONE ) return;
+	        //if ( this.mBaseboneConstraintType === NONE ) return;
 	        _Math.validateDirectionUV(constraintUV);
 
 	        this.mBaseboneConstraintUV.copy( constraintUV.normalised() );
@@ -3150,7 +3146,7 @@
 
 	        // Enforce that a chain connected to another chain stays in fixed base mode (i.e. it moves with the chain it's connected to instead of independently)
 	        if ( !value && this.mConnectedChainNumber !== -1) return;
-	        if ( this.mBaseboneConstraintType === BB_GLOBAL_ABSOLUTE && !value ) return;
+	        if ( this.mBaseboneConstraintType === GLOBAL_ABSOLUTE && !value ) return;
 	        // Above conditions met? Set the fixedBaseMode
 	        this.mFixedBaseMode = value;
 	    },
@@ -3455,7 +3451,7 @@
 	                }
 	                
 	                // If the base bone is unconstrained then process it as usual...
-	                if ( this.mBaseboneConstraintType === BB_NONE){
+	                if ( this.mBaseboneConstraintType === NONE){
 	                    // Get the inner to outer direction of this bone
 	                    var BoneInnerToOuterUV = bone.getDirectionUV();
 	    
@@ -3486,7 +3482,7 @@
 	                    // LOCAL_ABSOLUTE? (i.e. local-space directional constraint) - then we must constraint about the relative basebone constraint UV...
 	                    var constrainedUV;
 
-	                    if ( this.mBaseboneConstraintType === BB_LOCAL_ABSOLUTE ){
+	                    if ( this.mBaseboneConstraintType === LOCAL_ABSOLUTE ){
 	                        constrainedUV = _Math.getConstrainedUV( BoneInnerToOuterUV, this.mBaseboneRelativeConstraintUV, clockwiseConstraintDegs, antiClockwiseConstraintDegs);
 	                        
 	                    } else {
@@ -3599,7 +3595,7 @@
 	            // If this chain is not connected to another chain and the basebone constraint type of this chain is not global absolute
 	            // then we must update the basebone constraint UV for LOCAL_RELATIVE and the basebone relative constraint UV for LOCAL_ABSOLUTE connection types.
 	            // Note: For NONE or GLOBAL_ABSOLUTE we don't need to update anything before calling updateTarget().
-	            if (hostChainNumber !== -1 && constraintType !== BB_GLOBAL_ABSOLUTE) {   
+	            if (hostChainNumber !== -1 && constraintType !== GLOBAL_ABSOLUTE) {   
 	                // Get the bone which this chain is connected to in the 'host' chain
 	                var hostBone = this.chains[hostChainNumber].getBone( c.getConnectedBoneNumber() );
 	                
@@ -3617,12 +3613,12 @@
 	                // If the basebone is constrained to the direction of the bone it's connected to...
 	                var hostBoneUV = hostBone.getDirectionUV();
 
-	                if (constraintType === BB_LOCAL_RELATIVE){   
+	                if (constraintType === LOCAL_RELATIVE){   
 
 	                    // ...then set the basebone constraint UV to be the direction of the bone we're connected to.
 	                    c.setBaseboneConstraintUV(hostBoneUV);
 
-	                } else if (constraintType === BB_LOCAL_ABSOLUTE) {   
+	                } else if (constraintType === LOCAL_ABSOLUTE) {   
 
 	                    // Note: LOCAL_ABSOLUTE directions are directions which are in the local coordinate system of the host bone.
 	                    // For example, if the baseboneConstraintUV is Vec2f(-1.0f, 0.0f) [i.e. left], then the baseboneConnectionConstraintUV
@@ -3657,16 +3653,16 @@
 	                constraintType = c.getBaseboneConstraintType();
 	                var hostBoneUV = hostBone.getDirectionUV();
 	                switch (constraintType){
-	                    case BB_NONE:         // Nothing to do because there's no basebone constraint
+	                    case NONE:         // Nothing to do because there's no basebone constraint
 	                    break;
 	                        
 	                    // If we have a local rotor or hinge constraint then we must calculate the relative basebone constraint before calling updateTarget
-	                    case BB_LOCAL_RELATIVE:
+	                    case LOCAL_RELATIVE:
 
 	                        c.setBaseboneConstraintUV( hostBoneUV );
 
 	                    break;
-	                    case BB_LOCAL_ABSOLUTE:
+	                    case LOCAL_ABSOLUTE:
 	                    // Note: LOCAL_ABSOLUTE directions are directions which are in the local coordinate system of the host bone.
 	                    // For example, if the baseboneConstraintUV is Vec2f(-1.0f, 0.0f) [i.e. left], then the baseboneConnectionConstraintUV
 	                    // will be updated to be left with regard to the host bone.
@@ -3950,21 +3946,19 @@
 	exports.Chain2D = Chain2D;
 	exports.Structure2D = Structure2D;
 	exports.REVISION = REVISION;
-	exports.BB_NONE = BB_NONE;
-	exports.BB_GLOBAL_ROTOR = BB_GLOBAL_ROTOR;
-	exports.BB_GLOBAL_HINGE = BB_GLOBAL_HINGE;
-	exports.BB_LOCAL_ROTOR = BB_LOCAL_ROTOR;
-	exports.BB_LOCAL_HINGE = BB_LOCAL_HINGE;
+	exports.NONE = NONE;
+	exports.GLOBAL_ROTOR = GLOBAL_ROTOR;
+	exports.GLOBAL_HINGE = GLOBAL_HINGE;
+	exports.LOCAL_ROTOR = LOCAL_ROTOR;
+	exports.LOCAL_HINGE = LOCAL_HINGE;
+	exports.GLOBAL_ABSOLUTE = GLOBAL_ABSOLUTE;
+	exports.LOCAL_RELATIVE = LOCAL_RELATIVE;
+	exports.LOCAL_ABSOLUTE = LOCAL_ABSOLUTE;
 	exports.J_BALL = J_BALL;
-	exports.J_GLOBAL_HINGE = J_GLOBAL_HINGE;
-	exports.J_LOCAL_HINGE = J_LOCAL_HINGE;
-	exports.BB_GLOBAL_ABSOLUTE = BB_GLOBAL_ABSOLUTE;
-	exports.BB_LOCAL_RELATIVE = BB_LOCAL_RELATIVE;
-	exports.BB_LOCAL_ABSOLUTE = BB_LOCAL_ABSOLUTE;
-	exports.START = START;
-	exports.END = END;
 	exports.J_LOCAL = J_LOCAL;
 	exports.J_GLOBAL = J_GLOBAL;
+	exports.START = START;
+	exports.END = END;
 	exports.X_AXE = X_AXE;
 	exports.Y_AXE = Y_AXE;
 	exports.Z_AXE = Z_AXE;

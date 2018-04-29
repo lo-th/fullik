@@ -14,7 +14,6 @@
 				background: #333333;
 			}
 
-			canvas { width: 100%; height: 100% }
             #debug { position:absolute; top:10px; left:10px; width:100%; text-align:left; pointer-events:none;}
             #link { position:absolute; bottom:10px; left:10px; width:200px; text-align:left; pointer-events:auto; cursor:pointer; }
 
@@ -60,7 +59,7 @@
 
     var targets = [];
 
-    var goal = {x:0, y:30, z:0};
+    var goal = { x:0, y:30, z:0 };
 
     var setting = {
         fixed:true,
@@ -68,9 +67,6 @@
     }
 
 	var solver;
-
-	var X_AXIS, Y_AXIS, Z_AXIS;
-    var X_AXIS_NEG, Y_AXIS_NEG, Z_AXIS_NEG;
 	var defaultBoneDirection, defaultBoneLength;
 
 
@@ -88,25 +84,21 @@
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         renderer.gammaInput = true;
         renderer.gammaOutput = true;
-		document.body.appendChild( renderer.domElement );
-
         renderer.setClearColor( 0x333333, 1 );
-
+		document.body.appendChild( renderer.domElement );
 
         scene = new THREE.Scene();
         camera = new THREE.PerspectiveCamera( 60, w / h, 0.1, 2000 );
-        
-
 		controler = new THREE.OrbitControls( camera, renderer.domElement );
         controler.enableKeys = false;
-		//controler.enableZoom = false;
 
+        //
 
 		ambientLight = new THREE.AmbientLight( 0x101010 );
 		scene.add( ambientLight );
 
 		lights = [];
-		lights[ 0 ] = new THREE.SpotLight( 0xffffff, 1, 0, Math.PI / 2 );//new THREE.PointLight( 0xffffff, 1, 0 );
+		lights[ 0 ] = new THREE.SpotLight( 0xffffff, 1, 0, Math.PI / 2 );
 		lights[ 1 ] = new THREE.PointLight( 0xFF8822, 1, 0 );
 		lights[ 2 ] = new THREE.PointLight( 0x2288FF, 1, 0 );
 
@@ -120,7 +112,7 @@
 
         lights[ 0 ].castShadow = true;
         var d = 150;
-        lights[ 0 ].shadow = new THREE.LightShadow( new THREE.OrthographicCamera( d, -d, d, -d,  100, 400 ))//;new THREE.PerspectiveCamera( 50, 1, 10, 200 ) );
+        lights[ 0 ].shadow = new THREE.LightShadow( new THREE.OrthographicCamera( d, -d, d, -d,  100, 400 ));
         lights[ 0 ].shadow.bias = 0.0001;
         lights[ 0 ].shadow.mapSize.width = 2048;
         lights[ 0 ].shadow.mapSize.height = 2048;
@@ -132,20 +124,12 @@
 	
 		initGui();
 
-        X_AXIS = new FIK.V3( 1, 0, 0 );
-        Y_AXIS = new FIK.V3( 0, 1, 0 );
-        Z_AXIS = new FIK.V3( 0, 0, 1 );
+        // FIK
 
-        X_AXIS_NEG = X_AXIS.negated();
-        Y_AXIS_NEG = Y_AXIS.negated();
-        Z_AXIS_NEG = Z_AXIS.negated();
-
-        defaultBoneDirection = Z_AXIS.negated();
+        defaultBoneDirection = FIK.Z_NEG;
         defaultBoneLength = 10;
 
         solver = new FIK.Structure3D( scene );
-
-        //demo( 1 );
 
         var s = location.hash.substr( 1 ); 
         load( s || 'demo_1' );
@@ -178,10 +162,6 @@
             ground.position.y = -5;
             scene.add( ground );
 
-            /*grid = new THREE.GridHelper( 200, 16, 0x111111, 0x050505 );
-            grid.position.y = -5.01;
-            scene.add( grid );*/
-
             grid = new THREE.PolarGridHelper( 100, 16, 8, 64, 0x202020, 0x404040 );
             grid.position.y = -5.01;
             scene.add( grid );
@@ -206,8 +186,6 @@
 
         }
 
-        
-
     }
 
     function removeGround(){
@@ -215,7 +193,7 @@
         scene.remove( ground );
         scene.remove( grid );
 
-    };
+    }
 
 
     function updateTarget ( v, id ){
@@ -230,7 +208,7 @@
         n.control.position.copy( v );
         n.position = n.mesh.position;
 
-    };
+    }
 
     function addTarget( position ){
 
@@ -253,7 +231,7 @@
 
         targets.push(n);
 
-    };
+    }
 
     function clearAllTargets(){
         var n;
@@ -326,15 +304,14 @@
     function addDemos ( n ) {
 
         demoGroup.clearGroup();
-        //demoGroup = gui.add('group', { name:'DEMO', fontColor:'#D4B87B' });
 
         for(var i=0; i<=n; i++) {
-            demoGroup.add('button', { name:'demo_'+i, p:0 } ).onChange( demo );
+            demoGroup.add('button', { name:'demo_'+i, p:0 } ).onChange( load );
         }
 
         demoGroup.open();
 
-    };
+    }
 
     function tell(s){
 
@@ -347,7 +324,7 @@
         extraUpdate();
         solver.update();
 
-    };
+    }
 
     function autoMove () {
 
@@ -359,7 +336,7 @@
         .onComplete( function() { autoMove(); } )
         .start();
 
-    };
+    }
 
     function render () {
 
@@ -367,7 +344,7 @@
         TWEEN.update();
         renderer.render( scene, camera );
 
-    };
+    }
 
 
     function load ( name ) {
@@ -413,12 +390,6 @@
         document.getElementsByTagName('BODY').item(0).appendChild(oScript);
 
         solver.update();
-
-    }
-
-    function demo ( name ) {
-
-        load( name );
 
     }
 

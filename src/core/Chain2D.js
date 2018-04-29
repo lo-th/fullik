@@ -1,4 +1,4 @@
-import { BB_NONE, BB_GLOBAL_ABSOLUTE, BB_LOCAL_RELATIVE, BB_LOCAL_ABSOLUTE, END, START, J_LOCAL, J_GLOBAL } from '../constants.js';
+import { NONE, GLOBAL_ABSOLUTE, LOCAL_RELATIVE, LOCAL_ABSOLUTE, END, START, J_LOCAL, J_GLOBAL } from '../constants.js';
 import { _Math } from '../math/Math.js';
 import { V2 } from '../math/V2.js';
 import { Bone2D } from './Bone2D.js';
@@ -20,7 +20,7 @@ import { Tools } from './Tools.js';
     this.mBaseLocation = new V2();
     this.mFixedBaseMode = true;
 
-    this.mBaseboneConstraintType = BB_NONE;
+    this.mBaseboneConstraintType = NONE;
 
 
     this.mBaseboneConstraintUV = new V2();
@@ -57,7 +57,7 @@ Object.assign( Chain2D.prototype, {
         c.mLastBaseLocation.copy( this.mLastBaseLocation );
                 
         // Copy the basebone constraint UV if there is one to copy
-        //if ( !(this.mBaseboneConstraintType === BB_NONE) ){
+        //if ( !(this.mBaseboneConstraintType === NONE) ){
             c.mBaseboneConstraintUV.copy( this.mBaseboneConstraintUV );
             c.mBaseboneRelativeConstraintUV.copy( this.mBaseboneRelativeConstraintUV );
             //c.mBaseboneRelativeReferenceConstraintUV.copy( this.mBaseboneRelativeReferenceConstraintUV );
@@ -219,7 +219,7 @@ Object.assign( Chain2D.prototype, {
         return this.mBaseboneConstraintType;
     },
     getBaseboneConstraintUV:function(){
-        if ( !(this.mBaseboneConstraintType === BB_NONE) ) return this.mBaseboneConstraintUV;
+        if ( !(this.mBaseboneConstraintType === NONE) ) return this.mBaseboneConstraintUV;
     },
     getBaseLocation:function(){
         return this.bones[0].getStartLocation();
@@ -299,7 +299,7 @@ Object.assign( Chain2D.prototype, {
 
     setBaseboneConstraintUV: function( constraintUV ){
 
-        //if ( this.mBaseboneConstraintType === BB_NONE ) return;
+        //if ( this.mBaseboneConstraintType === NONE ) return;
         _Math.validateDirectionUV(constraintUV);
 
         this.mBaseboneConstraintUV.copy( constraintUV.normalised() );
@@ -334,7 +334,7 @@ Object.assign( Chain2D.prototype, {
 
         // Enforce that a chain connected to another chain stays in fixed base mode (i.e. it moves with the chain it's connected to instead of independently)
         if ( !value && this.mConnectedChainNumber !== -1) return;
-        if ( this.mBaseboneConstraintType === BB_GLOBAL_ABSOLUTE && !value ) return;
+        if ( this.mBaseboneConstraintType === GLOBAL_ABSOLUTE && !value ) return;
         // Above conditions met? Set the fixedBaseMode
         this.mFixedBaseMode = value;
     },
@@ -639,7 +639,7 @@ Object.assign( Chain2D.prototype, {
                 }
                 
                 // If the base bone is unconstrained then process it as usual...
-                if ( this.mBaseboneConstraintType === BB_NONE){
+                if ( this.mBaseboneConstraintType === NONE){
                     // Get the inner to outer direction of this bone
                     var BoneInnerToOuterUV = bone.getDirectionUV();
     
@@ -670,7 +670,7 @@ Object.assign( Chain2D.prototype, {
                     // LOCAL_ABSOLUTE? (i.e. local-space directional constraint) - then we must constraint about the relative basebone constraint UV...
                     var constrainedUV;
 
-                    if ( this.mBaseboneConstraintType === BB_LOCAL_ABSOLUTE ){
+                    if ( this.mBaseboneConstraintType === LOCAL_ABSOLUTE ){
                         constrainedUV = _Math.getConstrainedUV( BoneInnerToOuterUV, this.mBaseboneRelativeConstraintUV, clockwiseConstraintDegs, antiClockwiseConstraintDegs);
                         
                     } else {

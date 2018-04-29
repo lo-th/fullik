@@ -10,7 +10,7 @@ chain.addBone( basebone );
 
 // Fix the base bone to its current location, and constrain it to the positive Y-axis
 chain.setFixedBaseMode( true );       
-chain.setBaseboneConstraintType( FIK.BB_GLOBAL_ABSOLUTE );
+chain.setBaseboneConstraintType( FIK.GLOBAL_ABSOLUTE );
 chain.setBaseboneConstraintUV( new FIK.V2(0, 1) );
 
 // Create and add the second bone - 50 clockwise, 90 anti-clockwise

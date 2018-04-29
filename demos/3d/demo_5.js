@@ -11,8 +11,8 @@ chain.addBone( basebone );
 
 for (var j = 0; j < 8; j++) {
 
-    if (j % 2 == 0) chain.addConsecutiveHingedBone( Y_AXIS.negated(), defaultBoneLength, 'global', Z_AXIS, 120, 120, Y_AXIS.negated() );
-    else chain.addConsecutiveBone( Y_AXIS.negated(), defaultBoneLength )
+    if (j % 2 == 0) chain.addConsecutiveHingedBone( FIK.Y_NEG, defaultBoneLength, 'global', FIK.Z_AXE, 120, 120, FIK.Y_NEG );
+    else chain.addConsecutiveBone( FIK.Y_NEG, defaultBoneLength )
 
 };
 

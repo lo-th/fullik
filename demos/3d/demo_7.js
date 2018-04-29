@@ -13,9 +13,9 @@ var color = 0xFF0000;
 for (var i = 0; i < numChains; i++ ){
 
     switch (i){
-        case 0: color = 0xFF0000; hingeRotationAxis = X_AXIS; hingeReferenceAxis = Y_AXIS; break;
-        case 1: color = 0x00FF00; hingeRotationAxis = Y_AXIS; hingeReferenceAxis = X_AXIS; break;
-        case 2: color = 0x0000FF; hingeRotationAxis = Z_AXIS; hingeReferenceAxis = Y_AXIS; break;
+        case 0: color = 0xFF0000; hingeRotationAxis = FIK.X_AXE; hingeReferenceAxis = FIK.Y_AXE; break;
+        case 1: color = 0x00FF00; hingeRotationAxis = FIK.Y_AXE; hingeReferenceAxis = FIK.X_AXE; break;
+        case 2: color = 0x0000FF; hingeRotationAxis = FIK.Z_AXE; hingeReferenceAxis = FIK.Y_AXE; break;
     }
 
     var chain = new FIK.Chain3D( color );

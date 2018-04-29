@@ -9,9 +9,9 @@ var color = 0xFF0000;
 for (var i = 0; i < numChains; i++ ){
 
     switch (i){
-        case 0: color = 0xFF0000; globalHingeAxis = X_AXIS;  break;
-        case 1: color = 0x00FF00; globalHingeAxis = Y_AXIS;  break;
-        case 2: color = 0x0000FF; globalHingeAxis = Z_AXIS;  break;
+        case 0: color = 0xFF0000; globalHingeAxis = FIK.X_AXE; break;
+        case 1: color = 0x00FF00; globalHingeAxis = FIK.Y_AXE; break;
+        case 2: color = 0x0000FF; globalHingeAxis = FIK.Z_AXE; break;
     }
 
     var chain = new FIK.Chain3D( color );

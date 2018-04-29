@@ -17,19 +17,19 @@ solver.add( chain, target, true );
 var chain2 = new FIK.Chain3D();
 var base = new FIK.Bone3D( new FIK.V3(0, 0, 0), new FIK.V3(15, 0, 0) );
 chain2.addBone(base);
-chain2.setRotorBaseboneConstraint( 'global', X_AXIS, 45);
-chain2.addConsecutiveBone( X_AXIS, 15 );
-chain2.addConsecutiveBone( X_AXIS, 15 );
-chain2.addConsecutiveBone( X_AXIS, 15 );
+chain2.setRotorBaseboneConstraint( 'global', FIK.X_AXE, 45);
+chain2.addConsecutiveBone( FIK.X_AXE, 15 );
+chain2.addConsecutiveBone( FIK.X_AXE, 15 );
+chain2.addConsecutiveBone( FIK.X_AXE, 15 );
 
 solver.connectChain( chain2, 0, 3, 'start', target, true, 0xFF0000 );
 
 var chain3 = new FIK.Chain3D();
 var base = new FIK.Bone3D( new FIK.V3(0, 0, 0), new FIK.V3(0, 15, 0) );
 chain3.addBone(base);
-chain3.setRotorBaseboneConstraint( 'global', Y_AXIS, 45);
-chain3.addConsecutiveBone( Y_AXIS, 15 );
-chain3.addConsecutiveBone( Y_AXIS, 15 );
-chain3.addConsecutiveBone( Y_AXIS, 15 );
+chain3.setRotorBaseboneConstraint( 'global', FIK.Y_AXE, 45);
+chain3.addConsecutiveBone( FIK.Y_AXE, 15 );
+chain3.addConsecutiveBone( FIK.Y_AXE, 15 );
+chain3.addConsecutiveBone( FIK.Y_AXE, 15 );
 
 solver.connectChain( chain3, 0, 6, 'start', target, true, 0x00FF00 );

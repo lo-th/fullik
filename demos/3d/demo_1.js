@@ -7,7 +7,7 @@ for( var i=0; i<numChains; i++ ){
     var chain = new FIK.Chain3D( 0x999999 );
 
     var startLoc = new FIK.V3(-40+(i*4),0,40);
-    var endLoc = startLoc.plus( defaultBoneDirection.times(defaultBoneLength));
+    var endLoc = startLoc.plus( defaultBoneDirection.times( defaultBoneLength ));
 
     var basebone = new FIK.Bone3D( startLoc, endLoc );
     chain.addBone( basebone );

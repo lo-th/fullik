@@ -1,4 +1,4 @@
-import { UP, BB_NONE, BB_GLOBAL_ABSOLUTE, BB_LOCAL_RELATIVE, BB_LOCAL_ABSOLUTE, END, START } from '../constants.js';
+import { UP, NONE, GLOBAL_ABSOLUTE, LOCAL_RELATIVE, LOCAL_ABSOLUTE, END, START } from '../constants.js';
 import { _Math } from '../math/Math.js';
 import { V2 } from '../math/V2.js';
 
@@ -44,7 +44,7 @@ Object.assign( Structure2D.prototype, {
             // If this chain is not connected to another chain and the basebone constraint type of this chain is not global absolute
             // then we must update the basebone constraint UV for LOCAL_RELATIVE and the basebone relative constraint UV for LOCAL_ABSOLUTE connection types.
             // Note: For NONE or GLOBAL_ABSOLUTE we don't need to update anything before calling updateTarget().
-            if (hostChainNumber !== -1 && constraintType !== BB_GLOBAL_ABSOLUTE) {   
+            if (hostChainNumber !== -1 && constraintType !== GLOBAL_ABSOLUTE) {   
                 // Get the bone which this chain is connected to in the 'host' chain
                 var hostBone = this.chains[hostChainNumber].getBone( c.getConnectedBoneNumber() );
                 
@@ -62,12 +62,12 @@ Object.assign( Structure2D.prototype, {
                 // If the basebone is constrained to the direction of the bone it's connected to...
                 var hostBoneUV = hostBone.getDirectionUV();
 
-                if (constraintType === BB_LOCAL_RELATIVE){   
+                if (constraintType === LOCAL_RELATIVE){   
 
                     // ...then set the basebone constraint UV to be the direction of the bone we're connected to.
                     c.setBaseboneConstraintUV(hostBoneUV);
 
-                } else if (constraintType === BB_LOCAL_ABSOLUTE) {   
+                } else if (constraintType === LOCAL_ABSOLUTE) {   
 
                     // Note: LOCAL_ABSOLUTE directions are directions which are in the local coordinate system of the host bone.
                     // For example, if the baseboneConstraintUV is Vec2f(-1.0f, 0.0f) [i.e. left], then the baseboneConnectionConstraintUV
@@ -102,16 +102,16 @@ Object.assign( Structure2D.prototype, {
                 constraintType = c.getBaseboneConstraintType();
                 var hostBoneUV = hostBone.getDirectionUV();
                 switch (constraintType){
-                    case BB_NONE:         // Nothing to do because there's no basebone constraint
+                    case NONE:         // Nothing to do because there's no basebone constraint
                     break;
                         
                     // If we have a local rotor or hinge constraint then we must calculate the relative basebone constraint before calling updateTarget
-                    case BB_LOCAL_RELATIVE:
+                    case LOCAL_RELATIVE:
 
                         c.setBaseboneConstraintUV( hostBoneUV );
 
                     break;
-                    case BB_LOCAL_ABSOLUTE:
+                    case LOCAL_ABSOLUTE:
                     // Note: LOCAL_ABSOLUTE directions are directions which are in the local coordinate system of the host bone.
                     // For example, if the baseboneConstraintUV is Vec2f(-1.0f, 0.0f) [i.e. left], then the baseboneConnectionConstraintUV
                     // will be updated to be left with regard to the host bone.

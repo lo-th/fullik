@@ -1,4 +1,4 @@
-import { BB_NONE, BB_GLOBAL_ROTOR, BB_GLOBAL_HINGE, BB_LOCAL_ROTOR, BB_LOCAL_HINGE, J_BALL, J_GLOBAL_HINGE, J_LOCAL_HINGE } from '../constants.js';
+import { NONE, GLOBAL_ROTOR, GLOBAL_HINGE, LOCAL_ROTOR, LOCAL_HINGE, J_BALL, J_GLOBAL, J_LOCAL } from '../constants.js';
 import { _Math } from '../math/Math.js';
 
 function Structure3D ( scene ) {
@@ -48,14 +48,14 @@ Object.assign( Structure3D.prototype, {
 
                 constraintType = c.getBaseboneConstraintType();
                 switch (constraintType){
-                    case BB_NONE:         // Nothing to do because there's no basebone constraint
-                    case BB_GLOBAL_ROTOR: // Nothing to do because the basebone constraint is not relative to bones in other chains in this structure
-                    case BB_GLOBAL_HINGE: // Nothing to do because the basebone constraint is not relative to bones in other chains in this structure
+                    case NONE:         // Nothing to do because there's no basebone constraint
+                    case GLOBAL_ROTOR: // Nothing to do because the basebone constraint is not relative to bones in other chains in this structure
+                    case GLOBAL_HINGE: // Nothing to do because the basebone constraint is not relative to bones in other chains in this structure
                         break;
                         
                     // If we have a local rotor or hinge constraint then we must calculate the relative basebone constraint before calling updateTarget
-                    case BB_LOCAL_ROTOR:
-                    case BB_LOCAL_HINGE:
+                    case LOCAL_ROTOR:
+                    case LOCAL_HINGE:
 
                     // Get the direction of the bone this chain is connected to and create a rotation matrix from it.
                     var connectionBoneMatrix = _Math.createRotationMatrix( hostBone.getDirectionUV() );
@@ -68,14 +68,14 @@ Object.assign( Structure3D.prototype, {
                     c.setBaseboneRelativeConstraintUV( relativeBaseboneConstraintUV );
                         
                     // Updat the relative reference constraint UV if we hav a local hinge
-                    if (constraintType === BB_LOCAL_HINGE )
+                    if (constraintType === LOCAL_HINGE )
                         c.setBaseboneRelativeReferenceConstraintUV( connectionBoneMatrix.times( c.getBone(0).getJoint().getHingeReferenceAxis() ) );
                         
                     break;
 
                 }
 
-                // NOTE: If the base bone constraint type is BB_NONE then we don't do anything with the base bone constraint of the connected chain.
+                // NOTE: If the base bone constraint type is NONE then we don't do anything with the base bone constraint of the connected chain.
                 
                 // Finally, update the target and solve the chain
                 // Update the target and solve the chain
@@ -258,7 +258,7 @@ Object.assign( Structure3D.prototype, {
                 extraGeo.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0, s*0.5 ) );
                 extraMesh = new THREE.Mesh( extraGeo,  m2 );
             break;
-            case J_GLOBAL_HINGE :
+            case J_GLOBAL :
             var a1 = bone.getJoint().mHingeClockwiseConstraintDegs * _Math.toRad;
             var a2 = bone.getJoint().mHingeAnticlockwiseConstraintDegs * _Math.toRad;
             var r = 2;
@@ -268,7 +268,7 @@ Object.assign( Structure3D.prototype, {
             extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
             extraMesh = new THREE.Mesh( extraGeo,  m2 );
             break;
-            case J_LOCAL_HINGE :
+            case J_LOCAL :
             var r = 2;
             var a1 = bone.getJoint().mHingeClockwiseConstraintDegs * _Math.toRad;
             var a2 = bone.getJoint().mHingeAnticlockwiseConstraintDegs * _Math.toRad;

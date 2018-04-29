@@ -2,7 +2,7 @@ tell("Demo 6 - Multiple connected chains with LOCAL_ABSOLUTE base-bone constrain
 
 var boneLength = 30;
 var verticalChain = new FIK.Chain2D();
-verticalChain.setBaseboneConstraintType(FIK.BB_GLOBAL_ABSOLUTE);
+verticalChain.setBaseboneConstraintType(FIK.GLOBAL_ABSOLUTE);
 verticalChain.setBaseboneConstraintUV(FIK.UP);
 
 var basebone = new FIK.Bone2D( new FIK.V2(0,-50), null, FIK.UP, boneLength );
@@ -26,7 +26,7 @@ basebone.setClockwiseConstraintDegs(15);
 basebone.setAnticlockwiseConstraintDegs(15);
 // Create the chain and add the basebone to it
 var leftChain = new FIK.Chain2D( 0x00ff00 );
-leftChain.setBaseboneConstraintType(FIK.BB_LOCAL_ABSOLUTE);
+leftChain.setBaseboneConstraintType(FIK.LOCAL_ABSOLUTE);
 leftChain.setBaseboneConstraintUV(FIK.LEFT);
 
 // Add the basebone to the chain
@@ -48,7 +48,7 @@ basebone.setAnticlockwiseConstraintDegs(30);
 
 // Create the chain and add the basebone to it
 var rightChain = new FIK.Chain2D( 0xff0000 );
-rightChain.setBaseboneConstraintType(FIK.BB_LOCAL_ABSOLUTE);
+rightChain.setBaseboneConstraintType(FIK.LOCAL_ABSOLUTE);
 rightChain.setBaseboneConstraintUV(FIK.RIGHT);
 
 // Add the basebone to the chain

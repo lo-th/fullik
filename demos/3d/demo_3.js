@@ -9,9 +9,9 @@ var color = 0xFF0000;
 for (var i = 0; i < numChains; i++ ){
 
     switch (i){
-        case 0: color = 0xFF0000; baseBoneConstraintAxis = X_AXIS;  break;
-        case 1: color = 0x00FF00; baseBoneConstraintAxis = Y_AXIS;  break;
-        case 2: color = 0x0000FF; baseBoneConstraintAxis = Z_AXIS.negated();  break;
+        case 0: color = 0xFF0000; baseBoneConstraintAxis = FIK.X_AXE;  break;
+        case 1: color = 0x00FF00; baseBoneConstraintAxis = FIK.Y_AXE;  break;
+        case 2: color = 0x0000FF; baseBoneConstraintAxis = FIK.Z_NEG;  break;
     }
 
     var chain = new FIK.Chain3D( color );
