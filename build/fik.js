@@ -119,7 +119,7 @@
 		    v = v < min ? min : v;
 		    v = v > max ? max : v;
 		    return v;
-		    
+
 		},
 
 		lerp: function ( x, y, t ) { 
@@ -196,13 +196,15 @@
 
 		genPerpendicularVectorQuick: function ( v ) {
 
-		    var perp = v.clone();
-		    //                            cross(v, UP)                         : cross(v, RIGHT)
-		    return Math.abs( v.y ) < 0.99 ? perp.set( -v.z, 0, v.x ).normalize() : perp.set( 0, v.z, -v.y ).normalize();
+			return _Math.genPerpendicularVectorFrisvad( v );
+
+		    var p = v.clone();
+		    // cross(v, UP) : cross(v, RIGHT)
+		    return Math.abs( v.y ) < 0.99 ? p.set( -v.z, 0, v.x ).normalize() : p.set( 0, v.z, -v.y ).normalize();
 
 		},
 
-		genPerpendicularVectorHM: function ( v ) { 
+		/*genPerpendicularVectorHM: function ( v ) { 
 
 		    var a = v.abs();
 		    var b = v.clone();
@@ -210,14 +212,14 @@
 		    else if (a.y <= a.x && a.y <= a.z) return b.set(-v.z, 0, v.x).normalize();
 		    else return b.set(-v.y, v.x, 0).normalize();
 
-		},
+		},*/
 
 		genPerpendicularVectorFrisvad: function ( v ) { 
 
 			var nv = v.clone();
-		    if ( v.z < -0.9999999 ) return nv.set(0., -1, 0);// Handle the singularity
+		    if ( v.z < -0.9999999 ) return nv.set(0, -1, 0);// Handle the singularity
 		    var a = 1/(1 + v.z);
-		    return nv.set( 1 - v.x * v.x * a, -v.x * v.y * a, -v.x ).normalize();
+		    return nv.set( 1 - v.x * v.x * a, - v.x * v.y * a, -v.x ).normalize();
 
 		},
 
@@ -237,15 +239,16 @@
 
 		getAngleBetweenRads: function ( v1, v2 ){ 
 
-		    return Math.acos( _Math.dotProduct( v1,  v2 ) );
+			var a = _Math.dotProduct( v1, v2 );
+			if (a <= -1) return Math.PI;
+			if (a >= 1) return 0;
+		    return Math.acos( a );
 
 		},
 
 		getAngleBetweenDegs: function( v1, v2 ){
 
-			var a = _Math.getAngleBetweenRads( v1, v2 ) * _Math.toDeg;
-			//console.log(a)
-		    return a;
+		    return _Math.getAngleBetweenRads( v1, v2 ) * _Math.toDeg;
 
 		},
 
@@ -259,7 +262,6 @@
 
 		    var unsignedAngle = _Math.getAngleBetweenDegs( referenceVector, otherVector );
 		    var sign          = _Math.sign( _Math.dotProduct( _Math.crossProduct( referenceVector, otherVector ), normalVector ) ); 
-
 		    return unsignedAngle * sign;
 
 		},
@@ -610,6 +612,12 @@
 
 		},
 
+		dot: function ( v ) {
+
+			return this.x * v.x + this.y * v.y + this.z * v.z;
+
+		},
+
 		divideScalar: function ( scalar ) {
 
 			return this.multiplyScalar( 1 / scalar );
@@ -619,6 +627,12 @@
 		length: function () {
 
 			return Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z );
+
+		},
+
+		lengthSq: function () {
+
+			return this.x * this.x + this.y * this.y + this.z * this.z;
 
 		},
 
@@ -683,18 +697,7 @@
 
 		},
 
-		projectOnPlane: function ( planeNormal ) {
-
-		    if ( planeNormal.length() <= 0 ){ Tools.error("Plane normal cannot be a zero vector."); return; }
-		        
-	        // Projection of vector b onto plane with normal n is defined as: b - ( b.n / ( |n| squared )) * n
-	        // Note: |n| is length or magnitude of the vector n, NOT its (component-wise) absolute value        
-	        var b = this.normalised();
-	        var n = planeNormal.normalised();   
-
-	        return b.minus( n.times( _Math.dotProduct( b, planeNormal ) ) ).normalize();
-
-		},
+		
 
 		cross: function( v ) { 
 
@@ -748,6 +751,64 @@
 		    this.y = 0;
 		    this.z = 0;
 		    return this;
+
+		},
+
+		projectOnPlane_old: function ( planeNormal ) {
+
+		    if ( planeNormal.length() <= 0 ){ Tools.error("Plane normal cannot be a zero vector."); return; }
+		        
+	        // Projection of vector b onto plane with normal n is defined as: b - ( b.n / ( |n| squared )) * n
+	        // Note: |n| is length or magnitude of the vector n, NOT its (component-wise) absolute value        
+	        var b = this.normalised();
+	        var n = planeNormal.normalised();   
+
+	        return b.min( n.times( _Math.dotProduct( b, planeNormal ) ) ).normalize();
+
+		},
+
+		// added
+
+		projectOnVector: function ( vector ) {
+
+			var scalar = vector.dot( this ) / vector.lengthSq();
+			return this.copy( vector ).multiplyScalar( scalar );
+
+		},
+
+		projectOnPlane: function () {
+
+			var v1 = new V3();
+
+			return function projectOnPlane( planeNormal ) {
+
+				v1.copy( this ).projectOnVector( planeNormal.normalised() );
+
+				return this.min( v1 ).normalize();
+
+			};
+
+		}(),
+
+		applyQuaternion: function ( q ) {
+
+			var x = this.x, y = this.y, z = this.z;
+			var qx = q.x, qy = q.y, qz = q.z, qw = q.w;
+
+			// calculate quat * vector
+
+			var ix = qw * x + qy * z - qz * y;
+			var iy = qw * y + qz * x - qx * z;
+			var iz = qw * z + qx * y - qy * x;
+			var iw = - qx * x - qy * y - qz * z;
+
+			// calculate result * inverse quat
+
+			this.x = ix * qw + iw * - qx + iy * - qz - iz * - qy;
+			this.y = iy * qw + iw * - qy + iz * - qx - ix * - qz;
+			this.z = iz * qw + iw * - qz + ix * - qy - iy * - qx;
+
+			return this;
 
 		},
 
@@ -2534,7 +2595,7 @@
 	            break;
 	        }
 
-	        var axe = new THREE.AxesHelper(1);
+	        var axe = new THREE.AxesHelper(1.5);
 	        //var bw = new THREE.Mesh( g,  m4 );
 
 	        var b = new THREE.Mesh( g,  m );

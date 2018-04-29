@@ -280,7 +280,7 @@ Object.assign( Structure3D.prototype, {
             break;
         }
 
-        var axe = new THREE.AxesHelper(1);
+        var axe = new THREE.AxesHelper(1.5);
         //var bw = new THREE.Mesh( g,  m4 );
 
         var b = new THREE.Mesh( g,  m );

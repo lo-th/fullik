@@ -264,19 +264,16 @@
 
             addDemos(9);
             folder = './demos/2d/';
-
             solver = new FIK.Structure2D( scene );
 
         } else {
 
             addDemos(12);
             folder = './demos/3d/';
-
             solver = new FIK.Structure3D( scene );
 
         }
 
-        //var s = location.hash.substr( 1 ); 
         addGround();
 
         load( 'demo_1' );
@@ -330,7 +327,7 @@
 
         if(!setting.auto) return;
 
-        targetTween = new TWEEN.Tween( goal ).to( {x:FIK._Math.randInt(-50, 50), y:FIK._Math.randInt(0, 50), z:FIK._Math.randInt(-50, 50)}, 2000 )
+        targetTween = new TWEEN.Tween( goal ).to( {x:FIK._Math.randInt(-50, 50), y:FIK._Math.randInt(0, 50), z:current==='3D'? FIK._Math.randInt(-50, 50):0}, 2000 )
         .easing( TWEEN.Easing.Quadratic.Out )
         .onUpdate( function() { updateTarget(goal); updateSolver(); } )
         .onComplete( function() { autoMove(); } )

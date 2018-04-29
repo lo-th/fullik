@@ -42,6 +42,12 @@ Object.assign( V3.prototype, {
 
 	},
 
+	dot: function ( v ) {
+
+		return this.x * v.x + this.y * v.y + this.z * v.z;
+
+	},
+
 	divideScalar: function ( scalar ) {
 
 		return this.multiplyScalar( 1 / scalar );
@@ -51,6 +57,12 @@ Object.assign( V3.prototype, {
 	length: function () {
 
 		return Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z );
+
+	},
+
+	lengthSq: function () {
+
+		return this.x * this.x + this.y * this.y + this.z * this.z;
 
 	},
 
@@ -115,18 +127,7 @@ Object.assign( V3.prototype, {
 
 	},
 
-	projectOnPlane: function ( planeNormal ) {
-
-	    if ( planeNormal.length() <= 0 ){ Tools.error("Plane normal cannot be a zero vector."); return; }
-	        
-        // Projection of vector b onto plane with normal n is defined as: b - ( b.n / ( |n| squared )) * n
-        // Note: |n| is length or magnitude of the vector n, NOT its (component-wise) absolute value        
-        var b = this.normalised();
-        var n = planeNormal.normalised();   
-
-        return b.minus( n.times( _Math.dotProduct( b, planeNormal ) ) ).normalize();
-
-	},
+	
 
 	cross: function( v ) { 
 
@@ -180,6 +181,64 @@ Object.assign( V3.prototype, {
 	    this.y = 0;
 	    this.z = 0;
 	    return this;
+
+	},
+
+	projectOnPlane_old: function ( planeNormal ) {
+
+	    if ( planeNormal.length() <= 0 ){ Tools.error("Plane normal cannot be a zero vector."); return; }
+	        
+        // Projection of vector b onto plane with normal n is defined as: b - ( b.n / ( |n| squared )) * n
+        // Note: |n| is length or magnitude of the vector n, NOT its (component-wise) absolute value        
+        var b = this.normalised();
+        var n = planeNormal.normalised();   
+
+        return b.min( n.times( _Math.dotProduct( b, planeNormal ) ) ).normalize();
+
+	},
+
+	// added
+
+	projectOnVector: function ( vector ) {
+
+		var scalar = vector.dot( this ) / vector.lengthSq();
+		return this.copy( vector ).multiplyScalar( scalar );
+
+	},
+
+	projectOnPlane: function () {
+
+		var v1 = new V3();
+
+		return function projectOnPlane( planeNormal ) {
+
+			v1.copy( this ).projectOnVector( planeNormal.normalised() );
+
+			return this.min( v1 ).normalize();
+
+		};
+
+	}(),
+
+	applyQuaternion: function ( q ) {
+
+		var x = this.x, y = this.y, z = this.z;
+		var qx = q.x, qy = q.y, qz = q.z, qw = q.w;
+
+		// calculate quat * vector
+
+		var ix = qw * x + qy * z - qz * y;
+		var iy = qw * y + qz * x - qx * z;
+		var iz = qw * z + qx * y - qy * x;
+		var iw = - qx * x - qy * y - qz * z;
+
+		// calculate result * inverse quat
+
+		this.x = ix * qw + iw * - qx + iy * - qz - iz * - qy;
+		this.y = iy * qw + iw * - qy + iz * - qx - ix * - qz;
+		this.z = iz * qw + iw * - qz + ix * - qy - iy * - qx;
+
+		return this;
 
 	},
 

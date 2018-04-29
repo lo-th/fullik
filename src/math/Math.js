@@ -22,7 +22,7 @@ var _Math = {
 	    v = v < min ? min : v;
 	    v = v > max ? max : v;
 	    return v;
-	    
+
 	},
 
 	lerp: function ( x, y, t ) { 
@@ -99,13 +99,15 @@ var _Math = {
 
 	genPerpendicularVectorQuick: function ( v ) {
 
-	    var perp = v.clone();
-	    //                            cross(v, UP)                         : cross(v, RIGHT)
-	    return Math.abs( v.y ) < 0.99 ? perp.set( -v.z, 0, v.x ).normalize() : perp.set( 0, v.z, -v.y ).normalize();
+		return _Math.genPerpendicularVectorFrisvad( v );
+
+	    var p = v.clone();
+	    // cross(v, UP) : cross(v, RIGHT)
+	    return Math.abs( v.y ) < 0.99 ? p.set( -v.z, 0, v.x ).normalize() : p.set( 0, v.z, -v.y ).normalize();
 
 	},
 
-	genPerpendicularVectorHM: function ( v ) { 
+	/*genPerpendicularVectorHM: function ( v ) { 
 
 	    var a = v.abs();
 	    var b = v.clone();
@@ -113,14 +115,14 @@ var _Math = {
 	    else if (a.y <= a.x && a.y <= a.z) return b.set(-v.z, 0, v.x).normalize();
 	    else return b.set(-v.y, v.x, 0).normalize();
 
-	},
+	},*/
 
 	genPerpendicularVectorFrisvad: function ( v ) { 
 
 		var nv = v.clone();
-	    if ( v.z < -0.9999999 ) return nv.set(0., -1, 0);// Handle the singularity
+	    if ( v.z < -0.9999999 ) return nv.set(0, -1, 0);// Handle the singularity
 	    var a = 1/(1 + v.z);
-	    return nv.set( 1 - v.x * v.x * a, -v.x * v.y * a, -v.x ).normalize();
+	    return nv.set( 1 - v.x * v.x * a, - v.x * v.y * a, -v.x ).normalize();
 
 	},
 
@@ -140,15 +142,16 @@ var _Math = {
 
 	getAngleBetweenRads: function ( v1, v2 ){ 
 
-	    return Math.acos( _Math.dotProduct( v1,  v2 ) );
+		var a = _Math.dotProduct( v1, v2 );
+		if (a <= -1) return Math.PI;
+		if (a >= 1) return 0;
+	    return Math.acos( a );
 
 	},
 
 	getAngleBetweenDegs: function( v1, v2 ){
 
-		var a = _Math.getAngleBetweenRads( v1, v2 ) * _Math.toDeg;
-		//console.log(a)
-	    return a;
+	    return _Math.getAngleBetweenRads( v1, v2 ) * _Math.toDeg;
 
 	},
 
@@ -162,7 +165,6 @@ var _Math = {
 
 	    var unsignedAngle = _Math.getAngleBetweenDegs( referenceVector, otherVector );
 	    var sign          = _Math.sign( _Math.dotProduct( _Math.crossProduct( referenceVector, otherVector ), normalVector ) ); 
-
 	    return unsignedAngle * sign;
 
 	},
