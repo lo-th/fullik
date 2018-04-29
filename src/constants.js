@@ -4,6 +4,7 @@
  */
 import { V3 } from './math/V3.js';
 import { V2 } from './math/V2.js';
+import { M3 } from './math/M3.js';
 
 export var REVISION = '1.3.3';
 
@@ -48,3 +49,5 @@ export var UP = new V2( 0, 1 );
 export var DOWN = new V2( 0, -1 );
 export var LEFT = new V2( -1, 0 );
 export var RIGHT = new V2( 1, 0 );
+
+export var MTX = new M3();

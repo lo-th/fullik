@@ -58,7 +58,7 @@ Object.assign( Structure3D.prototype, {
                     case LOCAL_HINGE:
 
                     // Get the direction of the bone this chain is connected to and create a rotation matrix from it.
-                    var connectionBoneMatrix = _Math.createRotationMatrix( hostBone.getDirectionUV() );
+                    var connectionBoneMatrix = new FIK.M3().createRotationMatrix( hostBone.getDirectionUV() );
                         
                     // We'll then get the basebone constraint UV and multiply it by the rotation matrix of the connected bone 
                     // to make the basebone constraint UV relative to the direction of bone it's connected to.

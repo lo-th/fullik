@@ -496,6 +496,7 @@ Object.assign( Chain3D.prototype, {
         if ( this.mNumBones === 0 ) return;
 
         var bone, lng, joint, jointType;
+        var tmpMtx = new FIK.M3();
         
         // ---------- Forward pass from end effector to base -----------
 
@@ -524,7 +525,7 @@ Object.assign( Chain3D.prototype, {
                     var angleBetweenDegs    = _Math.getAngleBetweenDegs( outerBoneOuterToInnerUV, boneOuterToInnerUV );
                     var constraintAngleDegs = joint.getBallJointConstraintDegs();
                     if ( angleBetweenDegs > constraintAngleDegs ){   
-                        boneOuterToInnerUV = _Math.getAngleLimitedUnitVectorDegs( boneOuterToInnerUV, outerBoneOuterToInnerUV, constraintAngleDegs );
+                        boneOuterToInnerUV = tmpMtx.getAngleLimitedUnitVectorDegs( boneOuterToInnerUV, outerBoneOuterToInnerUV, constraintAngleDegs );
                     }
                 }
                 else if ( jointType === J_GLOBAL ) {  
@@ -537,11 +538,11 @@ Object.assign( Chain3D.prototype, {
                 }
                 else if ( jointType === J_LOCAL ) {   
                     // Not a basebone? Then construct a rotation matrix based on the previous bones inner-to-to-inner direction...
-                    var m; // M3
+                    
                     var relativeHingeRotationAxis; // V3
                     if ( i > 0 ) {
-                        m = _Math.createRotationMatrix( this.bones[i-1].getDirectionUV() );
-                        relativeHingeRotationAxis = m.times( joint.getHingeRotationAxis() ).normalize();
+                        tmpMtx.createRotationMatrix( this.bones[i-1].getDirectionUV() );
+                        relativeHingeRotationAxis = tmpMtx.times( joint.getHingeRotationAxis() ).normalize();
                     } else {// ...basebone? Need to construct matrix from the relative constraint UV.
                         relativeHingeRotationAxis = this.mBaseboneRelativeConstraintUV.clone();
                     }
@@ -591,10 +592,10 @@ Object.assign( Chain3D.prototype, {
                         // Local hinges get constrained to the hinge rotation axis, but not the reference axis within the hinge plane
                         
                         // Construct a rotation matrix based on the previous bones inner-to-to-inner direction...
-                        var m = _Math.createRotationMatrix( this.bones[i-1].getDirectionUV() );
+                        tmpMtx.createRotationMatrix( this.bones[i-1].getDirectionUV() );
                         
                         // ...and transform the hinge rotation axis into the previous bones frame of reference.
-                        var relativeHingeRotationAxis = m.times( joint.getHingeRotationAxis() ).normalize();
+                        var relativeHingeRotationAxis = tmpMtx.times( joint.getHingeRotationAxis() ).normalize();
                                             
                         // Project this bone's outer-to-inner direction onto the plane described by the relative hinge rotation axis
                         // Note: The returned vector is normalised.                 
@@ -642,7 +643,7 @@ Object.assign( Chain3D.prototype, {
                     
                     // Keep this bone direction constrained within the rotor about the previous bone direction
                     if (angleBetweenDegs > constraintAngleDegs){
-                        boneInnerToOuterUV = _Math.getAngleLimitedUnitVectorDegs( boneInnerToOuterUV, prevBoneInnerToOuterUV, constraintAngleDegs );
+                        boneInnerToOuterUV = tmpMtx.getAngleLimitedUnitVectorDegs( boneInnerToOuterUV, prevBoneInnerToOuterUV, constraintAngleDegs );
                     }
                 }
                 else if ( jointType === J_GLOBAL ) {                   
@@ -663,8 +664,8 @@ Object.assign( Chain3D.prototype, {
                         var signedAngleDegs = _Math.getSignedAngleBetweenDegs( hingeReferenceAxis, boneInnerToOuterUV, hingeRotationAxis );
                         
                         // Make our bone inner-to-outer UV the hinge reference axis rotated by its maximum clockwise or anticlockwise rotation as required
-                        if (signedAngleDegs > acwConstraintDegs) boneInnerToOuterUV = _Math.rotateAboutAxisDegs( hingeReferenceAxis, acwConstraintDegs, hingeRotationAxis ).normalised();
-                        else if (signedAngleDegs < cwConstraintDegs) boneInnerToOuterUV = _Math.rotateAboutAxisDegs( hingeReferenceAxis, cwConstraintDegs, hingeRotationAxis ).normalised();
+                        if (signedAngleDegs > acwConstraintDegs) boneInnerToOuterUV = tmpMtx.rotateAboutAxisDegs( hingeReferenceAxis, acwConstraintDegs, hingeRotationAxis ).normalised();
+                        else if (signedAngleDegs < cwConstraintDegs) boneInnerToOuterUV = tmpMtx.rotateAboutAxisDegs( hingeReferenceAxis, cwConstraintDegs, hingeRotationAxis ).normalised();
                         
                     }
                 }
@@ -673,10 +674,10 @@ Object.assign( Chain3D.prototype, {
                     var hingeRotationAxis  = joint.getHingeRotationAxis();
                     
                     // Construct a rotation matrix based on the previous bone's direction
-                    var m = _Math.createRotationMatrix( prevBoneInnerToOuterUV );
+                    tmpMtx.createRotationMatrix( prevBoneInnerToOuterUV );
                     
                     // Transform the hinge rotation axis into the previous bone's frame of reference
-                    var relativeHingeRotationAxis  = m.times( hingeRotationAxis ).normalize();
+                    var relativeHingeRotationAxis  = tmpMtx.times( hingeRotationAxis ).normalize();
                     
                     
                     // Project this bone direction onto the plane described by the hinge rotation axis
@@ -690,15 +691,15 @@ Object.assign( Chain3D.prototype, {
 
                         // Calc. the reference axis in local space
                         //Vec3f relativeHingeReferenceAxis = mBaseboneRelativeReferenceConstraintUV;//m.times( joint.getHingeReferenceAxis() ).normalise();
-                        var relativeHingeReferenceAxis = m.times( joint.getHingeReferenceAxis() ).normalize();
+                        var relativeHingeReferenceAxis = tmpMtx.times( joint.getHingeReferenceAxis() ).normalize();
                         
                         // Get the signed angle (about the hinge rotation axis) between the hinge reference axis and the hinge-rotation aligned bone UV
                         // Note: ACW rotation is positive, CW rotation is negative.
                         var signedAngleDegs = _Math.getSignedAngleBetweenDegs( relativeHingeReferenceAxis, boneInnerToOuterUV, relativeHingeRotationAxis );
                         
                         // Make our bone inner-to-outer UV the hinge reference axis rotated by its maximum clockwise or anticlockwise rotation as required
-                        if (signedAngleDegs > acwConstraintDegs) boneInnerToOuterUV = _Math.rotateAboutAxisDegs( relativeHingeReferenceAxis, acwConstraintDegs, relativeHingeRotationAxis ).normalize();
-                        else if (signedAngleDegs < cwConstraintDegs) boneInnerToOuterUV = _Math.rotateAboutAxisDegs( relativeHingeReferenceAxis, cwConstraintDegs, relativeHingeRotationAxis ).normalize();                            
+                        if (signedAngleDegs > acwConstraintDegs) boneInnerToOuterUV = tmpMtx.rotateAboutAxisDegs( relativeHingeReferenceAxis, acwConstraintDegs, relativeHingeRotationAxis ).normalize();
+                        else if (signedAngleDegs < cwConstraintDegs) boneInnerToOuterUV = tmpMtx.rotateAboutAxisDegs( relativeHingeReferenceAxis, cwConstraintDegs, relativeHingeRotationAxis ).normalize();                            
                         
                     }
                     
@@ -744,7 +745,7 @@ Object.assign( Chain3D.prototype, {
                         var constraintAngleDegs = bone.getBallJointConstraintDegs(); 
                     
                         if ( angleBetweenDegs > constraintAngleDegs ){
-                            boneInnerToOuterUV = _Math.getAngleLimitedUnitVectorDegs( boneInnerToOuterUV, this.mBaseboneConstraintUV, constraintAngleDegs );
+                            boneInnerToOuterUV = tmpMtx.getAngleLimitedUnitVectorDegs( boneInnerToOuterUV, this.mBaseboneConstraintUV, constraintAngleDegs );
                         }
                         
                         var newEndLocation = bone.getStartLocation().plus( boneInnerToOuterUV.times( lng ) );
@@ -768,7 +769,7 @@ Object.assign( Chain3D.prototype, {
                         var angleBetweenDegs    = _Math.getAngleBetweenDegs( this.mBaseboneRelativeConstraintUV, boneInnerToOuterUV);
                         var constraintAngleDegs = bone.getBallJointConstraintDegs();
                         if ( angleBetweenDegs > constraintAngleDegs ){
-                            boneInnerToOuterUV = _Math.getAngleLimitedUnitVectorDegs(boneInnerToOuterUV, this.mBaseboneRelativeConstraintUV, constraintAngleDegs);
+                            boneInnerToOuterUV = tmpMtx.getAngleLimitedUnitVectorDegs(boneInnerToOuterUV, this.mBaseboneRelativeConstraintUV, constraintAngleDegs);
                         }
                         
                         // Set the end location
@@ -797,8 +798,8 @@ Object.assign( Chain3D.prototype, {
                             var signedAngleDegs    = _Math.getSignedAngleBetweenDegs(hingeReferenceAxis, boneInnerToOuterUV, hingeRotationAxis);
                             
                             // Constrain as necessary
-                            if (signedAngleDegs > acwConstraintDegs) boneInnerToOuterUV = _Math.rotateAboutAxisDegs( hingeReferenceAxis, acwConstraintDegs, hingeRotationAxis ).normalize();
-                            else if (signedAngleDegs < cwConstraintDegs) boneInnerToOuterUV = _Math.rotateAboutAxisDegs(hingeReferenceAxis, cwConstraintDegs, hingeRotationAxis).normalize();                            
+                            if (signedAngleDegs > acwConstraintDegs) boneInnerToOuterUV = tmpMtx.rotateAboutAxisDegs( hingeReferenceAxis, acwConstraintDegs, hingeRotationAxis ).normalize();
+                            else if (signedAngleDegs < cwConstraintDegs) boneInnerToOuterUV = tmpMtx.rotateAboutAxisDegs(hingeReferenceAxis, cwConstraintDegs, hingeRotationAxis).normalize();                            
                             
                         }
                         
@@ -828,8 +829,8 @@ Object.assign( Chain3D.prototype, {
                             var signedAngleDegs    = _Math.getSignedAngleBetweenDegs( hingeReferenceAxis, boneInnerToOuterUV, hingeRotationAxis );
                             
                             // Constrain as necessary
-                            if ( signedAngleDegs > acwConstraintDegs ) boneInnerToOuterUV = _Math.rotateAboutAxisDegs( hingeReferenceAxis, acwConstraintDegs, hingeRotationAxis ).normalize();
-                            else if (signedAngleDegs < cwConstraintDegs) boneInnerToOuterUV = _Math.rotateAboutAxisDegs( hingeReferenceAxis, cwConstraintDegs, hingeRotationAxis ).normalize();   
+                            if ( signedAngleDegs > acwConstraintDegs ) boneInnerToOuterUV = tmpMtx.rotateAboutAxisDegs( hingeReferenceAxis, acwConstraintDegs, hingeRotationAxis ).normalize();
+                            else if (signedAngleDegs < cwConstraintDegs) boneInnerToOuterUV = tmpMtx.rotateAboutAxisDegs( hingeReferenceAxis, cwConstraintDegs, hingeRotationAxis ).normalize();   
 
                         }
                         

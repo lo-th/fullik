@@ -99,180 +99,299 @@
 
 	};
 
-	function V3( x, y, z ){
+	//import { V3 } from './V3.js';
 
-	    this.x = x || 0;
-	    this.y = y || 0;
-	    this.z = z || 0;
+	var _Math = {
 
-	}
+		MIN_ANGLE_DEGS: 0,
+		MAX_ANGLE_DEGS: 180,
 
-	Object.assign( V3.prototype, {
+		MAX_VALUE: Infinity,
 
-		isVector3: true,
+		PRECISION: 0.001,
+		PRECISION_DEG: 0.01,
 
-		set: function( x, y, z ){
+		toRad: Math.PI / 180,
+		toDeg: 180 / Math.PI,
 
-		    this.x = x || 0;
-		    this.y = y || 0;
-		    this.z = z || 0;
-		    return this;
+		clamp: function ( v, min, max ) {
+
+		    v = v < min ? min : v;
+		    v = v > max ? max : v;
+		    return v;
+		    
+		},
+
+		lerp: function ( x, y, t ) { 
+
+			return ( 1 - t ) * x + t * y; 
 
 		},
 
-		multiplyScalar: function ( scalar ) {
+		rand: function ( low, high ) { 
 
-			this.x *= scalar;
-			this.y *= scalar;
-			this.z *= scalar;
-
-			return this;
+			return low + Math.random() * ( high - low ); 
 
 		},
 
-		divideScalar: function ( scalar ) {
+		randInt: function ( low, high ) { 
 
-			return this.multiplyScalar( 1 / scalar );
-
-		},
-
-		length: function () {
-
-			return Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z );
+			return low + Math.floor( Math.random() * ( high - low + 1 ) ); 
 
 		},
 
-		normalize: function () {
+		nearEquals: function (a, b, t) { 
 
-			return this.divideScalar( this.length() || 1 );
+			return Math.abs(a - b) <= t ? true : false; 
 
 		},
 
-		normalised: function () {
+		sign: function ( v ) {
 
-		    return new V3( this.x, this.y, this.z ).normalize();//this.clone().normalize();
+			return v >= 0 ? 1 : -1; 
+
+		},
+
+		radtodeg: function ( v ) { 
+
+			return v * _Math.toDeg; 
+
+		},
+
+		degtorad: function ( v ) { 
+
+			return v * _Math.toRad; 
+
+		},
+
+		cot: function ( a ) {
+
+			//Return the co-tangent of an angle specified in radians.
+		   return 1 / Math.tan( a ); 
+
+		},
+
+		perpendicular: function ( a, b ) {
+
+		    return _Math.nearEquals( _Math.dotProduct(a, b), 0.0, 0.01 ) ? true : false;
+
+		},
+
+		scalarProduct: function ( v1, v2 ) { 
+
+			return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z; 
+
+		},
 		
-		},
 
-		length: function () {
+		crossProduct: function ( v1, v2 ) { 
 
-		    return Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z );
-		
-		},
-
-		plus: function ( v ) {
-
-		    return new V3(this.x + v.x, this.y + v.y, this.z + v.z);
+		    return v1.clone().set( 
+		    	v1.y * v2.z - v1.z * v2.y, 
+		    	v1.z * v2.x - v1.x * v2.z, 
+		    	v1.x * v2.y - v1.y * v2.x
+		    );
 
 		},
 
-		min: function ( v ) {
+		genPerpendicularVectorQuick: function ( v ) {
 
-			this.x -= v.x;
-			this.y -= v.y;
-			this.z -= v.z;
-
-		    return this;
+		    var perp = v.clone();
+		    //                            cross(v, UP)                         : cross(v, RIGHT)
+		    return Math.abs( v.y ) < 0.99 ? perp.set( -v.z, 0, v.x ).normalize() : perp.set( 0, v.z, -v.y ).normalize();
 
 		},
 
-		minus: function ( v ) {
+		genPerpendicularVectorHM: function ( v ) { 
 
-		    return new V3( this.x - v.x, this.y - v.y, this.z - v.z );
-
-		},
-
-		divideBy: function ( value ) {
-
-		    return new V3( this.x / value, this.y / value, this.z / value );
-		
-		},
-
-		times: function ( s ) {
-
-			if( s.isVector3 ) return new V3( this.x * s.x, this.y * s.y, this.z * s.z );
-		    else return new V3( this.x * s, this.y * s, this.z * s );
+		    var a = v.abs();
+		    var b = v.clone();
+		    if (a.x <= a.y && a.x <= a.z) return b.set(0, -v.z, v.y).normalize();
+		    else if (a.y <= a.x && a.y <= a.z) return b.set(-v.z, 0, v.x).normalize();
+		    else return b.set(-v.y, v.x, 0).normalize();
 
 		},
 
-		randomise: function ( min, max ) {
+		genPerpendicularVectorFrisvad: function ( v ) { 
 
-		    this.x = _Math.rand( min, max );
-		    this.y = _Math.rand( min, max );
-		    this.z = _Math.rand( min, max );
-
-		},
-
-		projectOnPlane: function ( planeNormal ) {
-
-		    if ( planeNormal.length() <= 0 ){ Tools.error("Plane normal cannot be a zero vector."); return; }
-		        
-	        // Projection of vector b onto plane with normal n is defined as: b - ( b.n / ( |n| squared )) * n
-	        // Note: |n| is length or magnitude of the vector n, NOT its (component-wise) absolute value        
-	        var b = this.normalised();
-	        var n = planeNormal.normalised();   
-
-	        return b.minus( n.times( _Math.dotProduct( b, planeNormal ) ) ).normalize();
+			var nv = v.clone();
+		    if ( v.z < -0.9999999 ) return nv.set(0., -1, 0);// Handle the singularity
+		    var a = 1/(1 + v.z);
+		    return nv.set( 1 - v.x * v.x * a, -v.x * v.y * a, -v.x ).normalize();
 
 		},
 
-		cross: function( v ) { 
+		getUvBetween: function ( v1, v2 ) {
 
-		    return new V3( this.y * v.z - this.z * v.y, this.z * v.x - this.x * v.z, this.x * v.y - this.y * v.x );
-
-		},
-
-		negate: function() { 
-
-		    this.x = -this.x;
-		    this.y = -this.y;
-		    this.z = -this.z;
-		    return this;
+		     return v2.minus(v1).normalize();
 
 		},
 
-		negated: function () { 
+		dotProduct: function ( v1, v2 ) { 
 
-		    return new V3( -this.x, -this.y, -this.z );
-
-		},
-
-		clone: function () {
-
-		    return new V3( this.x, this.y, this.z );
+		    var v1Norm = v1.normalised();
+		    var v2Norm = v2.normalised();
+		    return v1Norm.x * v2Norm.x + v1Norm.y * v2Norm.y + v1Norm.z * v2Norm.z;
 
 		},
 
-		copy: function ( v ) {
+		getAngleBetweenRads: function ( v1, v2 ){ 
 
-		    this.x = v.x;
-		    this.y = v.y;
-		    this.z = v.z;
-		    return this;
+		    return Math.acos( _Math.dotProduct( v1,  v2 ) );
 
 		},
 
-		approximatelyEquals: function ( v, t ) {
+		getAngleBetweenDegs: function( v1, v2 ){
 
-		    if ( t < 0 ) return;
-		    var xDiff = Math.abs(this.x - v.x);
-		    var yDiff = Math.abs(this.y - v.y);
-		    var zDiff = Math.abs(this.z - v.z);
-		    return (xDiff < t && yDiff < t && zDiff < t);
+			var a = _Math.getAngleBetweenRads( v1, v2 ) * _Math.toDeg;
+			//console.log(a)
+		    return a;
 
 		},
 
-		zero: function () {
+		getDirectionUV: function ( v1, v2 ) {
 
-		    this.x = 0;
-		    this.y = 0;
-		    this.z = 0;
-		    return this;
+		    return v2.minus( v1 ).normalize();
+
+		},
+
+		getSignedAngleBetweenDegs: function ( referenceVector, otherVector, normalVector ) {
+
+		    var unsignedAngle = _Math.getAngleBetweenDegs( referenceVector, otherVector );
+		    var sign          = _Math.sign( _Math.dotProduct( _Math.crossProduct( referenceVector, otherVector ), normalVector ) ); 
+
+		    return unsignedAngle * sign;
 
 		},
 
 
-	} );
+		// rotation
+
+		rotateXDegs: function ( v, angleDegs ) { return _Math.rotateXRads( v, angleDegs * _Math.toRad ); },
+		rotateYDegs: function ( v, angleDegs ) { return _Math.rotateYRads( v, angleDegs * _Math.toRad ); },
+		rotateZDegs: function ( v, angleDegs ) { return _Math.rotateZRads( v, angleDegs * _Math.toRad ); },
+
+		rotateXRads: function ( v, angleRads ) {
+
+		    var cosTheta = Math.cos( angleRads );
+		    var sinTheta = Math.sin( angleRads );
+		    return v.clone().set( v.x, v.y * cosTheta - v.z * sinTheta, v.y * sinTheta + v.z * cosTheta );
+
+		},
+
+		rotateYRads: function ( v, angleRads ) {
+
+		    var cosTheta = Math.cos( angleRads );
+		    var sinTheta = Math.sin( angleRads );
+		    return v.clone().set( v.z * sinTheta + v.x * cosTheta, v.y, v.z * cosTheta - v.x * sinTheta );
+
+		},
+
+		rotateZRads: function ( v, angleRads ) {
+
+		    var cosTheta = Math.cos( angleRads );
+		    var sinTheta = Math.sin( angleRads );
+		    return v.clone().set( v.x * cosTheta - v.y * sinTheta, v.x * sinTheta + v.y * cosTheta, v.z );
+
+		},
+
+		// distance
+
+		withinManhattanDistance: function ( v1, v2, distance ) {
+
+		    if (Math.abs(v2.x - v1.x) > distance) return false; // Too far in x direction
+		    if (Math.abs(v2.y - v1.y) > distance) return false; // Too far in y direction
+		    if (Math.abs(v2.z - v1.z) > distance) return false; // Too far in z direction   
+		    return true;
+
+		},
+
+		manhattanDistanceBetween: function ( v1, v2 ) {
+
+		    return Math.abs(v2.x - v1.x) + Math.abs(v2.x - v1.x) + Math.abs(v2.x - v1.x);
+
+		},
+
+		distanceBetween: function ( v1, v2 ) {
+
+		    var dx = v2.x - v1.x;
+		    var dy = v2.y - v1.y;
+		    var dz = v1.z !== undefined ? v2.z - v1.z : 0;
+		    return Math.sqrt( dx * dx + dy * dy + dz * dz );
+
+		},
+
+		// ______________________________ 2D _____________________________
+
+		getUnsignedAngleBetweenVectorsDegs: function ( a, b ) {
+
+		    Math.acos( a.normalised().dot( b.normalised() ) ) * this.toDeg;
+
+		},
+
+		zcross: function( a, b ) { //  Method to determine the sign of the angle between two V2 objects.
+
+		    var p = a.x * b.y - b.x * a.y;
+			if      ( p > 0 ) return 1; 
+			else if ( p < 0 ) return -1;	
+			return 0;
+
+		},
+
+		getConstrainedUV: function( directionUV, baselineUV, clockwiseConstraintDegs, antiClockwiseConstraintDegs ) {
+
+		    // Get the signed angle from the baseline UV to the direction UV.
+			// Note: In our signed angle ranges:
+			//       0...180 degrees represents anti-clockwise rotation, and
+			//       0..-180 degrees represents clockwise rotation
+			var signedAngleDegs = baselineUV.getSignedAngleDegsTo( directionUV );
+
+			// If we've exceeded the anti-clockwise (positive) constraint angle...
+			// ...then our constrained unit vector is the baseline rotated by the anti-clockwise constraint angle.
+			// Note: We could do this by calculating a correction angle to apply to the directionUV, but it's simpler to work from the baseline.
+			if ( signedAngleDegs > antiClockwiseConstraintDegs ) return this.rotateDegs( baselineUV, antiClockwiseConstraintDegs );
+			
+			
+			// If we've exceeded the clockwise (negative) constraint angle...
+			// ...then our constrained unit vector is the baseline rotated by the clockwise constraint angle.
+			// Note: Again, we could do this by calculating a correction angle to apply to the directionUV, but it's simpler to work from the baseline.
+			if ( signedAngleDegs < -clockwiseConstraintDegs ) return this.rotateDegs( baselineUV, -clockwiseConstraintDegs );
+			
+			// If we have not exceeded any constraint then we simply return the original direction unit vector
+			return directionUV;
+
+		},
+
+		rotateRads: function( v, angleRads ) {
+
+			var cosTheta = Math.cos(angleRads);
+			var sinTheta = Math.sin(angleRads);
+			return v.clone().set( v.x * cosTheta - v.y * sinTheta,  v.x * sinTheta + v.y * cosTheta );
+
+		},
+
+		rotateDegs: function( v, angleDegs ) {
+
+			return this.rotateRads( v, angleDegs * this.toRad );
+	 
+		},
+
+
+		validateDirectionUV: function( directionUV ) {
+
+			if( directionUV.length() < 0) Tools.error("vector direction unit vector cannot be zero.");
+	 
+		},
+
+		validateLength: function( length ) {
+
+			if(length < 0) Tools.error("Length must be a greater than or equal to zero.");
+	 
+		},
+
+
+
+	};
 
 	function V2( x, y ){
 
@@ -450,6 +569,191 @@
 
 	} );
 
+	function V3( x, y, z ){
+
+	    this.x = x || 0;
+	    this.y = y || 0;
+	    this.z = z || 0;
+
+	}
+
+	Object.assign( V3.prototype, {
+
+		isVector3: true,
+
+		abs: function () {
+
+			return new V3( 
+				this.x < 0 ? -this.x : this.x, 
+				this.y < 0 ? -this.y : this.y, 
+				this.z < 0 ? -this.z : this.z
+			);
+
+		},
+
+		set: function( x, y, z ){
+
+		    this.x = x || 0;
+		    this.y = y || 0;
+		    this.z = z || 0;
+		    return this;
+
+		},
+
+		multiplyScalar: function ( scalar ) {
+
+			this.x *= scalar;
+			this.y *= scalar;
+			this.z *= scalar;
+
+			return this;
+
+		},
+
+		divideScalar: function ( scalar ) {
+
+			return this.multiplyScalar( 1 / scalar );
+
+		},
+
+		length: function () {
+
+			return Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z );
+
+		},
+
+		normalize: function () {
+
+			return this.divideScalar( this.length() || 1 );
+
+		},
+
+		normalised: function () {
+
+		    return new V3( this.x, this.y, this.z ).normalize();//this.clone().normalize();
+		
+		},
+
+		length: function () {
+
+		    return Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z );
+		
+		},
+
+		plus: function ( v ) {
+
+		    return new V3(this.x + v.x, this.y + v.y, this.z + v.z);
+
+		},
+
+		min: function ( v ) {
+
+			this.x -= v.x;
+			this.y -= v.y;
+			this.z -= v.z;
+
+		    return this;
+
+		},
+
+		minus: function ( v ) {
+
+		    return new V3( this.x - v.x, this.y - v.y, this.z - v.z );
+
+		},
+
+		divideBy: function ( value ) {
+
+		    return new V3( this.x / value, this.y / value, this.z / value );
+		
+		},
+
+		times: function ( s ) {
+
+			if( s.isVector3 ) return new V3( this.x * s.x, this.y * s.y, this.z * s.z );
+		    else return new V3( this.x * s, this.y * s, this.z * s );
+
+		},
+
+		randomise: function ( min, max ) {
+
+		    this.x = _Math.rand( min, max );
+		    this.y = _Math.rand( min, max );
+		    this.z = _Math.rand( min, max );
+
+		},
+
+		projectOnPlane: function ( planeNormal ) {
+
+		    if ( planeNormal.length() <= 0 ){ Tools.error("Plane normal cannot be a zero vector."); return; }
+		        
+	        // Projection of vector b onto plane with normal n is defined as: b - ( b.n / ( |n| squared )) * n
+	        // Note: |n| is length or magnitude of the vector n, NOT its (component-wise) absolute value        
+	        var b = this.normalised();
+	        var n = planeNormal.normalised();   
+
+	        return b.minus( n.times( _Math.dotProduct( b, planeNormal ) ) ).normalize();
+
+		},
+
+		cross: function( v ) { 
+
+		    return new V3( this.y * v.z - this.z * v.y, this.z * v.x - this.x * v.z, this.x * v.y - this.y * v.x );
+
+		},
+
+		negate: function() { 
+
+		    this.x = -this.x;
+		    this.y = -this.y;
+		    this.z = -this.z;
+		    return this;
+
+		},
+
+		negated: function () { 
+
+		    return new V3( -this.x, -this.y, -this.z );
+
+		},
+
+		clone: function () {
+
+		    return new V3( this.x, this.y, this.z );
+
+		},
+
+		copy: function ( v ) {
+
+		    this.x = v.x;
+		    this.y = v.y;
+		    this.z = v.z;
+		    return this;
+
+		},
+
+		approximatelyEquals: function ( v, t ) {
+
+		    if ( t < 0 ) return;
+		    var xDiff = Math.abs(this.x - v.x);
+		    var yDiff = Math.abs(this.y - v.y);
+		    var zDiff = Math.abs(this.z - v.z);
+		    return (xDiff < t && yDiff < t && zDiff < t);
+
+		},
+
+		zero: function () {
+
+		    this.x = 0;
+		    this.y = 0;
+		    this.z = 0;
+		    return this;
+
+		},
+
+
+	} );
+
 	function M3( m00, m01, m02, m10, m11, m12, m20, m21, m22 ){
 
 	    this.m00 = m00 || 1;
@@ -485,6 +789,91 @@
 		    this.m22 = zAxis.z;
 
 		    return this;
+
+		},
+
+		createRotationMatrix: function ( referenceDirection ) {
+	  
+		    var zAxis = referenceDirection.normalised();
+		    var xAxis = new V3(1, 0, 0);
+		    var yAxis = new V3(0, 1, 0);
+		            
+		    // Handle the singularity (i.e. bone pointing along negative Z-Axis)...
+		    if( referenceDirection.z < -0.9999999 ){
+		        xAxis.set(1, 0, 0); // ...in which case positive X runs directly to the right...
+		        yAxis.set(0, 1, 0); // ...and positive Y runs directly upwards.
+		    } else {
+		        var a = 1/(1 + zAxis.z);
+		        var b = -zAxis.x * zAxis.y * a;           
+		        xAxis.set( 1 - zAxis.x * zAxis.x * a, b, -zAxis.x ).normalize();
+		        yAxis.set( b, 1 - zAxis.y * zAxis.y * a, -zAxis.y ).normalize();
+		    }
+
+		    return this.setV3( xAxis, yAxis, zAxis );
+		},
+
+		rotateAboutAxisDegs: function ( v, angleDegs, axis ) {
+
+		    return this.rotateAboutAxisRads( v, angleDegs * _Math.toRad, axis ); 
+
+		},
+
+		rotateAboutAxisRads: function ( v, angleRads, rotationAxis ){
+
+		    var sinTheta = Math.sin( angleRads );
+		    var cosTheta = Math.cos( angleRads );
+		    var oneMinusCosTheta = 1.0 - cosTheta;
+		    
+		    // It's quicker to pre-calc these and reuse than calculate x * y, then y * x later (same thing).
+		    var xyOne = rotationAxis.x * rotationAxis.y * oneMinusCosTheta;
+		    var xzOne = rotationAxis.x * rotationAxis.z * oneMinusCosTheta;
+		    var yzOne = rotationAxis.y * rotationAxis.z * oneMinusCosTheta;
+
+		    // Calculate rotated x-axis
+		    this.m00 = rotationAxis.x * rotationAxis.x * oneMinusCosTheta + cosTheta;
+		    this.m01 = xyOne + rotationAxis.z * sinTheta;
+		    this.m02 = xzOne - rotationAxis.y * sinTheta;
+
+		    // Calculate rotated y-axis
+		    this.m10 = xyOne - rotationAxis.z * sinTheta;
+		    this.m11 = rotationAxis.y * rotationAxis.y * oneMinusCosTheta + cosTheta;
+		    this.m12 = yzOne + rotationAxis.x * sinTheta;
+
+		    // Calculate rotated z-axis
+		    this.m20 = xzOne + rotationAxis.y * sinTheta;
+		    this.m21 = yzOne - rotationAxis.x * sinTheta;
+		    this.m22 = rotationAxis.z * rotationAxis.z * oneMinusCosTheta + cosTheta;
+
+		    // Multiply the source by the rotation matrix we just created to perform the rotation
+		    return this.times( v );
+
+		},
+
+		getAngleLimitedUnitVectorDegs: function ( vecToLimit, vecBaseline, angleLimitDegs ) {
+
+		    // Get the angle between the two vectors
+		    // Note: This will ALWAYS be a positive value between 0 and 180 degrees.
+		    var angleBetweenVectorsDegs = _Math.getAngleBetweenDegs( vecBaseline, vecToLimit );
+		    
+		    if ( angleBetweenVectorsDegs > angleLimitDegs ) {           
+		        // The axis which we need to rotate around is the one perpendicular to the two vectors - so we're
+		        // rotating around the vector which is the cross-product of our two vectors.
+		        // Note: We do not have to worry about both vectors being the same or pointing in opposite directions
+		        // because if they bones are the same direction they will not have an angle greater than the angle limit,
+		        // and if they point opposite directions we will approach but not quite reach the precise max angle
+		        // limit of 180.0f (I believe).
+		        var correctionAxis = _Math.crossProduct( vecBaseline.normalised(), vecToLimit.normalised() ).normalize();
+		        
+		        // Our new vector is the baseline vector rotated by the max allowable angle about the correction axis
+		        return this.rotateAboutAxisDegs( vecBaseline, angleLimitDegs, correctionAxis ).normalize();
+		    }
+		    else // Angle not greater than limit? Just return a normalised version of the vecToLimit
+		    {
+		        // This may already BE normalised, but we have no way of knowing without calcing the length, so best be safe and normalise.
+		        // TODO: If performance is an issue, then I could get the length, and if it's not approx. 1.0f THEN normalise otherwise just return as is.
+		        return vecToLimit.normalised();
+		    }
+
 
 		},
 
@@ -675,401 +1064,6 @@
 
 	} );
 
-	var _Math = {
-
-		MIN_ANGLE_DEGS: 0,
-		MAX_ANGLE_DEGS: 180,
-
-		MAX_VALUE: Infinity,
-
-		PRECISION: 0.001,
-		PRECISION_DEG: 0.01,
-
-		toRad: Math.PI / 180,
-		toDeg: 180 / Math.PI,
-
-		clamp: function ( v, min, max ) {
-		    v = v < min ? min : v;
-		    v = v > max ? max : v;
-		    return v;
-		},
-
-		lerp: function ( x, y, t ) { 
-
-			return ( 1 - t ) * x + t * y; 
-
-		},
-
-		rand: function ( low, high ) { 
-
-			return low + Math.random() * ( high - low ); 
-
-		},
-
-		randInt: function ( low, high ) { 
-
-			return low + Math.floor( Math.random() * ( high - low + 1 ) ); 
-
-		},
-
-		nearEquals: function (a, b, t) { 
-
-			return Math.abs(a - b) <= t ? true : false; 
-
-		},
-
-		sign: function ( v ) {
-
-			return v >= 0 ? 1 : -1; 
-
-		},
-
-		radtodeg: function ( v ) { 
-
-			return v * _Math.toDeg; 
-
-		},
-
-		degtorad: function ( v ) { 
-
-			return v * _Math.toRad; 
-
-		},
-
-		cot: function ( a ) {
-
-			//Return the co-tangent of an angle specified in radians.
-		   return 1 / Math.tan( a ); 
-
-		},
-
-		perpendicular: function ( a, b ) {
-
-		    return _Math.nearEquals( _Math.dotProduct(a, b), 0.0, 0.01 ) ? true : false;
-
-		},
-
-		scalarProduct: function ( v1, v2 ) { 
-
-			return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z; 
-
-		},
-		
-
-		crossProduct: function ( v1, v2 ) { 
-
-		    return new V3(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x);
-
-		},
-
-		genPerpendicularVectorQuick: function ( v ) {
-
-		    var perp;
-		    if ( Math.abs(v.y) < 0.99 ) perp = new V3( -v.z, 0, v.x ); // cross(v, UP)
-		    else perp = new V3( 0, v.z, -v.y ); // cross(v, RIGHT)
-		    return perp.normalize();
-
-		},
-
-		genPerpendicularVectorHM: function ( v ) { 
-
-		    var a = _Math.absV3( v );
-		    if (a.x <= a.y && a.x <= a.z) return new V3(0, -v.z, v.y).normalize();
-		    else if (a.y <= a.x && a.y <= a.z) return new V3(-v.z, 0, v.x).normalize();
-		    else return new V3(-v.y, v.x, 0).normalize();
-
-		},
-
-		genPerpendicularVectorFrisvad: function ( v ) { 
-
-		    if ( v.z < -0.9999999 ) return new V3(0., -1, 0);// Handle the singularity
-		    var a = 1/(1 + v.z);
-		    return new V3(1 - v.x * v.x * a, -v.x * v.y * a, -v.x).normalize();
-
-		},
-
-		getUvBetween: function ( v1, v2 ) {
-
-		     return new V3().copy( v2.minus(v1) ).normalize();
-
-		},
-
-		/*timesV3: function ( v, scale ) {
-
-			if( v.isVector3 ) v.multiplyScalar( scale );
-
-		    //v.x *= scale; v.y *= scale; v.z *= scale;
-
-		},*/
-
-		absV3: function ( v ) { 
-
-		    return new V3( v.x < 0 ? -v.x : v.x, v.y < 0 ? -v.y : v.y, v.z < 0 ? -v.z : v.z);
-
-		},
-
-		dotProduct: function ( v1, v2 ) { 
-
-		    var v1Norm = v1.normalised();
-		    var v2Norm = v2.normalised();
-		    return v1Norm.x * v2Norm.x + v1Norm.y * v2Norm.y + v1Norm.z * v2Norm.z;
-
-		},
-
-		getAngleBetweenRads: function ( v1, v2 ){ 
-
-		    return Math.acos( _Math.dotProduct( v1,  v2 ) );
-
-		},
-
-		getAngleBetweenDegs: function( v1, v2 ){
-
-			var a = _Math.getAngleBetweenRads( v1, v2 ) * _Math.toDeg;
-			//console.log(a)
-		    return a;
-
-		},
-
-		getSignedAngleBetweenDegs: function ( referenceVector, otherVector, normalVector ) {
-
-		    var unsignedAngle = _Math.getAngleBetweenDegs( referenceVector, otherVector );
-		    var sign          = _Math.sign( _Math.dotProduct( _Math.crossProduct( referenceVector, otherVector ), normalVector ) ); 
-
-		    return unsignedAngle * sign;
-
-		},
-
-		getDirectionUV: function ( a, b ) {
-
-		    return b.minus( a ).normalize();
-
-		},
-
-		rotateAboutAxisDegs: function ( v, angleDegs, axis ) {
-
-		    return _Math.rotateAboutAxisRads( v, angleDegs * _Math.toRad, axis ); 
-
-		},
-
-		rotateAboutAxisRads: function ( v, angleRads, rotationAxis ){
-
-		    var rotationMatrix = new M3();
-
-		    var sinTheta = Math.sin( angleRads );
-		    var cosTheta = Math.cos( angleRads );
-		    var oneMinusCosTheta = 1.0 - cosTheta;
-		    
-		    // It's quicker to pre-calc these and reuse than calculate x * y, then y * x later (same thing).
-		    var xyOne = rotationAxis.x * rotationAxis.y * oneMinusCosTheta;
-		    var xzOne = rotationAxis.x * rotationAxis.z * oneMinusCosTheta;
-		    var yzOne = rotationAxis.y * rotationAxis.z * oneMinusCosTheta;
-
-		    //var te = rotationMatrix.elements;
-		    
-		    // Calculate rotated x-axis
-		    rotationMatrix.m00 = rotationAxis.x * rotationAxis.x * oneMinusCosTheta + cosTheta;
-		    rotationMatrix.m01 = xyOne + rotationAxis.z * sinTheta;
-		    rotationMatrix.m02 = xzOne - rotationAxis.y * sinTheta;
-
-		    // Calculate rotated y-axis
-		    rotationMatrix.m10 = xyOne - rotationAxis.z * sinTheta;
-		    rotationMatrix.m11 = rotationAxis.y * rotationAxis.y * oneMinusCosTheta + cosTheta;
-		    rotationMatrix.m12 = yzOne + rotationAxis.x * sinTheta;
-
-		    // Calculate rotated z-axis
-		    rotationMatrix.m20 = xzOne + rotationAxis.y * sinTheta;
-		    rotationMatrix.m21 = yzOne - rotationAxis.x * sinTheta;
-		    rotationMatrix.m22 = rotationAxis.z * rotationAxis.z * oneMinusCosTheta + cosTheta;
-
-		    // Multiply the source by the rotation matrix we just created to perform the rotation
-		    return rotationMatrix.times( v );
-
-		},
-
-		// rotation
-
-		rotateXDegs: function ( v, angleDegs ) { return _Math.rotateXRads( v, angleDegs * _Math.toRad ); },
-		rotateYDegs: function ( v, angleDegs ) { return _Math.rotateYRads( v, angleDegs * _Math.toRad ); },
-		rotateZDegs: function ( v, angleDegs ) { return _Math.rotateZRads( v, angleDegs * _Math.toRad ); },
-
-		rotateXRads: function ( v, angleRads ) {
-
-		    var cosTheta = Math.cos( angleRads );
-		    var sinTheta = Math.sin( angleRads );
-		    return new V3( v.x, v.y * cosTheta - v.z * sinTheta, v.y * sinTheta + v.z * cosTheta );
-
-		},
-
-		rotateYRads: function ( v, angleRads ) {
-
-		    var cosTheta = Math.cos( angleRads );
-		    var sinTheta = Math.sin( angleRads );
-		    return new V3( v.z * sinTheta + v.x * cosTheta, v.y, v.z * cosTheta - v.x * sinTheta );
-
-		},
-
-		rotateZRads: function ( v, angleRads ) {
-
-		    var cosTheta = Math.cos( angleRads );
-		    var sinTheta = Math.sin( angleRads );
-		    return new V3( v.x * cosTheta - v.y * sinTheta, v.x * sinTheta + v.y * cosTheta, v.z );
-
-		},
-
-
-		getAngleLimitedUnitVectorDegs: function ( vecToLimit, vecBaseline, angleLimitDegs ) {
-
-		    // Get the angle between the two vectors
-		    // Note: This will ALWAYS be a positive value between 0 and 180 degrees.
-		    var angleBetweenVectorsDegs = _Math.getAngleBetweenDegs( vecBaseline, vecToLimit );
-		    
-		    if ( angleBetweenVectorsDegs > angleLimitDegs ) {           
-		        // The axis which we need to rotate around is the one perpendicular to the two vectors - so we're
-		        // rotating around the vector which is the cross-product of our two vectors.
-		        // Note: We do not have to worry about both vectors being the same or pointing in opposite directions
-		        // because if they bones are the same direction they will not have an angle greater than the angle limit,
-		        // and if they point opposite directions we will approach but not quite reach the precise max angle
-		        // limit of 180.0f (I believe).
-		        var correctionAxis = _Math.crossProduct( vecBaseline.normalised(), vecToLimit.normalised() ).normalize();
-		        
-		        // Our new vector is the baseline vector rotated by the max allowable angle about the correction axis
-		        return _Math.rotateAboutAxisDegs( vecBaseline, angleLimitDegs, correctionAxis ).normalize();
-		    }
-		    else // Angle not greater than limit? Just return a normalised version of the vecToLimit
-		    {
-		        // This may already BE normalised, but we have no way of knowing without calcing the length, so best be safe and normalise.
-		        // TODO: If performance is an issue, then I could get the length, and if it's not approx. 1.0f THEN normalise otherwise just return as is.
-		        return vecToLimit.normalised();
-		    }
-
-
-		},
-
-		// distance
-
-		withinManhattanDistance: function ( v1, v2, distance ) {
-
-		    if (Math.abs(v2.x - v1.x) > distance) return false; // Too far in x direction
-		    if (Math.abs(v2.y - v1.y) > distance) return false; // Too far in y direction
-		    if (Math.abs(v2.z - v1.z) > distance) return false; // Too far in z direction   
-		    return true;
-
-		},
-
-		manhattanDistanceBetween: function ( v1, v2 ) {
-
-		    return Math.abs(v2.x - v1.x) + Math.abs(v2.x - v1.x) + Math.abs(v2.x - v1.x);
-
-		},
-
-		distanceBetween: function ( v1, v2 ) {
-
-		    var dx = v2.x - v1.x;
-		    var dy = v2.y - v1.y;
-		    var dz = v1.z !== undefined ? v2.z - v1.z : 0;
-		    return Math.sqrt( dx * dx + dy * dy + dz * dz );
-
-		},
-
-		createRotationMatrix: function ( referenceDirection ) {
-
-		    var xAxis, yAxis, zAxis = referenceDirection.normalised();
-		            
-		    // Handle the singularity (i.e. bone pointing along negative Z-Axis)...
-		    if( referenceDirection.z < -0.9999999 ){
-		        xAxis = new V3(1, 0, 0); // ...in which case positive X runs directly to the right...
-		        yAxis = new V3(0, 1, 0); // ...and positive Y runs directly upwards.
-		    } else {
-		        var a = 1/(1 + zAxis.z);
-		        var b = -zAxis.x * zAxis.y * a;           
-		        xAxis = new V3( 1 - zAxis.x * zAxis.x * a, b, -zAxis.x ).normalize();
-		        yAxis = new V3( b, 1 - zAxis.y * zAxis.y * a, -zAxis.y ).normalize();
-		    }
-
-		    var mtx = new M3();
-		    mtx.setV3( xAxis, yAxis, zAxis );
-		     
-		    return mtx;
-
-		},
-
-		// ______________________________ 2D _____________________________
-
-		getUnsignedAngleBetweenVectorsDegs: function ( a, b ) {
-
-		    Math.acos( a.normalised().dot( b.normalised() ) ) * this.toDeg;
-
-		},
-
-		zcross: function( a, b ) { //  Method to determine the sign of the angle between two V2 objects.
-
-		    var p = a.x * b.y - b.x * a.y;
-			if      ( p > 0 ) return 1; 
-			else if ( p < 0 ) return -1;	
-			return 0;
-
-		},
-
-		getConstrainedUV: function( directionUV, baselineUV, clockwiseConstraintDegs, antiClockwiseConstraintDegs ) {
-
-		    // Get the signed angle from the baseline UV to the direction UV.
-			// Note: In our signed angle ranges:
-			//       0...180 degrees represents anti-clockwise rotation, and
-			//       0..-180 degrees represents clockwise rotation
-			var signedAngleDegs = baselineUV.getSignedAngleDegsTo( directionUV );
-
-			// If we've exceeded the anti-clockwise (positive) constraint angle...
-			if (signedAngleDegs > antiClockwiseConstraintDegs)
-			{			
-				// ...then our constrained unit vector is the baseline rotated by the anti-clockwise constraint angle.
-				// Note: We could do this by calculating a correction angle to apply to the directionUV, but it's simpler to work from the baseline.
-				return this.rotateDegs( baselineUV, antiClockwiseConstraintDegs );
-			}
-			
-			// If we've exceeded the clockwise (negative) constraint angle...
-			if (signedAngleDegs < -clockwiseConstraintDegs)
-			{	
-				// ...then our constrained unit vector is the baseline rotated by the clockwise constraint angle.
-				// Note: Again, we could do this by calculating a correction angle to apply to the directionUV, but it's simpler to work from the baseline.
-				return this.rotateDegs( baselineUV, -clockwiseConstraintDegs );
-			}
-			
-			// If we have not exceeded any constraint then we simply return the original direction unit vector
-			return directionUV;
-
-		},
-
-		rotateRads: function( v, angleRads ) {
-
-			var cosTheta = Math.cos(angleRads);
-			var sinTheta = Math.sin(angleRads);
-			return new V2( v.x * cosTheta - v.y * sinTheta,  v.x * sinTheta + v.y * cosTheta );
-
-		},
-
-		rotateDegs: function( v, angleDegs ) {
-
-			return this.rotateRads( v, angleDegs * this.toRad );
-	 
-		},
-
-
-		validateDirectionUV: function( directionUV ) {
-
-			if( directionUV.length() < 0) Tools.error("vector direction unit vector cannot be zero.");
-	 
-		},
-
-		validateLength: function( length ) {
-
-			if(length < 0) Tools.error("Length must be a greater than or equal to zero.");
-	 
-		},
-
-
-
-	};
-
 	/*
 	 * A list of constants built-in for
 	 * the Fik engine.
@@ -1118,6 +1112,8 @@
 	var DOWN = new V2( 0, -1 );
 	var LEFT = new V2( -1, 0 );
 	var RIGHT = new V2( 1, 0 );
+
+	var MTX = new M3();
 
 	function Joint3D(){
 
@@ -1859,6 +1855,7 @@
 	        if ( this.mNumBones === 0 ) return;
 
 	        var bone, lng, joint, jointType;
+	        var tmpMtx = new FIK.M3();
 	        
 	        // ---------- Forward pass from end effector to base -----------
 
@@ -1887,7 +1884,7 @@
 	                    var angleBetweenDegs    = _Math.getAngleBetweenDegs( outerBoneOuterToInnerUV, boneOuterToInnerUV );
 	                    var constraintAngleDegs = joint.getBallJointConstraintDegs();
 	                    if ( angleBetweenDegs > constraintAngleDegs ){   
-	                        boneOuterToInnerUV = _Math.getAngleLimitedUnitVectorDegs( boneOuterToInnerUV, outerBoneOuterToInnerUV, constraintAngleDegs );
+	                        boneOuterToInnerUV = tmpMtx.getAngleLimitedUnitVectorDegs( boneOuterToInnerUV, outerBoneOuterToInnerUV, constraintAngleDegs );
 	                    }
 	                }
 	                else if ( jointType === J_GLOBAL ) {  
@@ -1900,11 +1897,11 @@
 	                }
 	                else if ( jointType === J_LOCAL ) {   
 	                    // Not a basebone? Then construct a rotation matrix based on the previous bones inner-to-to-inner direction...
-	                    var m; // M3
+	                    
 	                    var relativeHingeRotationAxis; // V3
 	                    if ( i > 0 ) {
-	                        m = _Math.createRotationMatrix( this.bones[i-1].getDirectionUV() );
-	                        relativeHingeRotationAxis = m.times( joint.getHingeRotationAxis() ).normalize();
+	                        tmpMtx.createRotationMatrix( this.bones[i-1].getDirectionUV() );
+	                        relativeHingeRotationAxis = tmpMtx.times( joint.getHingeRotationAxis() ).normalize();
 	                    } else {// ...basebone? Need to construct matrix from the relative constraint UV.
 	                        relativeHingeRotationAxis = this.mBaseboneRelativeConstraintUV.clone();
 	                    }
@@ -1954,10 +1951,10 @@
 	                        // Local hinges get constrained to the hinge rotation axis, but not the reference axis within the hinge plane
 	                        
 	                        // Construct a rotation matrix based on the previous bones inner-to-to-inner direction...
-	                        var m = _Math.createRotationMatrix( this.bones[i-1].getDirectionUV() );
+	                        tmpMtx.createRotationMatrix( this.bones[i-1].getDirectionUV() );
 	                        
 	                        // ...and transform the hinge rotation axis into the previous bones frame of reference.
-	                        var relativeHingeRotationAxis = m.times( joint.getHingeRotationAxis() ).normalize();
+	                        var relativeHingeRotationAxis = tmpMtx.times( joint.getHingeRotationAxis() ).normalize();
 	                                            
 	                        // Project this bone's outer-to-inner direction onto the plane described by the relative hinge rotation axis
 	                        // Note: The returned vector is normalised.                 
@@ -2005,7 +2002,7 @@
 	                    
 	                    // Keep this bone direction constrained within the rotor about the previous bone direction
 	                    if (angleBetweenDegs > constraintAngleDegs){
-	                        boneInnerToOuterUV = _Math.getAngleLimitedUnitVectorDegs( boneInnerToOuterUV, prevBoneInnerToOuterUV, constraintAngleDegs );
+	                        boneInnerToOuterUV = tmpMtx.getAngleLimitedUnitVectorDegs( boneInnerToOuterUV, prevBoneInnerToOuterUV, constraintAngleDegs );
 	                    }
 	                }
 	                else if ( jointType === J_GLOBAL ) {                   
@@ -2026,8 +2023,8 @@
 	                        var signedAngleDegs = _Math.getSignedAngleBetweenDegs( hingeReferenceAxis, boneInnerToOuterUV, hingeRotationAxis );
 	                        
 	                        // Make our bone inner-to-outer UV the hinge reference axis rotated by its maximum clockwise or anticlockwise rotation as required
-	                        if (signedAngleDegs > acwConstraintDegs) boneInnerToOuterUV = _Math.rotateAboutAxisDegs( hingeReferenceAxis, acwConstraintDegs, hingeRotationAxis ).normalised();
-	                        else if (signedAngleDegs < cwConstraintDegs) boneInnerToOuterUV = _Math.rotateAboutAxisDegs( hingeReferenceAxis, cwConstraintDegs, hingeRotationAxis ).normalised();
+	                        if (signedAngleDegs > acwConstraintDegs) boneInnerToOuterUV = tmpMtx.rotateAboutAxisDegs( hingeReferenceAxis, acwConstraintDegs, hingeRotationAxis ).normalised();
+	                        else if (signedAngleDegs < cwConstraintDegs) boneInnerToOuterUV = tmpMtx.rotateAboutAxisDegs( hingeReferenceAxis, cwConstraintDegs, hingeRotationAxis ).normalised();
 	                        
 	                    }
 	                }
@@ -2036,10 +2033,10 @@
 	                    var hingeRotationAxis  = joint.getHingeRotationAxis();
 	                    
 	                    // Construct a rotation matrix based on the previous bone's direction
-	                    var m = _Math.createRotationMatrix( prevBoneInnerToOuterUV );
+	                    tmpMtx.createRotationMatrix( prevBoneInnerToOuterUV );
 	                    
 	                    // Transform the hinge rotation axis into the previous bone's frame of reference
-	                    var relativeHingeRotationAxis  = m.times( hingeRotationAxis ).normalize();
+	                    var relativeHingeRotationAxis  = tmpMtx.times( hingeRotationAxis ).normalize();
 	                    
 	                    
 	                    // Project this bone direction onto the plane described by the hinge rotation axis
@@ -2053,15 +2050,15 @@
 
 	                        // Calc. the reference axis in local space
 	                        //Vec3f relativeHingeReferenceAxis = mBaseboneRelativeReferenceConstraintUV;//m.times( joint.getHingeReferenceAxis() ).normalise();
-	                        var relativeHingeReferenceAxis = m.times( joint.getHingeReferenceAxis() ).normalize();
+	                        var relativeHingeReferenceAxis = tmpMtx.times( joint.getHingeReferenceAxis() ).normalize();
 	                        
 	                        // Get the signed angle (about the hinge rotation axis) between the hinge reference axis and the hinge-rotation aligned bone UV
 	                        // Note: ACW rotation is positive, CW rotation is negative.
 	                        var signedAngleDegs = _Math.getSignedAngleBetweenDegs( relativeHingeReferenceAxis, boneInnerToOuterUV, relativeHingeRotationAxis );
 	                        
 	                        // Make our bone inner-to-outer UV the hinge reference axis rotated by its maximum clockwise or anticlockwise rotation as required
-	                        if (signedAngleDegs > acwConstraintDegs) boneInnerToOuterUV = _Math.rotateAboutAxisDegs( relativeHingeReferenceAxis, acwConstraintDegs, relativeHingeRotationAxis ).normalize();
-	                        else if (signedAngleDegs < cwConstraintDegs) boneInnerToOuterUV = _Math.rotateAboutAxisDegs( relativeHingeReferenceAxis, cwConstraintDegs, relativeHingeRotationAxis ).normalize();                            
+	                        if (signedAngleDegs > acwConstraintDegs) boneInnerToOuterUV = tmpMtx.rotateAboutAxisDegs( relativeHingeReferenceAxis, acwConstraintDegs, relativeHingeRotationAxis ).normalize();
+	                        else if (signedAngleDegs < cwConstraintDegs) boneInnerToOuterUV = tmpMtx.rotateAboutAxisDegs( relativeHingeReferenceAxis, cwConstraintDegs, relativeHingeRotationAxis ).normalize();                            
 	                        
 	                    }
 	                    
@@ -2107,7 +2104,7 @@
 	                        var constraintAngleDegs = bone.getBallJointConstraintDegs(); 
 	                    
 	                        if ( angleBetweenDegs > constraintAngleDegs ){
-	                            boneInnerToOuterUV = _Math.getAngleLimitedUnitVectorDegs( boneInnerToOuterUV, this.mBaseboneConstraintUV, constraintAngleDegs );
+	                            boneInnerToOuterUV = tmpMtx.getAngleLimitedUnitVectorDegs( boneInnerToOuterUV, this.mBaseboneConstraintUV, constraintAngleDegs );
 	                        }
 	                        
 	                        var newEndLocation = bone.getStartLocation().plus( boneInnerToOuterUV.times( lng ) );
@@ -2131,7 +2128,7 @@
 	                        var angleBetweenDegs    = _Math.getAngleBetweenDegs( this.mBaseboneRelativeConstraintUV, boneInnerToOuterUV);
 	                        var constraintAngleDegs = bone.getBallJointConstraintDegs();
 	                        if ( angleBetweenDegs > constraintAngleDegs ){
-	                            boneInnerToOuterUV = _Math.getAngleLimitedUnitVectorDegs(boneInnerToOuterUV, this.mBaseboneRelativeConstraintUV, constraintAngleDegs);
+	                            boneInnerToOuterUV = tmpMtx.getAngleLimitedUnitVectorDegs(boneInnerToOuterUV, this.mBaseboneRelativeConstraintUV, constraintAngleDegs);
 	                        }
 	                        
 	                        // Set the end location
@@ -2160,8 +2157,8 @@
 	                            var signedAngleDegs    = _Math.getSignedAngleBetweenDegs(hingeReferenceAxis, boneInnerToOuterUV, hingeRotationAxis);
 	                            
 	                            // Constrain as necessary
-	                            if (signedAngleDegs > acwConstraintDegs) boneInnerToOuterUV = _Math.rotateAboutAxisDegs( hingeReferenceAxis, acwConstraintDegs, hingeRotationAxis ).normalize();
-	                            else if (signedAngleDegs < cwConstraintDegs) boneInnerToOuterUV = _Math.rotateAboutAxisDegs(hingeReferenceAxis, cwConstraintDegs, hingeRotationAxis).normalize();                            
+	                            if (signedAngleDegs > acwConstraintDegs) boneInnerToOuterUV = tmpMtx.rotateAboutAxisDegs( hingeReferenceAxis, acwConstraintDegs, hingeRotationAxis ).normalize();
+	                            else if (signedAngleDegs < cwConstraintDegs) boneInnerToOuterUV = tmpMtx.rotateAboutAxisDegs(hingeReferenceAxis, cwConstraintDegs, hingeRotationAxis).normalize();                            
 	                            
 	                        }
 	                        
@@ -2191,8 +2188,8 @@
 	                            var signedAngleDegs    = _Math.getSignedAngleBetweenDegs( hingeReferenceAxis, boneInnerToOuterUV, hingeRotationAxis );
 	                            
 	                            // Constrain as necessary
-	                            if ( signedAngleDegs > acwConstraintDegs ) boneInnerToOuterUV = _Math.rotateAboutAxisDegs( hingeReferenceAxis, acwConstraintDegs, hingeRotationAxis ).normalize();
-	                            else if (signedAngleDegs < cwConstraintDegs) boneInnerToOuterUV = _Math.rotateAboutAxisDegs( hingeReferenceAxis, cwConstraintDegs, hingeRotationAxis ).normalize();   
+	                            if ( signedAngleDegs > acwConstraintDegs ) boneInnerToOuterUV = tmpMtx.rotateAboutAxisDegs( hingeReferenceAxis, acwConstraintDegs, hingeRotationAxis ).normalize();
+	                            else if (signedAngleDegs < cwConstraintDegs) boneInnerToOuterUV = tmpMtx.rotateAboutAxisDegs( hingeReferenceAxis, cwConstraintDegs, hingeRotationAxis ).normalize();   
 
 	                        }
 	                        
@@ -2316,7 +2313,7 @@
 	                    case LOCAL_HINGE:
 
 	                    // Get the direction of the bone this chain is connected to and create a rotation matrix from it.
-	                    var connectionBoneMatrix = _Math.createRotationMatrix( hostBone.getDirectionUV() );
+	                    var connectionBoneMatrix = new FIK.M3().createRotationMatrix( hostBone.getDirectionUV() );
 	                        
 	                    // We'll then get the basebone constraint UV and multiply it by the rotation matrix of the connected bone 
 	                    // to make the basebone constraint UV relative to the direction of bone it's connected to.
@@ -3969,6 +3966,7 @@
 	exports.DOWN = DOWN;
 	exports.LEFT = LEFT;
 	exports.RIGHT = RIGHT;
+	exports.MTX = MTX;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

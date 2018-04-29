@@ -1,6 +1,7 @@
-import { V3 } from './V3.js';
-import { V2 } from './V2.js';
-import { M3 } from './M3.js';
+//import { V3 } from './V3.js';
+//import { V2 } from './V2.js';
+//import { M3 } from './M3.js';
+//import { MTX } from '../constants.js';
 import { Tools } from '../core/Tools.js';
 
 var _Math = {
@@ -17,9 +18,11 @@ var _Math = {
 	toDeg: 180 / Math.PI,
 
 	clamp: function ( v, min, max ) {
+
 	    v = v < min ? min : v;
 	    v = v > max ? max : v;
 	    return v;
+	    
 	},
 
 	lerp: function ( x, y, t ) { 
@@ -86,53 +89,44 @@ var _Math = {
 
 	crossProduct: function ( v1, v2 ) { 
 
-	    return new V3(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x);
+	    return v1.clone().set( 
+	    	v1.y * v2.z - v1.z * v2.y, 
+	    	v1.z * v2.x - v1.x * v2.z, 
+	    	v1.x * v2.y - v1.y * v2.x
+	    );
 
 	},
 
 	genPerpendicularVectorQuick: function ( v ) {
 
-	    var perp;
-	    if ( Math.abs(v.y) < 0.99 ) perp = new V3( -v.z, 0, v.x ); // cross(v, UP)
-	    else perp = new V3( 0, v.z, -v.y ); // cross(v, RIGHT)
-	    return perp.normalize();
+	    var perp = v.clone();
+	    //                            cross(v, UP)                         : cross(v, RIGHT)
+	    return Math.abs( v.y ) < 0.99 ? perp.set( -v.z, 0, v.x ).normalize() : perp.set( 0, v.z, -v.y ).normalize();
 
 	},
 
 	genPerpendicularVectorHM: function ( v ) { 
 
-	    var a = _Math.absV3( v );
-	    if (a.x <= a.y && a.x <= a.z) return new V3(0, -v.z, v.y).normalize();
-	    else if (a.y <= a.x && a.y <= a.z) return new V3(-v.z, 0, v.x).normalize();
-	    else return new V3(-v.y, v.x, 0).normalize();
+	    var a = v.abs();
+	    var b = v.clone();
+	    if (a.x <= a.y && a.x <= a.z) return b.set(0, -v.z, v.y).normalize();
+	    else if (a.y <= a.x && a.y <= a.z) return b.set(-v.z, 0, v.x).normalize();
+	    else return b.set(-v.y, v.x, 0).normalize();
 
 	},
 
 	genPerpendicularVectorFrisvad: function ( v ) { 
 
-	    if ( v.z < -0.9999999 ) return new V3(0., -1, 0);// Handle the singularity
+		var nv = v.clone();
+	    if ( v.z < -0.9999999 ) return nv.set(0., -1, 0);// Handle the singularity
 	    var a = 1/(1 + v.z);
-	    return new V3(1 - v.x * v.x * a, -v.x * v.y * a, -v.x).normalize();
+	    return nv.set( 1 - v.x * v.x * a, -v.x * v.y * a, -v.x ).normalize();
 
 	},
 
 	getUvBetween: function ( v1, v2 ) {
 
-	     return new V3().copy( v2.minus(v1) ).normalize();
-
-	},
-
-	/*timesV3: function ( v, scale ) {
-
-		if( v.isVector3 ) v.multiplyScalar( scale );
-
-	    //v.x *= scale; v.y *= scale; v.z *= scale;
-
-	},*/
-
-	absV3: function ( v ) { 
-
-	    return new V3( v.x < 0 ? -v.x : v.x, v.y < 0 ? -v.y : v.y, v.z < 0 ? -v.z : v.z);
+	     return v2.minus(v1).normalize();
 
 	},
 
@@ -158,6 +152,12 @@ var _Math = {
 
 	},
 
+	getDirectionUV: function ( v1, v2 ) {
+
+	    return v2.minus( v1 ).normalize();
+
+	},
+
 	getSignedAngleBetweenDegs: function ( referenceVector, otherVector, normalVector ) {
 
 	    var unsignedAngle = _Math.getAngleBetweenDegs( referenceVector, otherVector );
@@ -167,52 +167,6 @@ var _Math = {
 
 	},
 
-	getDirectionUV: function ( a, b ) {
-
-	    return b.minus( a ).normalize();
-
-	},
-
-	rotateAboutAxisDegs: function ( v, angleDegs, axis ) {
-
-	    return _Math.rotateAboutAxisRads( v, angleDegs * _Math.toRad, axis ); 
-
-	},
-
-	rotateAboutAxisRads: function ( v, angleRads, rotationAxis ){
-
-	    var rotationMatrix = new M3();
-
-	    var sinTheta = Math.sin( angleRads );
-	    var cosTheta = Math.cos( angleRads );
-	    var oneMinusCosTheta = 1.0 - cosTheta;
-	    
-	    // It's quicker to pre-calc these and reuse than calculate x * y, then y * x later (same thing).
-	    var xyOne = rotationAxis.x * rotationAxis.y * oneMinusCosTheta;
-	    var xzOne = rotationAxis.x * rotationAxis.z * oneMinusCosTheta;
-	    var yzOne = rotationAxis.y * rotationAxis.z * oneMinusCosTheta;
-
-	    //var te = rotationMatrix.elements;
-	    
-	    // Calculate rotated x-axis
-	    rotationMatrix.m00 = rotationAxis.x * rotationAxis.x * oneMinusCosTheta + cosTheta;
-	    rotationMatrix.m01 = xyOne + rotationAxis.z * sinTheta;
-	    rotationMatrix.m02 = xzOne - rotationAxis.y * sinTheta;
-
-	    // Calculate rotated y-axis
-	    rotationMatrix.m10 = xyOne - rotationAxis.z * sinTheta;
-	    rotationMatrix.m11 = rotationAxis.y * rotationAxis.y * oneMinusCosTheta + cosTheta;
-	    rotationMatrix.m12 = yzOne + rotationAxis.x * sinTheta;
-
-	    // Calculate rotated z-axis
-	    rotationMatrix.m20 = xzOne + rotationAxis.y * sinTheta;
-	    rotationMatrix.m21 = yzOne - rotationAxis.x * sinTheta;
-	    rotationMatrix.m22 = rotationAxis.z * rotationAxis.z * oneMinusCosTheta + cosTheta;
-
-	    // Multiply the source by the rotation matrix we just created to perform the rotation
-	    return rotationMatrix.times( v );
-
-	},
 
 	// rotation
 
@@ -224,7 +178,7 @@ var _Math = {
 
 	    var cosTheta = Math.cos( angleRads );
 	    var sinTheta = Math.sin( angleRads );
-	    return new V3( v.x, v.y * cosTheta - v.z * sinTheta, v.y * sinTheta + v.z * cosTheta );
+	    return v.clone().set( v.x, v.y * cosTheta - v.z * sinTheta, v.y * sinTheta + v.z * cosTheta );
 
 	},
 
@@ -232,7 +186,7 @@ var _Math = {
 
 	    var cosTheta = Math.cos( angleRads );
 	    var sinTheta = Math.sin( angleRads );
-	    return new V3( v.z * sinTheta + v.x * cosTheta, v.y, v.z * cosTheta - v.x * sinTheta );
+	    return v.clone().set( v.z * sinTheta + v.x * cosTheta, v.y, v.z * cosTheta - v.x * sinTheta );
 
 	},
 
@@ -240,36 +194,7 @@ var _Math = {
 
 	    var cosTheta = Math.cos( angleRads );
 	    var sinTheta = Math.sin( angleRads );
-	    return new V3( v.x * cosTheta - v.y * sinTheta, v.x * sinTheta + v.y * cosTheta, v.z );
-
-	},
-
-
-	getAngleLimitedUnitVectorDegs: function ( vecToLimit, vecBaseline, angleLimitDegs ) {
-
-	    // Get the angle between the two vectors
-	    // Note: This will ALWAYS be a positive value between 0 and 180 degrees.
-	    var angleBetweenVectorsDegs = _Math.getAngleBetweenDegs( vecBaseline, vecToLimit );
-	    
-	    if ( angleBetweenVectorsDegs > angleLimitDegs ) {           
-	        // The axis which we need to rotate around is the one perpendicular to the two vectors - so we're
-	        // rotating around the vector which is the cross-product of our two vectors.
-	        // Note: We do not have to worry about both vectors being the same or pointing in opposite directions
-	        // because if they bones are the same direction they will not have an angle greater than the angle limit,
-	        // and if they point opposite directions we will approach but not quite reach the precise max angle
-	        // limit of 180.0f (I believe).
-	        var correctionAxis = _Math.crossProduct( vecBaseline.normalised(), vecToLimit.normalised() ).normalize();
-	        
-	        // Our new vector is the baseline vector rotated by the max allowable angle about the correction axis
-	        return _Math.rotateAboutAxisDegs( vecBaseline, angleLimitDegs, correctionAxis ).normalize();
-	    }
-	    else // Angle not greater than limit? Just return a normalised version of the vecToLimit
-	    {
-	        // This may already BE normalised, but we have no way of knowing without calcing the length, so best be safe and normalise.
-	        // TODO: If performance is an issue, then I could get the length, and if it's not approx. 1.0f THEN normalise otherwise just return as is.
-	        return vecToLimit.normalised();
-	    }
-
+	    return v.clone().set( v.x * cosTheta - v.y * sinTheta, v.x * sinTheta + v.y * cosTheta, v.z );
 
 	},
 
@@ -299,28 +224,6 @@ var _Math = {
 
 	},
 
-	createRotationMatrix: function ( referenceDirection ) {
-
-	    var xAxis, yAxis, zAxis = referenceDirection.normalised();
-	            
-	    // Handle the singularity (i.e. bone pointing along negative Z-Axis)...
-	    if( referenceDirection.z < -0.9999999 ){
-	        xAxis = new V3(1, 0, 0); // ...in which case positive X runs directly to the right...
-	        yAxis = new V3(0, 1, 0); // ...and positive Y runs directly upwards.
-	    } else {
-	        var a = 1/(1 + zAxis.z);
-	        var b = -zAxis.x * zAxis.y * a;           
-	        xAxis = new V3( 1 - zAxis.x * zAxis.x * a, b, -zAxis.x ).normalize();
-	        yAxis = new V3( b, 1 - zAxis.y * zAxis.y * a, -zAxis.y ).normalize();
-	    }
-
-	    var mtx = new M3();
-	    mtx.setV3( xAxis, yAxis, zAxis );
-	     
-	    return mtx;
-
-	},
-
 	// ______________________________ 2D _____________________________
 
 	getUnsignedAngleBetweenVectorsDegs: function ( a, b ) {
@@ -347,20 +250,15 @@ var _Math = {
 		var signedAngleDegs = baselineUV.getSignedAngleDegsTo( directionUV );
 
 		// If we've exceeded the anti-clockwise (positive) constraint angle...
-		if (signedAngleDegs > antiClockwiseConstraintDegs)
-		{			
-			// ...then our constrained unit vector is the baseline rotated by the anti-clockwise constraint angle.
-			// Note: We could do this by calculating a correction angle to apply to the directionUV, but it's simpler to work from the baseline.
-			return this.rotateDegs( baselineUV, antiClockwiseConstraintDegs );
-		}
+		// ...then our constrained unit vector is the baseline rotated by the anti-clockwise constraint angle.
+		// Note: We could do this by calculating a correction angle to apply to the directionUV, but it's simpler to work from the baseline.
+		if ( signedAngleDegs > antiClockwiseConstraintDegs ) return this.rotateDegs( baselineUV, antiClockwiseConstraintDegs );
+		
 		
 		// If we've exceeded the clockwise (negative) constraint angle...
-		if (signedAngleDegs < -clockwiseConstraintDegs)
-		{	
-			// ...then our constrained unit vector is the baseline rotated by the clockwise constraint angle.
-			// Note: Again, we could do this by calculating a correction angle to apply to the directionUV, but it's simpler to work from the baseline.
-			return this.rotateDegs( baselineUV, -clockwiseConstraintDegs );
-		}
+		// ...then our constrained unit vector is the baseline rotated by the clockwise constraint angle.
+		// Note: Again, we could do this by calculating a correction angle to apply to the directionUV, but it's simpler to work from the baseline.
+		if ( signedAngleDegs < -clockwiseConstraintDegs ) return this.rotateDegs( baselineUV, -clockwiseConstraintDegs );
 		
 		// If we have not exceeded any constraint then we simply return the original direction unit vector
 		return directionUV;
@@ -371,7 +269,7 @@ var _Math = {
 
 		var cosTheta = Math.cos(angleRads);
 		var sinTheta = Math.sin(angleRads);
-		return new V2( v.x * cosTheta - v.y * sinTheta,  v.x * sinTheta + v.y * cosTheta );
+		return v.clone().set( v.x * cosTheta - v.y * sinTheta,  v.x * sinTheta + v.y * cosTheta );
 
 	},
 

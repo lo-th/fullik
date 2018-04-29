@@ -13,6 +13,16 @@ Object.assign( V3.prototype, {
 
 	isVector3: true,
 
+	abs: function () {
+
+		return new V3( 
+			this.x < 0 ? -this.x : this.x, 
+			this.y < 0 ? -this.y : this.y, 
+			this.z < 0 ? -this.z : this.z
+		);
+
+	},
+
 	set: function( x, y, z ){
 
 	    this.x = x || 0;

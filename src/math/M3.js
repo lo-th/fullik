@@ -40,6 +40,92 @@ Object.assign( M3.prototype, {
 
 	},
 
+	createRotationMatrix: function ( referenceDirection ) {
+  
+	    var zAxis = referenceDirection.normalised();
+	    var xAxis = new V3(1, 0, 0);
+	    var yAxis = new V3(0, 1, 0);
+	            
+	    // Handle the singularity (i.e. bone pointing along negative Z-Axis)...
+	    if( referenceDirection.z < -0.9999999 ){
+	        xAxis.set(1, 0, 0); // ...in which case positive X runs directly to the right...
+	        yAxis.set(0, 1, 0); // ...and positive Y runs directly upwards.
+	    } else {
+	        var a = 1/(1 + zAxis.z);
+	        var b = -zAxis.x * zAxis.y * a;           
+	        xAxis.set( 1 - zAxis.x * zAxis.x * a, b, -zAxis.x ).normalize();
+	        yAxis.set( b, 1 - zAxis.y * zAxis.y * a, -zAxis.y ).normalize();
+	    }
+
+	    return this.setV3( xAxis, yAxis, zAxis );;
+
+	},
+
+	rotateAboutAxisDegs: function ( v, angleDegs, axis ) {
+
+	    return this.rotateAboutAxisRads( v, angleDegs * _Math.toRad, axis ); 
+
+	},
+
+	rotateAboutAxisRads: function ( v, angleRads, rotationAxis ){
+
+	    var sinTheta = Math.sin( angleRads );
+	    var cosTheta = Math.cos( angleRads );
+	    var oneMinusCosTheta = 1.0 - cosTheta;
+	    
+	    // It's quicker to pre-calc these and reuse than calculate x * y, then y * x later (same thing).
+	    var xyOne = rotationAxis.x * rotationAxis.y * oneMinusCosTheta;
+	    var xzOne = rotationAxis.x * rotationAxis.z * oneMinusCosTheta;
+	    var yzOne = rotationAxis.y * rotationAxis.z * oneMinusCosTheta;
+
+	    // Calculate rotated x-axis
+	    this.m00 = rotationAxis.x * rotationAxis.x * oneMinusCosTheta + cosTheta;
+	    this.m01 = xyOne + rotationAxis.z * sinTheta;
+	    this.m02 = xzOne - rotationAxis.y * sinTheta;
+
+	    // Calculate rotated y-axis
+	    this.m10 = xyOne - rotationAxis.z * sinTheta;
+	    this.m11 = rotationAxis.y * rotationAxis.y * oneMinusCosTheta + cosTheta;
+	    this.m12 = yzOne + rotationAxis.x * sinTheta;
+
+	    // Calculate rotated z-axis
+	    this.m20 = xzOne + rotationAxis.y * sinTheta;
+	    this.m21 = yzOne - rotationAxis.x * sinTheta;
+	    this.m22 = rotationAxis.z * rotationAxis.z * oneMinusCosTheta + cosTheta;
+
+	    // Multiply the source by the rotation matrix we just created to perform the rotation
+	    return this.times( v );
+
+	},
+
+	getAngleLimitedUnitVectorDegs: function ( vecToLimit, vecBaseline, angleLimitDegs ) {
+
+	    // Get the angle between the two vectors
+	    // Note: This will ALWAYS be a positive value between 0 and 180 degrees.
+	    var angleBetweenVectorsDegs = _Math.getAngleBetweenDegs( vecBaseline, vecToLimit );
+	    
+	    if ( angleBetweenVectorsDegs > angleLimitDegs ) {           
+	        // The axis which we need to rotate around is the one perpendicular to the two vectors - so we're
+	        // rotating around the vector which is the cross-product of our two vectors.
+	        // Note: We do not have to worry about both vectors being the same or pointing in opposite directions
+	        // because if they bones are the same direction they will not have an angle greater than the angle limit,
+	        // and if they point opposite directions we will approach but not quite reach the precise max angle
+	        // limit of 180.0f (I believe).
+	        var correctionAxis = _Math.crossProduct( vecBaseline.normalised(), vecToLimit.normalised() ).normalize();
+	        
+	        // Our new vector is the baseline vector rotated by the max allowable angle about the correction axis
+	        return this.rotateAboutAxisDegs( vecBaseline, angleLimitDegs, correctionAxis ).normalize();
+	    }
+	    else // Angle not greater than limit? Just return a normalised version of the vecToLimit
+	    {
+	        // This may already BE normalised, but we have no way of knowing without calcing the length, so best be safe and normalise.
+	        // TODO: If performance is an issue, then I could get the length, and if it's not approx. 1.0f THEN normalise otherwise just return as is.
+	        return vecToLimit.normalised();
+	    }
+
+
+	},
+
 	transpose: function ( m ) {
 
 	    return new M3( m.m00, m.m10, m.m20,   m.m01, m.m11, m.m21,   m.m02, m.m12, m.m22 );
