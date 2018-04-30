@@ -1,4 +1,4 @@
-import { NONE, GLOBAL_ABSOLUTE, LOCAL_RELATIVE, LOCAL_ABSOLUTE, END, START, J_LOCAL, J_GLOBAL } from '../constants.js';
+import { NONE, GLOBAL_ABSOLUTE, LOCAL_RELATIVE, LOCAL_ABSOLUTE, END, START, J_LOCAL, J_GLOBAL, MIN_DEGS, MAX_DEGS, MAX_VALUE } from '../constants.js';
 import { _Math } from '../math/Math.js';
 import { V2 } from '../math/V2.js';
 import { Bone2D } from './Bone2D.js';
@@ -26,13 +26,13 @@ import { Tools } from './Tools.js';
     this.mBaseboneConstraintUV = new V2();
     this.mBaseboneRelativeConstraintUV = new V2();
     //this.mBaseboneRelativeReferenceConstraintUV = new V2();
-    this.mLastTargetLocation = new V2( _Math.MAX_VALUE, _Math.MAX_VALUE );
+    this.mLastTargetLocation = new V2( MAX_VALUE, MAX_VALUE );
 
-    this.mLastBaseLocation =  new V2( _Math.MAX_VALUE, _Math.MAX_VALUE );
+    this.mLastBaseLocation =  new V2( MAX_VALUE, MAX_VALUE );
 
     this.mBoneConnectionPoint = END;
     
-    this.mCurrentSolveDistance = _Math.MAX_VALUE;
+    this.mCurrentSolveDistance = MAX_VALUE;
     this.mConnectedChainNumber = -1;
     this.mConnectedBoneNumber = -1;
 
@@ -373,8 +373,8 @@ Object.assign( Chain2D.prototype, {
     },
 
     resetTarget : function( ){
-        this.mLastBaseLocation = new V2( _Math.MAX_VALUE, _Math.MAX_VALUE );
-        this.mCurrentSolveDistance = _Math.MAX_VALUE;
+        this.mLastBaseLocation = new V2( MAX_VALUE, MAX_VALUE );
+        this.mCurrentSolveDistance = MAX_VALUE;
     },
 
 
@@ -403,7 +403,7 @@ Object.assign( Chain2D.prototype, {
             startingSolution = this.cloneIkChain();
         } else {
             // Base has changed? Then we have little choice but to recalc the solution and take that new solution.
-            startingDistance = _Math.MAX_VALUE;
+            startingDistance = MAX_VALUE;
         }
                         
         // Not the same target? Then we must solve the chain for the new target.
@@ -411,8 +411,8 @@ Object.assign( Chain2D.prototype, {
         var bestSolution = [];
         
         // We'll keep track of our best solve distance, starting it at a huge value which will be beaten on first attempt
-        var bestSolveDistance = _Math.MAX_VALUE;
-        var lastPassSolveDistance = _Math.MAX_VALUE;
+        var bestSolveDistance = MAX_VALUE;
+        var lastPassSolveDistance = MAX_VALUE;
         
         // Allow up to our iteration limit attempts at solving the chain
         var solveDistance;

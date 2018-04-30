@@ -13,6 +13,15 @@ Object.assign( V3.prototype, {
 
 	isVector3: true,
 
+	set: function( x, y, z ){
+
+	    this.x = x || 0;
+	    this.y = y || 0;
+	    this.z = z || 0;
+	    return this;
+
+	},
+
 	abs: function () {
 
 		return new V3( 
@@ -23,21 +32,11 @@ Object.assign( V3.prototype, {
 
 	},
 
-	set: function( x, y, z ){
-
-	    this.x = x || 0;
-	    this.y = y || 0;
-	    this.z = z || 0;
-	    return this;
-
-	},
-
 	multiplyScalar: function ( scalar ) {
 
 		this.x *= scalar;
 		this.y *= scalar;
 		this.z *= scalar;
-
 		return this;
 
 	},
@@ -95,7 +94,6 @@ Object.assign( V3.prototype, {
 		this.x -= v.x;
 		this.y -= v.y;
 		this.z -= v.z;
-
 	    return this;
 
 	},
@@ -124,10 +122,9 @@ Object.assign( V3.prototype, {
 	    this.x = _Math.rand( min, max );
 	    this.y = _Math.rand( min, max );
 	    this.z = _Math.rand( min, max );
+	    return this;
 
 	},
-
-	
 
 	cross: function( v ) { 
 
@@ -167,11 +164,11 @@ Object.assign( V3.prototype, {
 
 	approximatelyEquals: function ( v, t ) {
 
-	    if ( t < 0 ) return;
+	    if ( t < 0 ) return false;
 	    var xDiff = Math.abs(this.x - v.x);
 	    var yDiff = Math.abs(this.y - v.y);
 	    var zDiff = Math.abs(this.z - v.z);
-	    return (xDiff < t && yDiff < t && zDiff < t);
+	    return ( xDiff < t && yDiff < t && zDiff < t );
 
 	},
 
@@ -184,7 +181,7 @@ Object.assign( V3.prototype, {
 
 	},
 
-	projectOnPlane_old: function ( planeNormal ) {
+	projectOnPlane: function ( planeNormal ) {
 
 	    if ( planeNormal.length() <= 0 ){ Tools.error("Plane normal cannot be a zero vector."); return; }
 	        
@@ -206,7 +203,7 @@ Object.assign( V3.prototype, {
 
 	},
 
-	projectOnPlane: function () {
+	projectOnPlane_new: function () {
 
 		var v1 = new V3();
 

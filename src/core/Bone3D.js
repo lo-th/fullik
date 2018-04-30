@@ -1,6 +1,7 @@
 import { Joint3D } from './Joint3D.js';
 import { _Math } from '../math/Math.js';
 import { V3 } from '../math/V3.js';
+import { MIN_DEGS, MAX_DEGS } from '../constants.js';
 
 function Bone3D ( startLocation, endLocation, directionUV, length, color ){
 
@@ -20,10 +21,12 @@ function Bone3D ( startLocation, endLocation, directionUV, length, color ){
 
 Object.assign( Bone3D.prototype, {
 
+    isBone3D: true,
+
     init:function( startLocation, endLocation, directionUV, length ){
 
         this.setStartLocation( startLocation );
-        if( endLocation !== undefined ){ 
+        if( endLocation ){ 
             this.setEndLocation( endLocation );
             this.setLength( _Math.distanceBetween( this.mStartLocation, this.mEndLocation ) );
         } else {
@@ -34,62 +37,81 @@ Object.assign( Bone3D.prototype, {
     },
 
     clone:function(){
+
         var b = new Bone3D( this.mStartLocation, this.mEndLocation );
         b.mJoint = this.mJoint.clone();
         return b;
+
     },
 
-    length : function(){
+    length: function(){
         return this.mLength;
     },
 
-    liveLength :function(){
+    liveLength: function(){
         return _Math.distanceBetween( this.mStartLocation, this.mEndLocation );
     },
-    
 
     // SET
 
-    setName:function( name ){
+    setName: function ( name ) {
+
         this.name = name;
+
     },
 
-    setColor:function( c ){
+    setColor: function ( c ) {
+
         this.color = c;
+
     },
 
-    setBoneConnectionPoint:function( bcp ){
+    setBoneConnectionPoint: function ( bcp ) {
+
         this.mBoneConnectionPoint = bcp;
+
     },
 
-    setHingeJointClockwiseConstraintDegs:function( angleDegs ){
-        this.mJoint.setHingeJointClockwiseConstraintDegs( angleDegs );
+    setHingeJointClockwiseConstraintDegs: function ( angle ){
+
+        this.mJoint.setHingeJointClockwiseConstraintDegs( angle );
+
     },
 
-    setHingeJointAnticlockwiseConstraintDegs:function( angleDegs ){
-        this.mJoint.setHingeJointAnticlockwiseConstraintDegs( angleDegs );
+    setHingeJointAnticlockwiseConstraintDegs: function ( angle ){
+
+        this.mJoint.setHingeJointAnticlockwiseConstraintDegs( angle );
+
     },
 
-    setBallJointConstraintDegs:function( angleDegs ){
-        if (angleDegs < 0 ) angleDegs = 0;
-        if (angleDegs > 180 ) angleDegs = 180;
-        this.mJoint.setBallJointConstraintDegs( angleDegs );
+    setBallJointConstraintDegs: function ( angle ){
+
+        this.mJoint.setBallJointConstraintDegs( angle );
+
     },
 
-    setStartLocation:function( location ){
-        this.mStartLocation.copy( location );
+    setStartLocation: function ( location ) {
+
+        this.mStartLocation.copy ( location );
+
     },
 
     setEndLocation:function( location ){
-        this.mEndLocation.copy( location );
+
+        this.mEndLocation.copy ( location );
+
     },
 
     setLength:function( lng ){
+
         if ( lng > 0 ) this.mLength = lng;
+
     },
 
     setJoint:function( joint ){
+
         this.mJoint = joint;
+
     },
 
 

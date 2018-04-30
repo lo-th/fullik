@@ -1,12 +1,12 @@
 import { V3 } from '../math/V3.js';
 import { _Math } from '../math/Math.js';
-import { J_BALL, J_GLOBAL, J_LOCAL } from '../constants.js';
+import { J_BALL, J_GLOBAL, J_LOCAL, MIN_DEGS, MAX_DEGS } from '../constants.js';
 
 function Joint3D(){
 
-    this.mRotorConstraintDegs = _Math.MAX_ANGLE_DEGS;
-    this.mHingeClockwiseConstraintDegs = _Math.MAX_ANGLE_DEGS;
-    this.mHingeAnticlockwiseConstraintDegs = _Math.MAX_ANGLE_DEGS;
+    this.mRotorConstraintDegs = MAX_DEGS;
+    this.mHingeClockwiseConstraintDegs = MAX_DEGS;
+    this.mHingeAnticlockwiseConstraintDegs = MAX_DEGS;
 
     this.mRotationAxisUV = new V3();
     this.mReferenceAxisUV = new V3();
@@ -16,13 +16,15 @@ function Joint3D(){
 
 Object.assign( Joint3D.prototype, {
 
+	isJoint3D: true,
+
     clone:function(){
 
         var j = new Joint3D();
+        j.type = this.type;
         j.mRotorConstraintDegs = this.mRotorConstraintDegs;
         j.mHingeClockwiseConstraintDegs = this.mHingeClockwiseConstraintDegs;
         j.mHingeAnticlockwiseConstraintDegs = this.mHingeAnticlockwiseConstraintDegs;
-        j.type = this.type;
         j.mRotationAxisUV.copy( this.mRotationAxisUV );
         j.mReferenceAxisUV.copy( this.mReferenceAxisUV );
         return j;
@@ -31,16 +33,13 @@ Object.assign( Joint3D.prototype, {
 
     validateAngle:function( angle ){
 
-        if( angle < _Math.MIN_ANGLE_DEGS ){ angle = _Math.MIN_ANGLE_DEGS; console.log( '! min angle is '+ _Math.MIN_ANGLE_DEGS ); }
-        if( angle > _Math.MAX_ANGLE_DEGS ){ angle = _Math.MAX_ANGLE_DEGS; console.log( '! max angle is '+ _Math.MAX_ANGLE_DEGS ); }
-
-        return angle;
+        return _Math.clamp( angle, MIN_DEGS, MAX_DEGS );
 
     },
 
-    setAsBallJoint:function( angleDegs ){
+    setAsBallJoint:function( angle ){
 
-        this.mRotorConstraintDegs = this.validateAngle( angleDegs );
+        this.mRotorConstraintDegs = this.validateAngle( angle );
         this.type = J_BALL;
         
     },
@@ -48,7 +47,6 @@ Object.assign( Joint3D.prototype, {
     // Specify this joint to be a hinge with the provided settings.
     setHinge: function( type, rotationAxis, clockwiseConstraintDegs, anticlockwiseConstraintDegs, referenceAxis ){
 
-        // Set paramsgetHingeReferenceAxis
         this.type = type;
         this.mHingeClockwiseConstraintDegs     = this.validateAngle( clockwiseConstraintDegs );
         this.mHingeAnticlockwiseConstraintDegs = this.validateAngle( anticlockwiseConstraintDegs );
@@ -85,24 +83,24 @@ Object.assign( Joint3D.prototype, {
 
     // SET
 
-    setAsGlobalHinge:function( globalRotationAxis, cwConstraintDegs, acwConstraintDegs, globalReferenceAxis ){
+    /*setAsGlobalHinge:function( globalRotationAxis, cwConstraintDegs, acwConstraintDegs, globalReferenceAxis ){
         this.setHinge( J_GLOBAL, globalRotationAxis, cwConstraintDegs, acwConstraintDegs, globalReferenceAxis );
     },
 
     setAsLocalHinge:function( localRotationAxis, cwConstraintDegs, acwConstraintDegs, localReferenceAxis ){
         this.setHinge( J_LOCAL, localRotationAxis, cwConstraintDegs, acwConstraintDegs, localReferenceAxis );
+    },*/
+
+    setBallJointConstraintDegs:function( angle ){
+        if ( this.type === J_BALL ) this.mRotorConstraintDegs = this.validateAngle( angle );
     },
 
-    setBallJointConstraintDegs:function( angleDegs ){
-        if ( this.type === J_BALL ) this.mRotorConstraintDegs = this.validateAngle( angleDegs );
+    setHingeJointClockwiseConstraintDegs:function( angle ){
+        if ( !(this.type === J_BALL) ) this.mHingeClockwiseConstraintDegs = this.validateAngle( angle ); 
     },
 
-    setHingeJointClockwiseConstraintDegs:function( angleDegs ){
-        if ( !(this.type === J_BALL) ) this.mHingeClockwiseConstraintDegs = this.validateAngle( angleDegs ); 
-    },
-
-    setHingeJointAnticlockwiseConstraintDegs:function( angleDegs ){
-        if ( !(this.type === J_BALL) ) this.mHingeAnticlockwiseConstraintDegs = this.validateAngle( angleDegs ); 
+    setHingeJointAnticlockwiseConstraintDegs:function( angle ){
+        if ( !(this.type === J_BALL) ) this.mHingeAnticlockwiseConstraintDegs = this.validateAngle( angle ); 
     },
 
     setHingeRotationAxis:function( axis ){

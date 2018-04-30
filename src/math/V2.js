@@ -52,6 +52,12 @@ Object.assign( V2.prototype, {
 	
 	},
 
+	lengthSq: function () {
+
+		return this.x * this.x + this.y * this.y;
+
+	},
+
 	length: function () {
 
 	    return Math.sqrt( this.x * this.x + this.y * this.y );
@@ -96,6 +102,7 @@ Object.assign( V2.prototype, {
 
 	    this.x = _Math.rand( min, max );
 	    this.y = _Math.rand( min, max );
+	    return this;
 
 	},
 
@@ -153,9 +160,18 @@ Object.assign( V2.prototype, {
 
 	},
 
+	zcross: function( b ) { //  Method to determine the sign of the angle between two V2 objects.
+
+	    var p = this.x * b.y - b.x * this.y;
+		if      ( p > 0 ) return 1; 
+		else if ( p < 0 ) return -1;	
+		return 0;
+
+	},
+
 	approximatelyEquals: function ( v, t ) {
 
-	    if ( t < 0 ) return;
+	    if ( t < 0 ) return false;
 	    var xDiff = Math.abs(this.x - v.x);
 	    var yDiff = Math.abs(this.y - v.y);
 	    return ( xDiff < t && yDiff < t );
@@ -164,14 +180,16 @@ Object.assign( V2.prototype, {
 
 	getSignedAngleDegsTo: function ( otherVector ) { // 2D
 
+		var angle = _Math.getAngleBetweenDegs( this, otherVector );
+
 	    // Normalise the vectors that we're going to use
-		var thisVectorUV  = this.normalised();
-		var otherVectorUV = otherVector.normalised();
+		//var thisVectorUV  = this.normalised();
+		//var otherVectorUV = otherVector.normalised();
 		// Calculate the unsigned angle between the vectors as the arc-cosine of their dot product
-		var unsignedAngleDegs = Math.acos( thisVectorUV.dot(otherVectorUV) ) * _Math.toDeg;
+		//var unsignedAngleDegs = Math.acos( thisVectorUV.dot(otherVectorUV) ) * _Math.toDeg;
 		// Calculate and return the signed angle between the two vectors using the zcross method
-		if ( _Math.zcross( thisVectorUV, otherVectorUV ) === 1 ) return unsignedAngleDegs;
-		else return -unsignedAngleDegs;
+		if ( this.zcross( otherVector ) === 1 ) return angle;
+		else return -angle;
 		
 	},
 

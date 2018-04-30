@@ -1,10 +1,10 @@
 import { _Math } from '../math/Math.js';
-import { J_LOCAL, J_GLOBAL } from '../constants.js';
+import { J_LOCAL, J_GLOBAL, MIN_DEGS, MAX_DEGS } from '../constants.js';
 
 function Joint2D( clockwiseConstraintDegs, antiClockwiseConstraintDegs, constraintCoordSystem ){
 
-    this.mClockwiseConstraintDegs = clockwiseConstraintDegs || _Math.MAX_ANGLE_DEGS;
-    this.mAnticlockwiseConstraintDegs = antiClockwiseConstraintDegs || _Math.MAX_ANGLE_DEGS;
+    this.mClockwiseConstraintDegs = clockwiseConstraintDegs || MAX_DEGS;
+    this.mAnticlockwiseConstraintDegs = antiClockwiseConstraintDegs || MAX_DEGS;
     this.mConstraintCoordinateSystem = constraintCoordSystem || J_LOCAL;
 
 }
@@ -23,13 +23,9 @@ Object.assign( Joint2D.prototype, {
 
     },
 
-    validateAngle:function( angle ){
+    validateAngle: function ( angle ) {
 
-        angle = _Math.clamp( angle, _Math.MIN_ANGLE_DEGS, _Math.MAX_ANGLE_DEGS )
-
-        //if( angle < _Math.MIN_ANGLE_DEGS ){ angle = _Math.MIN_ANGLE_DEGS; console.log( '! min angle is '+ _Math.MIN_ANGLE_DEGS ); }
-        //if( angle > _Math.MAX_ANGLE_DEGS ){ angle = _Math.MAX_ANGLE_DEGS; console.log( '! max angle is '+ _Math.MAX_ANGLE_DEGS ); }
-        return angle;
+        return _Math.clamp( angle, MIN_DEGS, MAX_DEGS );
 
     },
 
@@ -45,15 +41,15 @@ Object.assign( Joint2D.prototype, {
 
     },
 
-    setClockwiseConstraintDegs:function( angleDegs ){
+    setClockwiseConstraintDegs: function ( angle ) {
 
-        this.mClockwiseConstraintDegs = this.validateAngle( angleDegs );
+        this.mClockwiseConstraintDegs = this.validateAngle( angle );
         
     },
 
-    setAnticlockwiseConstraintDegs:function( angleDegs ){
+    setAnticlockwiseConstraintDegs:function( angle ){
 
-        this.mAnticlockwiseConstraintDegs = this.validateAngle( angleDegs );
+        this.mAnticlockwiseConstraintDegs = this.validateAngle( angle );
         
     },
 

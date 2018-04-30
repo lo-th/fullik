@@ -8,7 +8,11 @@ import { M3 } from './math/M3.js';
 
 export var REVISION = '1.3.3';
 
-
+export var MIN_DEGS = 0;
+export var MAX_DEGS = 180;
+export var MAX_VALUE = Infinity;
+export var PRECISION = 0.001;
+export var PRECISION_DEG = 0.01;
 
 // chain Basebone Constraint Type
 
@@ -27,7 +31,6 @@ export var LOCAL_ABSOLUTE = 8; // Constrained about a direction with relative to
 export var J_BALL = 10;
 export var J_LOCAL = 11;
 export var J_GLOBAL = 12;
-
 
 export var START = 20;
 export var END = 21;
@@ -49,5 +52,3 @@ export var UP = new V2( 0, 1 );
 export var DOWN = new V2( 0, -1 );
 export var LEFT = new V2( -1, 0 );
 export var RIGHT = new V2( 1, 0 );
-
-export var MTX = new M3();

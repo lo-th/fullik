@@ -1,18 +1,6 @@
-//import { V3 } from './V3.js';
-//import { V2 } from './V2.js';
-//import { M3 } from './M3.js';
-//import { MTX } from '../constants.js';
 import { Tools } from '../core/Tools.js';
 
 var _Math = {
-
-	MIN_ANGLE_DEGS: 0,
-	MAX_ANGLE_DEGS: 180,
-
-	MAX_VALUE: Infinity,
-
-	PRECISION: 0.001,
-	PRECISION_DEG: 0.01,
 
 	toRad: Math.PI / 180,
 	toDeg: 180 / Math.PI,
@@ -49,11 +37,7 @@ var _Math = {
 
 	},
 
-	sign: function ( v ) {
-
-		return v >= 0 ? 1 : -1; 
-
-	},
+	
 
 	radtodeg: function ( v ) { 
 
@@ -87,19 +71,11 @@ var _Math = {
 	},
 	
 
-	crossProduct: function ( v1, v2 ) { 
-
-	    return v1.clone().set( 
-	    	v1.y * v2.z - v1.z * v2.y, 
-	    	v1.z * v2.x - v1.x * v2.z, 
-	    	v1.x * v2.y - v1.y * v2.x
-	    );
-
-	},
+	
 
 	genPerpendicularVectorQuick: function ( v ) {
 
-		return _Math.genPerpendicularVectorFrisvad( v );
+		//return _Math.genPerpendicularVectorFrisvad( v );
 
 	    var p = v.clone();
 	    // cross(v, UP) : cross(v, RIGHT)
@@ -140,12 +116,29 @@ var _Math = {
 
 	},
 
+	crossProduct: function ( v1, v2 ) { 
+
+		var ax = v1.x, ay = v1.y, az = v1.z;
+		var bx = v2.x, by = v2.y, bz = v2.z;
+
+	    return v1.clone().set( 
+	    	ay * bz - az * by, 
+	    	az * bx - ax * bz, 
+	    	ax * by - ay * bx
+	    );
+
+	},
+
 	getAngleBetweenRads: function ( v1, v2 ){ 
 
-		var a = _Math.dotProduct( v1, v2 );
-		if (a <= -1) return Math.PI;
-		if (a >= 1) return 0;
-	    return Math.acos( a );
+		var theta = v1.dot( v2 ) / ( Math.sqrt( v1.lengthSq() * v2.lengthSq() ) );
+		// clamp, to handle numerical problems
+		return Math.acos( _Math.clamp( theta, - 1, 1 ) );
+
+		//var a = _Math.dotProduct( v1, v2 );
+		//if (a <= -1) return Math.PI;
+		//if (a >= 1) return 0;
+	    //return Math.acos( a );
 
 	},
 
@@ -166,6 +159,12 @@ var _Math = {
 	    var unsignedAngle = _Math.getAngleBetweenDegs( referenceVector, otherVector );
 	    var sign          = _Math.sign( _Math.dotProduct( _Math.crossProduct( referenceVector, otherVector ), normalVector ) ); 
 	    return unsignedAngle * sign;
+
+	},
+
+	sign: function ( v ) {
+
+		return v >= 0 ? 1 : -1; 
 
 	},
 
@@ -228,11 +227,13 @@ var _Math = {
 
 	// ______________________________ 2D _____________________________
 
-	getUnsignedAngleBetweenVectorsDegs: function ( a, b ) {
+	/*getUnsignedAngleBetweenVectorsDegs: function ( v1, v2 ) {
 
-	    Math.acos( a.normalised().dot( b.normalised() ) ) * this.toDeg;
+		return _Math.getAngleBetweenDegs( v1, v2 );
 
-	},
+	    //Math.acos( a.normalised().dot( b.normalised() ) ) * this.toDeg;
+
+	},*/
 
 	zcross: function( a, b ) { //  Method to determine the sign of the angle between two V2 objects.
 

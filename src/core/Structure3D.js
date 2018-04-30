@@ -222,15 +222,15 @@ Object.assign( Structure3D.prototype, {
 
         var meshBone = [];
         var lng  = chain.bones.length;
-        for(var i = 0; i<lng; i++ ){
-            meshBone.push( this.addBoneMesh( chain.bones[i] ) );
+        for(var i = 0; i < lng; i++ ){
+            meshBone.push( this.addBoneMesh( chain.bones[i], i-1, meshBone ));
         }
 
         this.meshChains.push( meshBone );
 
     },
 
-    addBoneMesh:function( bone ){
+    addBoneMesh:function( bone, prev, ar ){
 
         var size = bone.mLength;
         var color = bone.color;
@@ -239,7 +239,7 @@ Object.assign( Structure3D.prototype, {
         g.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0, size*0.5 ) );
         var m = new THREE.MeshStandardMaterial({ color:color, wireframe:false, shadowSide:false });
 
-        var m2 = new THREE.MeshBasicMaterial({ wireframe : true, transparent:true, opacity:0.3 });
+        var m2 = new THREE.MeshBasicMaterial({ wireframe : true });
         //var m4 = new THREE.MeshBasicMaterial({ wireframe : true, color:color, transparent:true, opacity:0.3 });
 
         var extraMesh = null;
@@ -249,26 +249,37 @@ Object.assign( Structure3D.prototype, {
         switch(type){
             case J_BALL :
                 m2.color.setHex(0xFF6600);
-                var angle  = bone.getJoint().mRotorConstraintDegs;
+                var angle = bone.getJoint().mRotorConstraintDegs;
+             
                 if(angle === 180) break;
-                var s = size/4;
+                var s = 2//size/4;
                 var r = 2;//
-                extraGeo = new THREE.CylinderBufferGeometry ( 0, r, s, 6 );
+                extraGeo = new THREE.CylinderBufferGeometry ( 0, r, s, 6,1, true );
                 extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) )
                 extraGeo.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0, s*0.5 ) );
                 extraMesh = new THREE.Mesh( extraGeo,  m2 );
             break;
             case J_GLOBAL :
+            var axe =  bone.getJoint().getHingeRotationAxis();
+            //console.log( axe );
             var a1 = bone.getJoint().mHingeClockwiseConstraintDegs * _Math.toRad;
             var a2 = bone.getJoint().mHingeAnticlockwiseConstraintDegs * _Math.toRad;
             var r = 2;
             //console.log('global', a1, a2)
             m2.color.setHex(0xFFFF00);
             extraGeo = new THREE.CircleBufferGeometry( r, 12, a1, a1+a2 );
-            extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
+            //extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
+            if( axe.z === 1 ) extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
+            if( axe.y === 1 ) {extraGeo.applyMatrix( new THREE.Matrix4().makeRotationY( -Math.PI*0.5 ) );extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );}
+            if( axe.x === 1 ) {  extraGeo.applyMatrix(new THREE.Matrix4().makeRotationY( Math.PI*0.5 ));}
+
             extraMesh = new THREE.Mesh( extraGeo,  m2 );
             break;
             case J_LOCAL :
+
+            var axe =  bone.getJoint().getHingeRotationAxis();
+            
+
             var r = 2;
             var a1 = bone.getJoint().mHingeClockwiseConstraintDegs * _Math.toRad;
             var a2 = bone.getJoint().mHingeAnticlockwiseConstraintDegs * _Math.toRad;
@@ -276,6 +287,11 @@ Object.assign( Structure3D.prototype, {
             m2.color.setHex(0x00FFFF);
             extraGeo = new THREE.CircleBufferGeometry( r, 12, a1, a1+a2 );
             extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
+
+            if( axe.z === 1 ) { extraGeo.applyMatrix( new THREE.Matrix4().makeRotationY( -Math.PI*0.5 ) ); extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( Math.PI*0.5 ) );}
+            if( axe.x === 1 ) extraGeo.applyMatrix( new THREE.Matrix4().makeRotationZ( -Math.PI*0.5 ) );
+            if( axe.y === 1 ) { extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( Math.PI*0.5 ) ); extraGeo.applyMatrix(new THREE.Matrix4().makeRotationY( Math.PI*0.5 ));}
+
             extraMesh = new THREE.Mesh( extraGeo,  m2 );
             break;
         }
@@ -291,8 +307,20 @@ Object.assign( Structure3D.prototype, {
         b.castShadow = true;
         b.receiveShadow = true;
 
-        //console.log(b)
-        if( extraMesh !== null ) b.add( extraMesh );
+        if( prev !== -1 ){
+            if( extraMesh !== null ){ 
+                if(type!==J_GLOBAL){
+                    extraMesh.position.z = chain.bones[prev].mLength;
+                    ar[prev].add( extraMesh );
+                } else {
+                    b.add( extraMesh );
+                }
+                
+            }
+        } else {
+             if( extraMesh !== null ) b.add( extraMesh );
+        }
+       
         return b;
 
     },
