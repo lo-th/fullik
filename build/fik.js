@@ -3029,11 +3029,10 @@
 
 	        // Add the new bone to the end of the ArrayList of bones
 	        this.bones.push( bone );
-	        // Increment the number of bones in the chain and update the chain length
-	        this.mNumBones ++;
+	        
 
 	        // If this is the basebone...
-	        if ( this.mNumBones === 1 ){
+	        if ( this.mNumBones === 0 ){
 	            // ...then keep a copy of the fixed start location...
 	            this.mBaseLocation.copy( bone.getStartLocation() );
 	            
@@ -3041,6 +3040,9 @@
 	            this.mBaseboneConstraintUV.copy( bone.getDirectionUV() );
 
 	        }
+
+	        // Increment the number of bones in the chain and update the chain length
+	        this.mNumBones ++;
 	        
 	        // Increment the number of bones in the chain and update the chain length
 	        this.updateChainLength();
