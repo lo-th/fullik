@@ -4,7 +4,6 @@ var _Math = {
 
 	toRad: Math.PI / 180,
 	toDeg: 180 / Math.PI,
-	pi90: Math.PI * 0.5,
 
 	clamp: function ( v, min, max ) {
 
@@ -163,14 +162,6 @@ var _Math = {
 
 	},
 
-	getSignedAngle: function ( v1, v2, normal ) {
-
-	    var angle = _Math.getAngleBetweenRads( v1, v2 );
-	    var sign = _Math.sign( _Math.dotProduct( _Math.crossProduct( v1, v2 ), normal ) ); 
-	    return angle * sign;
-
-	},
-
 	sign: function ( v ) {
 
 		return v >= 0 ? 1 : -1; 
@@ -236,30 +227,71 @@ var _Math = {
 
 	// ______________________________ 2D _____________________________
 
+	/*getUnsignedAngleBetweenVectorsDegs: function ( v1, v2 ) {
+
+		return _Math.getAngleBetweenDegs( v1, v2 );
+
+	    //Math.acos( a.normalised().dot( b.normalised() ) ) * this.toDeg;
+
+	},*/
+
+	zcross: function( a, b ) { //  Method to determine the sign of the angle between two V2 objects.
+
+	    var p = a.x * b.y - b.x * a.y;
+		if      ( p > 0 ) return 1; 
+		else if ( p < 0 ) return -1;	
+		return 0;
+
+	},
+
+	getConstrainedUV: function( directionUV, baselineUV, clockwiseConstraintDegs, antiClockwiseConstraintDegs ) {
+
+	    // Get the signed angle from the baseline UV to the direction UV.
+		// Note: In our signed angle ranges:
+		//       0...180 degrees represents anti-clockwise rotation, and
+		//       0..-180 degrees represents clockwise rotation
+		var signedAngleDegs = baselineUV.getSignedAngleDegsTo( directionUV );
+
+		// If we've exceeded the anti-clockwise (positive) constraint angle...
+		// ...then our constrained unit vector is the baseline rotated by the anti-clockwise constraint angle.
+		// Note: We could do this by calculating a correction angle to apply to the directionUV, but it's simpler to work from the baseline.
+		if ( signedAngleDegs > antiClockwiseConstraintDegs ) return this.rotateDegs( baselineUV, antiClockwiseConstraintDegs );
+		
+		
+		// If we've exceeded the clockwise (negative) constraint angle...
+		// ...then our constrained unit vector is the baseline rotated by the clockwise constraint angle.
+		// Note: Again, we could do this by calculating a correction angle to apply to the directionUV, but it's simpler to work from the baseline.
+		if ( signedAngleDegs < -clockwiseConstraintDegs ) return this.rotateDegs( baselineUV, -clockwiseConstraintDegs );
+		
+		// If we have not exceeded any constraint then we simply return the original direction unit vector
+		return directionUV;
+
+	},
+
 	rotateRads: function( v, angleRads ) {
 
-		var cosTheta = Math.cos( angleRads );
-		var sinTheta = Math.sin( angleRads );
+		var cosTheta = Math.cos(angleRads);
+		var sinTheta = Math.sin(angleRads);
 		return v.clone().set( v.x * cosTheta - v.y * sinTheta,  v.x * sinTheta + v.y * cosTheta );
 
 	},
 
 	rotateDegs: function( v, angleDegs ) {
 
-		return _Math.rotateRads( v, angleDegs * _Math.toRad );
+		return this.rotateRads( v, angleDegs * this.toRad );
  
 	},
 
 
 	validateDirectionUV: function( directionUV ) {
 
-		if( directionUV.length() < 0 ) Tools.error("vector direction unit vector cannot be zero.");
+		if( directionUV.length() < 0) Tools.error("vector direction unit vector cannot be zero.");
  
 	},
 
 	validateLength: function( length ) {
 
-		if( length < 0 ) Tools.error("Length must be a greater than or equal to zero.");
+		if(length < 0) Tools.error("Length must be a greater than or equal to zero.");
  
 	},
 

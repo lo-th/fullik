@@ -46,7 +46,7 @@
   "devDependencies": {
     "eslint": "latest",
     "eslint-config-mdcs": "latest",
-    "google-closure-compiler": "20180204.0.0",
+    "google-closure-compiler": "latest",
     "rollup": "latest",
     "rollup-watch": "latest",
     "uglify-js": "latest"

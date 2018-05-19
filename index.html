@@ -27,7 +27,6 @@
 <script src="js/controls/OrbitControls.js"></script>
 <script src="js/controls/TransformControls.js"></script>
 
-
 <script src="build/fik.js"></script>
 
 <div id="debug"></div>
@@ -35,9 +34,12 @@
 
 <script>
 
+    var demos = {
+       '2D': 10,
+       '3D': 13,
+    }
 
     var current = '3D';
-    var folder = './demos/3d/';
 
     var extraUpdate = function(){};
 
@@ -73,6 +75,9 @@
 
 
 	function initScene () {
+
+        // set the mode
+        current = location.hash.substr( 1, 2 ) || '3D';
 
         var w = window.innerWidth;
         var h = window.innerHeight;
@@ -118,11 +123,9 @@
         lights[ 0 ].shadow.mapSize.width = 2048;
         lights[ 0 ].shadow.mapSize.height = 2048;
 
-        addGround();
-
 		window.addEventListener( 'resize', resize, false );
 
-	
+	    addGround()
 		initGui();
 
         // FIK
@@ -130,9 +133,9 @@
         defaultBoneDirection = FIK.Z_NEG;
         defaultBoneLength = 10;
 
-        solver = new FIK.Structure3D( scene );
+        solver = current === '3D' ? new FIK.Structure3D( scene ) : new FIK.Structure2D( scene );
 
-        var s = location.hash.substr( 1 ); 
+        var s = location.hash.substr( 4 ); 
         load( s || 'demo_1' );
 
 	}
@@ -150,7 +153,7 @@
 
     function addGround(){
 
-        if(current==='3D'){
+        if( current === '3D' ){
 
             camera.position.set( 0,30,100 );
             lights[ 0 ].position.set( 0, 200, 0 );
@@ -214,7 +217,7 @@
     function addTarget( position ){
 
         var n = {
-            mesh : new THREE.Mesh( new THREE.SphereBufferGeometry( 1 ),  new THREE.MeshStandardMaterial({color:0xFFFF00, wireframe:true }) ),
+            mesh : new THREE.Mesh( new THREE.SphereBufferGeometry( 0.1, 6, 4 ),  new THREE.MeshStandardMaterial({color:0xFFFF00, wireframe:true }) ),
             control : new THREE.TransformControls( camera, renderer.domElement ),
         }
 
@@ -226,6 +229,8 @@
         n.control.addEventListener( 'change', updateSolver );
         n.control.attach( n.mesh );
         n.control.setSize(0.75);
+        //n.control.setMode('rotate')
+        //n.control.setMode('scale')
         scene.add( n.control );
 
         n.position = n.mesh.position;
@@ -263,18 +268,15 @@
 
         if(current==='2D'){
 
-            addDemos(9);
-            folder = './demos/2d/';
             solver = new FIK.Structure2D( scene );
 
         } else {
 
-            addDemos(13);
-            folder = './demos/3d/';
             solver = new FIK.Structure3D( scene );
 
         }
 
+        addDemos( demos[current] );
         addGround();
 
         load( 'demo_1' );
@@ -295,7 +297,7 @@
 
         demoGroup = gui.add('group', { name:'DEMO', fontColor:'#D4B87B' });
 
-        addDemos(13);
+        addDemos( demos[current] )
 
 	}
 
@@ -349,10 +351,8 @@
 
         if( name === fileName ) return;
 
-        location.hash.substr( 1 );
-
         fileName = name;
-        var url = folder + name +'.js';
+        var url = './demos/' + current.toLowerCase() + '/' + name +'.js';
 
         var xhr = new XMLHttpRequest();
         xhr.overrideMimeType('text/plain; charset=x-user-defined'); 
@@ -379,13 +379,13 @@
 
         resetDemo();
 
-        location.hash = fileName;
+        location.hash = current + '_' + fileName;
 
         var oScript = document.createElement("script");
         oScript.language = "javascript";
         oScript.type = "text/javascript";
         oScript.text = code;
-        document.getElementsByTagName('BODY').item(0).appendChild(oScript);
+        document.getElementsByTagName('BODY').item(0).appendChild( oScript );
 
         solver.update();
 

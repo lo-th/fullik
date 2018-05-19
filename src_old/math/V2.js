@@ -58,12 +58,10 @@ Object.assign( V2.prototype, {
 
 	},
 
-	add: function ( v ) {
+	length: function () {
 
-		this.x += v.x;
-		this.y += v.y;
-	    return this;
-
+	    return Math.sqrt( this.x * this.x + this.y * this.y );
+	
 	},
 
 	plus: function ( v ) {
@@ -108,9 +106,28 @@ Object.assign( V2.prototype, {
 
 	},
 
+	/*projectOnPlane: function ( planeNormal ) {
+
+	    if ( planeNormal.length() <= 0 ){ Tools.error("Plane normal cannot be a zero vector."); return; }
+	        
+        // Projection of vector b onto plane with normal n is defined as: b - ( b.n / ( |n| squared )) * n
+        // Note: |n| is length or magnitude of the vector n, NOT its (component-wise) absolute value        
+        var b = this.normalised();
+        var n = planeNormal.normalised();     
+        return b.minus( n.times( _Math.dotProduct( b, planeNormal ) ) ).normalize();// b.sub( n.multiply( Fullik.dotProduct(b, planeNormal) ) ).normalize();
+
+	},*/
+
+	/*cross: function( v ) { 
+
+	    return new V2( this.y * v.z - this.z * v.y, this.z * v.x - this.x * v.z, this.x * v.y - this.y * v.x );
+
+	},*/
+
 	dot: function ( a, b ) {
 
 		//if( b !== undefined ) return a.x * b.x + a.y * b.y;
+		//else 
 		return this.x * a.x + this.y * a.y;
 
 	},
@@ -143,18 +160,11 @@ Object.assign( V2.prototype, {
 
 	},
 
-	cross: function( v ) {
+	zcross: function( b ) { //  Method to determine the sign of the angle between two V2 objects.
 
-	    return this.x * v.y - this.y * v.x;
-
-	},
-
-	sign: function( v ) { //  Method to determine the sign of the angle between two V2 objects.
-
-		var p = this.cross( v );
-		//return p >= 0 ? 1 : -1;
-		if ( p > 0 ) return 1; 
-		else if ( p < 0 ) return -1;
+	    var p = this.x * b.y - b.x * this.y;
+		if      ( p > 0 ) return 1; 
+		else if ( p < 0 ) return -1;	
 		return 0;
 
 	},
@@ -168,74 +178,20 @@ Object.assign( V2.prototype, {
 
 	},
 
-	rotate: function( angle ) {
+	getSignedAngleDegsTo: function ( otherVector ) { // 2D
 
-		var cos = Math.cos( angle );
-		var sin = Math.sin( angle );
-		var x = this.x * cos - this.y * sin;
-		var y = this.x * sin + this.y * cos;
-		return new V2( x, y );
-
-	},
-
-	rotateSelf: function( angle ) {
-
-		var cos = Math.cos( angle );
-		var sin = Math.sin( angle );
-		var x = this.x * cos - this.y * sin;
-		var y = this.x * sin + this.y * cos;
-		this.x = x;
-		this.y = y;
-		return this;
-
-	},
-
-	angleTo: function ( v ) {
-
-		var a = this.dot(v) / (Math.sqrt( this.lengthSq() * v.lengthSq() ));
-		//return Math.acos( _Math.clamp( a, - 1, 1 ) );
-		if(a <= -1) return Math.PI;
-		if(a >= 1) return 0;
-		return Math.acos( a );
-
-	},
-
-	getSignedAngle: function ( v ) {
-
-		var a = this.angleTo( v );
-		var s = this.sign( v );
-		return s === 1 ? a : -a;
-		
-	},
-
-	/*getSignedAngleDegsTo: function ( v ) { 
-
-		var angle = _Math.getAngleBetweenDegs( this, v );
+		var angle = _Math.getAngleBetweenDegs( this, otherVector );
 
 	    // Normalise the vectors that we're going to use
 		//var thisVectorUV  = this.normalised();
 		//var otherVectorUV = otherVector.normalised();
 		// Calculate the unsigned angle between the vectors as the arc-cosine of their dot product
 		//var unsignedAngleDegs = Math.acos( thisVectorUV.dot(otherVectorUV) ) * _Math.toDeg;
-		// Calculate and return the signed angle between the two vectors using the cross method
-		if ( this.sign( v ) === 1 ) return angle;
+		// Calculate and return the signed angle between the two vectors using the zcross method
+		if ( this.zcross( otherVector ) === 1 ) return angle;
 		else return -angle;
 		
-	},*/
-
-	constrainedUV: function( baselineUV, min, max ) {
-
-        var angle = baselineUV.getSignedAngle( this );
-        //_Math.clamp( angle, min, max );
-        //if( angle > max ) this.copy( baselineUV ).rotateSelf( max );
-        //if( angle < min ) this.copy( baselineUV ).rotateSelf( min );
-        if( angle > max ) this.copy( baselineUV.rotate(max) )
-        if( angle < min ) this.copy( baselineUV.rotate(min) )
-        //if( angle > max ) return baselineUV.rotate( max );
-        //if( angle < min ) return baselineUV.rotate( min );
-        return this;
-
-    },
+	},
 
 } );
 

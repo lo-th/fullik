@@ -25,8 +25,8 @@ leftChain.addBone(basebone);
 
 // Add consecutive constrained bones
 // Note: The base-bone is unconstrained, but these bones ARE constrained                
-leftChain.addConsecutiveBone(FIK.LEFT, boneLength, 90, 90);
-leftChain.addConsecutiveBone(FIK.LEFT, boneLength, 90, 90);
+leftChain.addConsecutiveBone( FIK.LEFT, boneLength, 90, 90 );
+leftChain.addConsecutiveBone( FIK.LEFT, boneLength, 90, 90 );
 
 // Add the chain to the structure, connecting to the end of bone 0 in chain 0
 solver.connectChain( leftChain, 0, 0, 'end', target, true );
@@ -42,8 +42,8 @@ rightChain.addBone(basebone);
                 
 // Add two consecutive constrained bones to the chain
 // Note: The base-bone is unconstrained, but these bones ARE constrained
-rightChain.addConsecutiveBone(FIK.RIGHT, boneLength, 60, 60.0);
-rightChain.addConsecutiveBone(FIK.RIGHT, boneLength, 60, 60.0);
+rightChain.addConsecutiveBone( FIK.RIGHT, boneLength, 60, 60 );
+rightChain.addConsecutiveBone( FIK.RIGHT, boneLength, 60, 60 );
 
 // Add the chain to the structure, connecting to the end of bone 1 in chain 0
 solver.connectChain(rightChain, 0, 1, 'end', target, true);

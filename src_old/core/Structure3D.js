@@ -223,14 +223,14 @@ Object.assign( Structure3D.prototype, {
         var meshBone = [];
         var lng  = chain.bones.length;
         for(var i = 0; i < lng; i++ ){
-            meshBone.push( this.addBoneMesh( chain.bones[i], i-1, meshBone, chain ));
+            meshBone.push( this.addBoneMesh( chain.bones[i], i-1, meshBone ));
         }
 
         this.meshChains.push( meshBone );
 
     },
 
-    addBoneMesh:function( bone, prev, ar, chain ){
+    addBoneMesh:function( bone, prev, ar ){
 
         var size = bone.mLength;
         var color = bone.color;

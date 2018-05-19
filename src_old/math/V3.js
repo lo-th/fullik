@@ -77,13 +77,10 @@ Object.assign( V3.prototype, {
 	
 	},
 
-	add: function ( v ) {
+	length: function () {
 
-		this.x += v.x;
-		this.y += v.y;
-		this.z += v.z;
-	    return this;
-
+	    return Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z );
+	
 	},
 
 	plus: function ( v ) {

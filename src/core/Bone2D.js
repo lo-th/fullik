@@ -3,21 +3,36 @@ import { Joint2D } from './Joint2D.js';
 import { _Math } from '../math/Math.js';
 import { V2 } from '../math/V2.js';
 
-function Bone2D ( startLocation, endLocation, directionUV, length, clockwiseDegs, anticlockwiseDegs, color ){
+function Bone2D ( Start, End, directionUV, length, clockwiseDegs, anticlockwiseDegs, color ) {
 
-    this.mJoint = new Joint2D( clockwiseDegs, anticlockwiseDegs );
-    this.mStartLocation = new V2();
-    this.mEndLocation = new V2();
+    this.start = new V2();
+    this.end = new V2();
+    this.length = length || 0;
 
-    this.mGlobalConstraintUV = new V2(1, 0);
-    
-    this.mBoneConnectionPoint = END;
-    this.mLength = 0;
+    this.joint = new Joint2D( clockwiseDegs, anticlockwiseDegs );
+
+    this.globalConstraintUV = new V2(1, 0);
+    this.boneConnectionPoint = END;
 
     this.color = color || null;
     this.name = '';
 
-    this.init( startLocation, endLocation, directionUV, length );
+    this.angle = 0;
+
+    // init
+
+    this.setStartLocation( Start );
+
+    if( End ){ 
+
+        this.setEndLocation( End );
+        if( this.length === 0 ) this.length = this.getLength();
+
+    } else if ( directionUV ) {
+
+        this.setEndLocation( this.start.plus( directionUV.normalised().times( this.length ) ) );
+        
+    }
 
 };
 
@@ -25,137 +40,150 @@ Object.assign( Bone2D.prototype, {
 
     isBone2D: true,
 
-    init:function( startLocation, endLocation, directionUV, length ){
+    clone: function () {
 
-        this.setStartLocation( startLocation );
-        //if( endLocation !== undefined ){ 
-        if( endLocation ){ 
-
-            this.setEndLocation( endLocation );
-            this.setLength( _Math.distanceBetween( this.mStartLocation, this.mEndLocation ) );
-
-        } else {
-
-            this.setLength( length );
-            this.setEndLocation( this.mStartLocation.plus( directionUV.normalised().times( length ) ) );
-            
-        }
-
-    },
-
-    clone:function(){
-        var b = new Bone2D( this.mStartLocation, this.mEndLocation );
-        b.mGlobalConstraintUV = this.mGlobalConstraintUV;
-        b.mBoneConnectionPoint = this.mBoneConnectionPoint;
+        var b = new Bone2D( this.start, this.end );
+        b.length = this.length;
+        b.globalConstraintUV = this.globalConstraintUV;
+        b.boneConnectionPoint = this.boneConnectionPoint;
+        b.joint = this.joint.clone();
         b.color = this.color;
-        b.mJoint = this.mJoint.clone();
+        b.name = this.name;
+        b.angle = this.angle;
         return b;
-    },
 
-    length : function(){
-        return this.mLength;
-    },
-
-    liveLength :function(){
-        return _Math.distanceBetween( this.mStartLocation, this.mEndLocation );
     },
     
 
     // SET
 
-    setName:function( name ){
+    setName: function ( name ) {
+
         this.name = name;
+
     },
 
-    setColor:function( c ){
+    setColor: function ( c ) {
+
         this.color = c;
+
     },
 
-    setBoneConnectionPoint:function( bcp ){
-        this.mBoneConnectionPoint = bcp;
+    setBoneConnectionPoint: function ( bcp ) {
+
+        this.boneConnectionPoint = bcp;
+
     },
 
+    setStartLocation: function ( v ) {
 
-    setClockwiseConstraintDegs:function( angleDegs ){
-        this.mJoint.setClockwiseConstraintDegs( angleDegs );
+        this.start.copy( v );
+
     },
 
-    setAnticlockwiseConstraintDegs:function( angleDegs ){
-        this.mJoint.setAnticlockwiseConstraintDegs( angleDegs );
+    setEndLocation: function ( v ) {
+
+        this.end.copy( v );
+
     },
 
-    setStartLocation:function( v ){
-        this.mStartLocation.copy( v );
+    setLength:function ( length ) {
+
+        if ( length > 0 ) this.length = length;
+
     },
 
-    setEndLocation:function( v ){
-        this.mEndLocation.copy( v );
+    setGlobalConstraintUV: function ( v ) {
+
+        this.globalConstraintUV = v;
+
     },
 
-    setLength:function( lng ){
-        if ( lng > 0 ) this.mLength = lng;
+    // SET JOINT
+
+    setJoint: function ( joint ) {
+
+        this.joint = joint;
+
     },
 
-    setJoint:function( joint ){
-        this.mJoint = joint;
+    setClockwiseConstraintDegs: function ( angleDegs ) {
+
+        this.joint.setClockwiseConstraintDegs( angleDegs );
+
     },
 
-    setGlobalConstraintUV:function( v ){
-        this.mGlobalConstraintUV = v;
+    setAnticlockwiseConstraintDegs: function ( angleDegs ) {
+
+        this.joint.setAnticlockwiseConstraintDegs( angleDegs );
+
     },
 
-    setJointConstraintCoordinateSystem:function( coordSystem ){
-        this.mJoint.setConstraintCoordinateSystem( coordSystem );
+    setJointConstraintCoordinateSystem: function ( coordSystem ) {
+
+        this.joint.setConstraintCoordinateSystem( coordSystem );
+
     },
 
 
     // GET
 
-    getGlobalConstraintUV: function(){
-        return this.mGlobalConstraintUV;
+    getGlobalConstraintUV: function () {
+
+        return this.globalConstraintUV;
+
+    },
+    
+    getBoneConnectionPoint: function () {
+
+        return this.boneConnectionPoint;
+
     },
 
-    getClockwiseConstraintDegs: function(){
-        return this.mJoint.getClockwiseConstraintDegs();
+    getDirectionUV: function () {
+
+        return _Math.getDirectionUV( this.start, this.end );
+
+    },
+
+    getLength: function () {
+
+        return _Math.distanceBetween( this.start, this.end );
+
+    },
+
+    getStartLocation : function () {
+
+        return this.start;
+
+    },
+
+    getEndLocation : function () {
+
+        return this.end;
+
+    },
+
+    // GET JOINT
+
+    /*getClockwiseConstraintDegs: function () {
+
+        return this.joint.getClockwiseConstraintDegs();
+
     },
 
     
-    getAnticlockwiseConstraintDegs: function(){
-        return this.mJoint.getAnticlockwiseConstraintDegs();
+    getAnticlockwiseConstraintDegs: function () {
+
+        return this.joint.getAnticlockwiseConstraintDegs();
+
     },
 
     getJointConstraintCoordinateSystem: function () {
-        return this.mJoint.getConstraintCoordinateSystem();
-    },
 
-    
-    getBoneConnectionPoint:function(){
-        return this.mBoneConnectionPoint;
-    },
+        return this.joint.getConstraintCoordinateSystem();
 
-    getDirectionUV:function(){
-        return _Math.getDirectionUV( this.mStartLocation, this.mEndLocation );
-    },
-
-    getStartLocation : function(){
-        return this.mStartLocation;
-    },
-    getEndLocation : function(){
-        return this.mEndLocation;
-    },
-
-    /*getJointType : function(){
-        return this.mJoint.getJointType();
     },*/
-
-    getLength : function(){
-        return this.mLength;
-    },
-
-    getJoint : function(){
-        return this.mJoint;
-    },
-
     
 
 } );

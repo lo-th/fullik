@@ -3,22 +3,30 @@ import { J_LOCAL, J_GLOBAL, MIN_DEGS, MAX_DEGS } from '../constants.js';
 
 function Joint2D( clockwiseConstraintDegs, antiClockwiseConstraintDegs, constraintCoordSystem ){
 
-    this.mClockwiseConstraintDegs = clockwiseConstraintDegs || MAX_DEGS;
-    this.mAnticlockwiseConstraintDegs = antiClockwiseConstraintDegs || MAX_DEGS;
-    this.mConstraintCoordinateSystem = constraintCoordSystem || J_LOCAL;
+    this.minDeg = clockwiseConstraintDegs !== undefined ? clockwiseConstraintDegs : MAX_DEGS;
+    this.maxDeg = antiClockwiseConstraintDegs !== undefined ? antiClockwiseConstraintDegs : MAX_DEGS;
+    this.coordinateSystem = constraintCoordSystem || J_LOCAL;
 
+    this.min = -this.minDeg * _Math.toRad;
+    this.max = this.maxDeg * _Math.toRad;
+    
 }
 
 Object.assign( Joint2D.prototype, {
 
     isJoint2D: true,
 
-    clone:function(){
+    clone: function () {
 
         var j = new Joint2D();
-        j.mClockwiseConstraintDegs = this.mClockwiseConstraintDegs;
-        j.mAnticlockwiseConstraintDegs = this.mAnticlockwiseConstraintDegs;
-        j.mConstraintCoordinateSystem = this.mConstraintCoordinateSystem;
+        j.minDeg = this.minDeg;
+        j.maxDeg = this.maxDeg;
+        j.coordinateSystem = this.coordinateSystem;
+
+        j.max = this.max;
+        j.min = this.min;
+
+
         return j;
 
     },
@@ -31,52 +39,56 @@ Object.assign( Joint2D.prototype, {
 
     // SET
 
-    set: function ( sourceJoint ) {
+    set: function ( joint ) {
 
-        //this.setClockwiseConstraintDegs(sourceJoint.mClockwiseConstraintDegs);
-        //this.setAnticlockwiseConstraintDegs(sourceJoint.mAnticlockwiseConstraintDegs);
-        this.mClockwiseConstraintDegs = sourceJoint.mClockwiseConstraintDegs;
-        this.mAnticlockwiseConstraintDegs = sourceJoint.mAnticlockwiseConstraintDegs;
-        this.mConstraintCoordinateSystem = sourceJoint.mConstraintCoordinateSystem;
+        this.minDeg = joint.minDeg;
+        this.maxDeg = joint.maxDeg;
+        this.max = joint.max;
+        this.min = joint.min;
+        this.coordinateSystem = joint.coordinateSystem;
 
     },
 
     setClockwiseConstraintDegs: function ( angle ) {
 
-        this.mClockwiseConstraintDegs = this.validateAngle( angle );
+        // 0 to -180 degrees represents clockwise rotation
+        this.minDeg = this.validateAngle( angle );
+        this.min = -this.minDeg * _Math.toRad;
         
     },
 
-    setAnticlockwiseConstraintDegs:function( angle ){
+    setAnticlockwiseConstraintDegs: function ( angle ) {
 
-        this.mAnticlockwiseConstraintDegs = this.validateAngle( angle );
+        // 0 to 180 degrees represents anti-clockwise rotation
+        this.maxDeg = this.validateAngle( angle );
+        this.max = this.maxDeg * _Math.toRad;
         
     },
 
-    setConstraintCoordinateSystem:function( coordSystem ){
+    setConstraintCoordinateSystem: function ( coordSystem ) {
 
-        this.mConstraintCoordinateSystem = coordSystem;
+        this.coordinateSystem = coordSystem;
 
     },
 
 
     // GET
 
-    getClockwiseConstraintDegs:function(){
+    getClockwiseConstraintDegs: function () {
 
-        return this.mClockwiseConstraintDegs;
-
-    },
-
-    getAnticlockwiseConstraintDegs:function(){
-
-        return this.mAnticlockwiseConstraintDegs;
+        return this.minDeg;
 
     },
 
-    getConstraintCoordinateSystem:function(){
+    getAnticlockwiseConstraintDegs: function () {
 
-        return this.mConstraintCoordinateSystem;
+        return this.maxDeg;
+
+    },
+
+    getConstraintCoordinateSystem: function () {
+
+        return this.coordinateSystem;
 
     },
 
