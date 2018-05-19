@@ -7,12 +7,15 @@ import { Tools } from './Tools.js';
 
  function Chain2D ( color ){
 
+    this.tmpTarget = new V2();
+
     this.bones = [];
     this.name = '';
 
     this.solveDistanceThreshold = 1.0;
-    this.maxIterationAttempts = 15;
+    this.maxIteration = 15;
     this.minIterationChange = 0.01;
+    this.precision = 0.001;
 
     this.bonesLength = 0;
     this.numBones = 0;
@@ -49,7 +52,7 @@ Object.assign( Chain2D.prototype, {
 
         var c = new Chain2D();
 
-        c.bones = this.cloneIkChain();
+        c.bones = this.cloneBones();
         c.mBaseLocation.copy( this.mBaseLocation );
         c.lastTargetLocation.copy( this.lastTargetLocation );
         c.lastBaseLocation.copy( this.lastBaseLocation );
@@ -176,25 +179,25 @@ Object.assign( Chain2D.prototype, {
     //      GET
     // -------------------------------
 
-    getBoneConnectionPoint:function(){
+    getBoneConnectionPoint: function () {
 
         return this.boneConnectionPoint;
 
     },
 
-    getEmbeddedTarget:function(){
+    getEmbeddedTarget:function () {
 
         return this.embeddedTarget;
 
     },
 
-    getEmbeddedTargetMode:function(){
+    getEmbeddedTargetMode: function () {
 
         return this.useEmbeddedTarget;
 
     },
 
-    getBaseboneConstraintType:function(){
+    getBaseboneConstraintType: function () {
 
         return this.baseboneConstraintType;
 
@@ -227,39 +230,48 @@ Object.assign( Chain2D.prototype, {
     getChainLength: function () {
 
         return this.bonesLength;
-        
+
     },
 
-    getConnectedBoneNumber:function(){
+    getConnectedBoneNumber:function () {
+
         return this.connectedBoneNumber;
+
     },
 
     getConnectedChainNumber:function(){
+
         return this.connectedChainNumber;
+
     },
 
-    getEffectorLocation:function(){
+    getEffectorLocation: function () {
+
         return this.bones[this.numBones-1].getEndLocation();
+
     },
 
-    getLastTargetLocation:function(){
+    getLastTargetLocation: function () {
+
         return this.lastTargetLocation;
+
     },
 
-    getLiveChainLength:function(){
-        var lng = 0;        
-        for (var i = 0; i < this.numBones; i++){  
+    getLiveChainLength: function () {
+
+        var lng = 0;
+        var i = this.numBones;
+        while( i-- ){  
             lng += this.bones[i].getLength();
         }       
         return lng;
+
     },
 
-    getName:function(){
-        return this.name;
-    },
+    getNumBones: function () {
 
-    getNumBones:function(){
         return this.numBones;
+
     },
 
 
@@ -267,11 +279,12 @@ Object.assign( Chain2D.prototype, {
     //      SET
     // -------------------------------
 
-    setColor: function (c) {
+    setColor: function ( color ) {
 
-        this.color = c;
-        for (var i = 0; i < this.numBones; i++){  
-            this.bones[i].setColor( c );
+        this.color = color;
+        var i = this.numBones;
+        while( i-- ){  
+            this.bones[i].setColor( this.color );
         }
         
     },
@@ -281,7 +294,6 @@ Object.assign( Chain2D.prototype, {
         this.baseboneRelativeConstraintUV = constraintUV; 
 
     },
-    //setBaseboneRelativeReferenceConstraintUV: function( constraintUV ){ this.mBaseboneRelativeReferenceConstraintUV = constraintUV; },
 
     setConnectedBoneNumber: function ( boneNumber ) {
 
@@ -327,13 +339,13 @@ Object.assign( Chain2D.prototype, {
 
     },*/
 
-    setBaseboneConstraintType: function( value ){
+    setBaseboneConstraintType: function ( value ) {
 
         this.baseboneConstraintType = value;
 
     },
 
-    setFixedBaseMode: function( value ){
+    setFixedBaseMode: function ( value ) {
 
         // Enforce that a chain connected to another chain stays in fixed base mode (i.e. it moves with the chain it's connected to instead of independently)
         if ( !value && this.connectedChainNumber !== -1) return;
@@ -342,21 +354,21 @@ Object.assign( Chain2D.prototype, {
         this.fixedBaseMode = value;
     },
 
-    setMaxIterationAttempts: function( maxIterations ){
+    setMaxIterationAttempts: function ( maxIteration ) {
 
-        if (maxIterations < 1) return;
-        this.maxIterationAttempts = maxIterations;
+        if ( maxIteration < 1 ) return;
+        this.maxIteration = maxIteration;
 
     },
 
-    setMinIterationChange: function( minIterationChange ){
+    setMinIterationChange: function ( minIterationChange ) {
 
         if (minIterationChange < 0) return;
         this.minIterationChange = minIterationChange;
 
     },
 
-    setSolveDistanceThreshold: function( solveDistance ){
+    setSolveDistanceThreshold: function ( solveDistance ) {
 
         if (solveDistance < 0) return;
         this.solveDistanceThreshold = solveDistance;
@@ -371,13 +383,13 @@ Object.assign( Chain2D.prototype, {
     //
     // -------------------------------
 
-    solveForEmbeddedTarget : function( ){
+    solveForEmbeddedTarget : function () {
 
         if ( this.useEmbeddedTarget ) return this.updateTarget( this.embeddedTarget );
 
     },
 
-    resetTarget : function( ){
+    resetTarget : function(){
 
         this.lastBaseLocation = new V2( MAX_VALUE, MAX_VALUE );
         this.currentSolveDistance = MAX_VALUE;
@@ -391,13 +403,15 @@ Object.assign( Chain2D.prototype, {
     // To minimuse CPU usage, this method dynamically aborts if:
     // - The solve distance (i.e. distance between the end effector and the target) is below the solveDistanceThreshold,
     // - A solution incrementally improves on the previous solution by less than the minIterationChange, or
-    // - The number of attempts to solve the IK chain exceeds the maxIterationAttempts.
+    // - The number of attempts to solve the IK chain exceeds the maxIteration.
 
     updateTarget: function ( t ) {
 
-        var newTarget = new V2( t.x, t.y );
+        this.tmpTarget.set( t.x, t.y );
+        var p = this.precision;
+
         // If we have both the same target and base location as the last run then do not solve
-        if ( this.lastTargetLocation.approximatelyEquals( newTarget, 0.001 ) && this.lastBaseLocation.approximatelyEquals( this.mBaseLocation, 0.001) ) return this.currentSolveDistance;
+        if ( this.lastTargetLocation.approximatelyEquals( this.tmpTarget, p ) && this.lastBaseLocation.approximatelyEquals( this.mBaseLocation, p ) ) return this.currentSolveDistance;
         
         // Keep starting solutions and distance
         var startingDistance;
@@ -405,9 +419,9 @@ Object.assign( Chain2D.prototype, {
 
         // If the base location of a chain hasn't moved then we may opt to keep the current solution if our 
         // best new solution is worse...
-        if ( this.lastBaseLocation.approximatelyEquals( this.mBaseLocation, 0.001) ) {           
-            startingDistance  = _Math.distanceBetween( this.bones[this.numBones-1].getEndLocation(), newTarget );
-            startingSolution = this.cloneIkChain();
+        if ( this.lastBaseLocation.approximatelyEquals( this.mBaseLocation, p ) ) {
+            startingDistance  = _Math.distanceBetween( this.bones[ this.numBones-1 ].getEndLocation(), this.tmpTarget );
+            startingSolution = this.cloneBones();
         } else {
             // Base has changed? Then we have little choice but to recalc the solution and take that new solution.
             startingDistance = MAX_VALUE;
@@ -423,19 +437,22 @@ Object.assign( Chain2D.prototype, {
         
         // Allow up to our iteration limit attempts at solving the chain
         var solveDistance;
-        //var i = this.maxIterationAttempts;
-        //while( i-- ){
-        for ( var i = 0; i < this.maxIterationAttempts; i++ ){   
+        
+        var i = this.maxIteration;
+
+        while( i-- ){
+        //for ( var i = 0; i < this.maxIteration; i++ ){
 
             // Solve the chain for this target
-            solveDistance = this.solveIK( newTarget );
+            solveDistance = this.solveIK( this.tmpTarget );
             
             // Did we solve it for distance? If so, update our best distance and best solution, and also
-            // update our last pass solve distance. Note: We will ALWAYS beat our last solve distance on the first run. 
+            // update our last pass solve distance. Note: We will ALWAYS beat our last solve distance on the first run
+
             if ( solveDistance < bestSolveDistance ) {   
 
                 bestSolveDistance = solveDistance;
-                bestSolution = this.cloneIkChain();
+                bestSolution = this.cloneBones();
                 
                 // If we are happy that this solution meets our distance requirements then we can exit the loop now
                 if ( solveDistance <= this.solveDistanceThreshold ) break;
@@ -453,7 +470,6 @@ Object.assign( Chain2D.prototype, {
             
         }
 
-
         // Did we get a solution that's better than the starting solution's to the new target location?
         if ( bestSolveDistance < startingDistance ){
             // If so, set the newly found solve distance and solution as the best found.
@@ -467,7 +483,7 @@ Object.assign( Chain2D.prototype, {
         
         // Update our last base and target locations so we know whether we need to solve for this start/end configuration next time
         this.lastBaseLocation.copy( this.mBaseLocation );
-        this.lastTargetLocation.copy( newTarget );
+        this.lastTargetLocation.copy( this.tmpTarget );
         
         return this.currentSolveDistance;
 
@@ -482,7 +498,7 @@ Object.assign( Chain2D.prototype, {
     // Solve the IK chain for the given target using the FABRIK algorithm.
     // retun the best solve distance found between the end-effector of this chain and the provided target.
 
-    solveIK : function( target ){
+    solveIK: function ( target ) {
 
         if ( this.numBones === 0 ) return;
 
@@ -522,7 +538,7 @@ Object.assign( Chain2D.prototype, {
                 // If we are not working on the basebone, then we also set the end joint location of
                 // the previous bone in the chain (i.e. the bone closer to the base) to be the new
                 // start joint location of this bone.
-                if (i > 0) this.bones[i-1].setEndLocation( startPosition );
+                if ( i > 0 ) this.bones[i-1].setEndLocation( startPosition );
                 
             } else { // If we ARE working on the end effector bone...
             
@@ -559,7 +575,7 @@ Object.assign( Chain2D.prototype, {
                 bone.setStartLocation( startPosition );
 
                 // ...and set the end joint location of the bone further in to also be at the new start location.
-                if (i > 0) this.bones[i-1].setEndLocation( startPosition );
+                if ( i > 0 ) this.bones[i-1].setEndLocation( startPosition );
                 
             }
             
@@ -662,6 +678,7 @@ Object.assign( Chain2D.prototype, {
                 
         // ...and calculate and return the distance between the current effector location and the target.
         return _Math.distanceBetween( currentEffectorLocation, target );
+
     },
 
     updateChainLength: function () {
@@ -673,7 +690,7 @@ Object.assign( Chain2D.prototype, {
 
     },
 
-    cloneIkChain : function(){
+    cloneBones : function(){
 
        // Use clone to create a new Bone with the values from the source Bone.
        // and add it to the cloned chain.
