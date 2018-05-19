@@ -2993,14 +2993,14 @@ function Chain2D ( color ){
     this.name = '';
 
     this.solveDistanceThreshold = 1.0;
-    this.maxIteration = 15;
     this.minIterationChange = 0.01;
+    this.maxIteration = 15;
     this.precision = 0.001;
-
+    
     this.bonesLength = 0;
     this.numBones = 0;
 
-    this.mBaseLocation = new V2();
+    this.baseLocation = new V2();
     this.fixedBaseMode = true;
 
     this.baseboneConstraintType = NONE;
@@ -3032,8 +3032,13 @@ Object.assign( Chain2D.prototype, {
 
         var c = new Chain2D();
 
+        c.solveDistanceThreshold = this.solveDistanceThreshold;
+        c.minIterationChange = this.minIterationChange;
+        c.maxIteration = this.maxIteration;
+        c.precision = this.precision;
+        
         c.bones = this.cloneBones();
-        c.mBaseLocation.copy( this.mBaseLocation );
+        c.baseLocation.copy( this.baseLocation );
         c.lastTargetLocation.copy( this.lastTargetLocation );
         c.lastBaseLocation.copy( this.lastBaseLocation );
                 
@@ -3044,17 +3049,18 @@ Object.assign( Chain2D.prototype, {
         }       
         
         // Native copy by value for primitive members
-        c.boneConnectionPoint    = this.boneConnectionPoint;
-        c.bonesLength            = this.bonesLength;
-        c.numBones               = this.numBones;
-        c.currentSolveDistance   = this.currentSolveDistance;
-        c.connectedChainNumber   = this.connectedChainNumber;
-        c.connectedBoneNumber    = this.connectedBoneNumber;
+        c.fixedBaseMode = this.fixedBaseMode;
+        c.boneConnectionPoint = this.boneConnectionPoint;
+        c.bonesLength = this.bonesLength;
+        c.numBones = this.numBones;
+        c.currentSolveDistance = this.currentSolveDistance;
+        c.connectedChainNumber = this.connectedChainNumber;
+        c.connectedBoneNumber = this.connectedBoneNumber;
         c.baseboneConstraintType = this.baseboneConstraintType;
 
         c.color = this.color;
 
-        c.embeddedTarget    = this.embeddedTarget.clone();
+        c.embeddedTarget = this.embeddedTarget.clone();
         c.useEmbeddedTarget = this.useEmbeddedTarget;
 
         return c;
@@ -3083,7 +3089,7 @@ Object.assign( Chain2D.prototype, {
         // If this is the basebone...
         if ( this.numBones === 0 ){
             // ...then keep a copy of the fixed start location...
-            this.mBaseLocation.copy( bone.getStartLocation() );
+            this.baseLocation.copy( bone.getStartLocation() );
             
             // ...and set the basebone constraint UV to be around the initial bone direction
             this.baseboneConstraintUV.copy( bone.getDirectionUV() );
@@ -3302,7 +3308,7 @@ Object.assign( Chain2D.prototype, {
 
     setBaseLocation : function( baseLocation ){
 
-        this.mBaseLocation.copy( baseLocation );
+        this.baseLocation.copy( baseLocation );
 
     },
 
@@ -3349,7 +3355,7 @@ Object.assign( Chain2D.prototype, {
 
     setSolveDistanceThreshold: function ( solveDistance ) {
 
-        if (solveDistance < 0) return;
+        if ( solveDistance < 0 ) return;
         this.solveDistanceThreshold = solveDistance;
 
     },
@@ -3390,7 +3396,7 @@ Object.assign( Chain2D.prototype, {
         var p = this.precision;
 
         // If we have both the same target and base location as the last run then do not solve
-        if ( this.lastTargetLocation.approximatelyEquals( this.tmpTarget, p ) && this.lastBaseLocation.approximatelyEquals( this.mBaseLocation, p ) ) return this.currentSolveDistance;
+        if ( this.lastTargetLocation.approximatelyEquals( this.tmpTarget, p ) && this.lastBaseLocation.approximatelyEquals( this.baseLocation, p ) ) return this.currentSolveDistance;
         
         // Keep starting solutions and distance
         var startingDistance;
@@ -3398,7 +3404,7 @@ Object.assign( Chain2D.prototype, {
 
         // If the base location of a chain hasn't moved then we may opt to keep the current solution if our 
         // best new solution is worse...
-        if ( this.lastBaseLocation.approximatelyEquals( this.mBaseLocation, p ) ) {
+        if ( this.lastBaseLocation.approximatelyEquals( this.baseLocation, p ) ) {
             startingDistance  = _Math.distanceBetween( this.bones[ this.numBones-1 ].getEndLocation(), this.tmpTarget );
             startingSolution = this.cloneBones();
         } else {
@@ -3440,7 +3446,7 @@ Object.assign( Chain2D.prototype, {
 
                 // Did not solve to our satisfaction? Okay...
                 // Did we grind to a halt? If so break out of loop to set the best distance and solution that we have
-                if ( Math.abs( solveDistance - lastPassSolveDistance ) < this.minIterationChange )  break; //System.out.println("Ground to halt on iteration: " + loop);
+                if ( Math.abs( solveDistance - lastPassSolveDistance ) < this.minIterationChange )  break;
 
             }
             
@@ -3461,7 +3467,7 @@ Object.assign( Chain2D.prototype, {
         }
         
         // Update our last base and target locations so we know whether we need to solve for this start/end configuration next time
-        this.lastBaseLocation.copy( this.mBaseLocation );
+        this.lastBaseLocation.copy( this.baseLocation );
         this.lastTargetLocation.copy( this.tmpTarget );
         
         return this.currentSolveDistance;
@@ -3594,7 +3600,7 @@ Object.assign( Chain2D.prototype, {
                 // If the base location is fixed then snap the start location of the base bone back to the fixed base
                 if ( this.fixedBaseMode ){
 
-                    bone.setStartLocation( this.mBaseLocation );
+                    bone.setStartLocation( this.baseLocation );
 
                 } else {// If the base location is not fixed...
                 
