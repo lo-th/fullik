@@ -19,6 +19,20 @@ Object.assign( V2.prototype, {
 
 	},
 
+	distanceTo: function ( v ) {
+
+		return Math.sqrt( this.distanceToSquared( v ) );
+
+	},
+
+	distanceToSquared: function ( v ) {
+
+		var dx = this.x - v.x, dy = this.y - v.y;
+
+		return dx * dx + dy * dy;
+
+	},
+
 	multiplyScalar: function ( scalar ) {
 
 		this.x *= scalar;
@@ -151,11 +165,11 @@ Object.assign( V2.prototype, {
 
 	sign: function( v ) { //  Method to determine the sign of the angle between two V2 objects.
 
-		var p = this.cross( v );
-		//return p >= 0 ? 1 : -1;
-		if ( p > 0 ) return 1; 
-		else if ( p < 0 ) return -1;
-		return 0;
+		var s = this.cross( v );
+		return s >= 0 ? 1 : -1;
+		/*if ( s > 0 ) return 1; 
+		else if ( s < 0 ) return -1;
+		return 0;*/
 
 	},
 

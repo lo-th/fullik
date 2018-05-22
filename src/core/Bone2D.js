@@ -1,6 +1,5 @@
 import { END, START } from '../constants.js';
 import { Joint2D } from './Joint2D.js';
-import { _Math } from '../math/Math.js';
 import { V2 } from '../math/V2.js';
 
 function Bone2D ( Start, End, directionUV, length, clockwiseDegs, anticlockwiseDegs, color ) {
@@ -16,8 +15,6 @@ function Bone2D ( Start, End, directionUV, length, clockwiseDegs, anticlockwiseD
 
     this.color = color || null;
     this.name = '';
-
-    this.angle = 0;
 
     // init
 
@@ -49,7 +46,6 @@ Object.assign( Bone2D.prototype, {
         b.joint = this.joint.clone();
         b.color = this.color;
         b.name = this.name;
-        b.angle = this.angle;
         return b;
 
     },
@@ -142,13 +138,13 @@ Object.assign( Bone2D.prototype, {
 
     getDirectionUV: function () {
 
-        return _Math.getDirectionUV( this.start, this.end );
+        return this.end.minus( this.start ).normalize();
 
     },
 
     getLength: function () {
 
-        return _Math.distanceBetween( this.start, this.end );
+        return this.start.distanceTo( this.end );
 
     },
 
@@ -163,27 +159,6 @@ Object.assign( Bone2D.prototype, {
         return this.end;
 
     },
-
-    // GET JOINT
-
-    /*getClockwiseConstraintDegs: function () {
-
-        return this.joint.getClockwiseConstraintDegs();
-
-    },
-
-    
-    getAnticlockwiseConstraintDegs: function () {
-
-        return this.joint.getAnticlockwiseConstraintDegs();
-
-    },
-
-    getJointConstraintCoordinateSystem: function () {
-
-        return this.joint.getConstraintCoordinateSystem();
-
-    },*/
     
 
 } );

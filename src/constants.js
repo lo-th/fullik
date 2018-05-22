@@ -10,9 +10,13 @@ export var REVISION = '1.3.3';
 
 export var MIN_DEGS = 0;
 export var MAX_DEGS = 180;
+export var MAX_RAD = Math.PI;
 export var PRECISION = 0.001;
 export var PRECISION_DEG = 0.01;
 export var MAX_VALUE = Infinity;
+
+export var TORAD = Math.PI / 180;
+export var TODEG = 180 / Math.PI;
 
 // chain Basebone Constraint Type
 

@@ -154,7 +154,9 @@ var _Math = {
 
 	perpendicular: function ( a, b ) {
 
-	    return _Math.nearEquals( _Math.dotProduct(a, b), 0.0, 0.01 ) ? true : false;
+		return _Math.nearEquals( a.dot(b), 0.0, 0.01 ) ? true : false;
+
+	    //return _Math.nearEquals( _Math.dotProduct(a, b), 0.0, 0.01 ) ? true : false;
 
 	},
 
@@ -196,7 +198,7 @@ var _Math = {
 
 	},
 
-	getUvBetween: function ( v1, v2 ) {
+	/*getUvBetween: function ( v1, v2 ) {
 
 	     return v2.minus(v1).normalize();
 
@@ -204,9 +206,10 @@ var _Math = {
 
 	dotProduct: function ( v1, v2 ) { 
 
-	    var v1Norm = v1.normalised();
-	    var v2Norm = v2.normalised();
-	    return v1Norm.x * v2Norm.x + v1Norm.y * v2Norm.y + v1Norm.z * v2Norm.z;
+	    //var v1Norm = v1.normalised();
+	    //var v2Norm = v2.normalised();
+	    //return v1Norm.x * v2Norm.x + v1Norm.y * v2Norm.y + v1Norm.z * v2Norm.z;
+	    return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 
 	},
 
@@ -246,9 +249,9 @@ var _Math = {
 
 	    return v2.minus( v1 ).normalize();
 
-	},
+	},*/
 
-	getSignedAngleBetweenDegs: function ( referenceVector, otherVector, normalVector ) {
+	/*getSignedAngleBetweenDegs: function ( referenceVector, otherVector, normalVector ) {
 
 	    var unsignedAngle = _Math.getAngleBetweenDegs( referenceVector, otherVector );
 	    var sign          = _Math.sign( _Math.dotProduct( _Math.crossProduct( referenceVector, otherVector ), normalVector ) ); 
@@ -268,7 +271,7 @@ var _Math = {
 
 		return v >= 0 ? 1 : -1; 
 
-	},
+	},*/
 
 
 	// rotation
@@ -375,6 +378,20 @@ Object.assign( V2.prototype, {
 	    this.x = x || 0;
 	    this.y = y || 0;
 	    return this;
+
+	},
+
+	distanceTo: function ( v ) {
+
+		return Math.sqrt( this.distanceToSquared( v ) );
+
+	},
+
+	distanceToSquared: function ( v ) {
+
+		var dx = this.x - v.x, dy = this.y - v.y;
+
+		return dx * dx + dy * dy;
 
 	},
 
@@ -510,11 +527,11 @@ Object.assign( V2.prototype, {
 
 	sign: function( v ) { //  Method to determine the sign of the angle between two V2 objects.
 
-		var p = this.cross( v );
-		//return p >= 0 ? 1 : -1;
-		if ( p > 0 ) return 1; 
-		else if ( p < 0 ) return -1;
-		return 0;
+		var s = this.cross( v );
+		return s >= 0 ? 1 : -1;
+		/*if ( s > 0 ) return 1; 
+		else if ( s < 0 ) return -1;
+		return 0;*/
 
 	},
 
@@ -616,6 +633,20 @@ Object.assign( V3.prototype, {
 	    this.y = y || 0;
 	    this.z = z || 0;
 	    return this;
+
+	},
+
+	distanceTo: function ( v ) {
+
+		return Math.sqrt( this.distanceToSquared( v ) );
+
+	},
+
+	distanceToSquared: function ( v ) {
+
+		var dx = this.x - v.x, dy = this.y - v.y, dz = this.z - v.z;
+
+		return dx * dx + dy * dy + dz * dz;
 
 	},
 
@@ -781,7 +812,7 @@ Object.assign( V3.prototype, {
 
 	},
 
-	projectOnPlane: function ( planeNormal ) {
+	/*projectOnPlane_old: function ( planeNormal ) {
 
 	    if ( planeNormal.length() <= 0 ){ Tools.error("Plane normal cannot be a zero vector."); return; }
 	        
@@ -792,7 +823,7 @@ Object.assign( V3.prototype, {
 
         return b.min( n.times( _Math.dotProduct( b, planeNormal ) ) ).normalize();
 
-	},
+	},*/
 
 	// added
 
@@ -803,7 +834,7 @@ Object.assign( V3.prototype, {
 
 	},
 
-	projectOnPlane_new: function () {
+	projectOnPlane: function () {
 
 		var v1 = new V3();
 
@@ -816,6 +847,32 @@ Object.assign( V3.prototype, {
 		};
 
 	}(),
+
+	applyM3: function ( m ) {
+
+		var x = this.x, y = this.y, z = this.z;
+		var e = m.elements;
+
+		this.x = e[ 0 ] * x + e[ 1 ] * y + e[ 2 ] * z;
+		this.y = e[ 3 ] * x + e[ 4 ] * y + e[ 5 ] * z;
+		this.z = e[ 6 ] * x + e[ 7 ] * y + e[ 8 ] * z;
+
+		return this.normalize();
+
+	},
+
+	applyMatrix3: function ( m ) {
+
+		var x = this.x, y = this.y, z = this.z;
+		var e = m.elements;
+
+		this.x = e[ 0 ] * x + e[ 3 ] * y + e[ 6 ] * z;
+		this.y = e[ 1 ] * x + e[ 4 ] * y + e[ 7 ] * z;
+		this.z = e[ 2 ] * x + e[ 5 ] * y + e[ 8 ] * z;
+
+		return this;
+
+	},
 
 	applyQuaternion: function ( q ) {
 
@@ -839,22 +896,74 @@ Object.assign( V3.prototype, {
 
 	},
 
+	/////
+
+	sign: function( v, normal ) { //  Method to determine the sign of the angle between two V2 objects.
+
+		var s = this.cross( v ).dot( normal );//_Math.dotProduct( this.cross( v ), normal );
+		return s >= 0 ? 1 : -1;
+		/*if ( s > 0 ) return 1; 
+		else if ( s < 0 ) return -1;
+		return 0;*/
+
+	},
+
+	angleTo: function ( v ) {
+
+		var a = this.dot(v) / (Math.sqrt( this.lengthSq() * v.lengthSq() ));
+		//return Math.acos( _Math.clamp( a, - 1, 1 ) );
+		if(a <= -1) return Math.PI;
+		if(a >= 1) return 0;
+		return Math.acos( a );
+
+	},
+
+	getSignedAngle: function ( v, normal ) {
+
+		var a = this.angleTo( v );
+		var s = this.sign( v, normal );
+		return s === 1 ? a : -a;
+		
+	},
+
+	constrainedUV: function( referenceAxis, rotationAxis, mtx, min, max ) {
+
+        var angle = referenceAxis.getSignedAngle( this, rotationAxis );
+        if( angle > max ) this.copy( mtx.rotateAboutAxis( referenceAxis, max, rotationAxis ) );
+        if( angle < min ) this.copy( mtx.rotateAboutAxis( referenceAxis, min, rotationAxis ) );
+        return this;
+
+    },
+
+    limitAngle: function( base, mtx, max ) {
+
+        var angle = base.angleTo( this );
+        if( angle > max ){ 
+        	var correctionAxis = base.normalised().cross(this).normalize();
+        	this.copy( mtx.rotateAboutAxis( base, max, correctionAxis ) );
+        }
+        return this;
+
+    },
+
 
 } );
 
-function M3( m00, m01, m02, m10, m11, m12, m20, m21, m22 ){
+function M3 () {
 
-    this.m00 = m00 || 1;
-    this.m01 = m01 || 0; 
-    this.m02 = m02 || 0;
-        
-    this.m10 = m10 || 0;
-    this.m11 = m11 || 1; 
-    this.m12 = m12 || 0;
-        
-    this.m20 = m20 || 0;
-    this.m21 = m21 || 0; 
-    this.m22 = m22 || 1;
+	this.elements = [
+
+		1, 0, 0,
+		0, 1, 0,
+		0, 0, 1
+
+	];
+
+	if ( arguments.length > 0 ) {
+
+		console.error( 'M3: the constructor no longer reads arguments. use .set() instead.' );
+
+	}
 
 }
 
@@ -862,19 +971,47 @@ Object.assign( M3.prototype, {
 
 	isMatrix3: true,
 
+	set: function ( n11, n12, n13, n21, n22, n23, n31, n32, n33 ) {
+
+		var te = this.elements;
+
+		te[ 0 ] = n11; te[ 1 ] = n21; te[ 2 ] = n31;
+		te[ 3 ] = n12; te[ 4 ] = n22; te[ 5 ] = n32;
+		te[ 6 ] = n13; te[ 7 ] = n23; te[ 8 ] = n33;
+
+		return this;
+
+	},
+
+	identity: function () {
+
+		this.set(
+
+			1, 0, 0,
+			0, 1, 0,
+			0, 0, 1
+
+		);
+
+		return this;
+
+	},
+
 	setV3: function ( xAxis, yAxis, zAxis ) {
 
-	    this.m00 = xAxis.x;
-	    this.m01 = xAxis.y; 
-	    this.m02 = xAxis.z;
+		var te = this.elements;
+
+	    te[ 0 ] = xAxis.x;
+	    te[ 3 ] = xAxis.y; 
+	    te[ 6 ] = xAxis.z;
 	        
-	    this.m10 = yAxis.x;
-	    this.m11 = yAxis.y; 
-	    this.m12 = yAxis.z;
+	    te[ 1 ] = yAxis.x;
+	    te[ 4 ] = yAxis.y; 
+	    te[ 7 ] = yAxis.z;
 	        
-	    this.m20 = zAxis.x;
-	    this.m21 = zAxis.y; 
-	    this.m22 = zAxis.z;
+	    te[ 2 ] = zAxis.x;
+	    te[ 5 ] = zAxis.y; 
+	    te[ 8 ] = zAxis.z;
 
 	    return this;
 
@@ -882,7 +1019,7 @@ Object.assign( M3.prototype, {
 
 	createRotationMatrix: function ( referenceDirection ) {
   
-	    var zAxis = referenceDirection.normalised();
+	    var zAxis = referenceDirection;//normalised();
 	    var xAxis = new V3(1, 0, 0);
 	    var yAxis = new V3(0, 1, 0);
 	            
@@ -898,18 +1035,13 @@ Object.assign( M3.prototype, {
 	    }
 
 	    return this.setV3( xAxis, yAxis, zAxis );
-	},
-
-	rotateAboutAxisDegs: function ( v, angleDegs, axis ) {
-
-	    return this.rotateAboutAxisRads( v, angleDegs * _Math.toRad, axis ); 
 
 	},
 
-	rotateAboutAxisRads: function ( v, angleRads, rotationAxis ){
+	rotateAboutAxis: function ( v, angle, rotationAxis ){
 
-	    var sinTheta = Math.sin( angleRads );
-	    var cosTheta = Math.cos( angleRads );
+	    var sinTheta = Math.sin( angle );
+	    var cosTheta = Math.cos( angle );
 	    var oneMinusCosTheta = 1.0 - cosTheta;
 	    
 	    // It's quicker to pre-calc these and reuse than calculate x * y, then y * x later (same thing).
@@ -917,27 +1049,46 @@ Object.assign( M3.prototype, {
 	    var xzOne = rotationAxis.x * rotationAxis.z * oneMinusCosTheta;
 	    var yzOne = rotationAxis.y * rotationAxis.z * oneMinusCosTheta;
 
+	    var te = this.elements;
+
 	    // Calculate rotated x-axis
-	    this.m00 = rotationAxis.x * rotationAxis.x * oneMinusCosTheta + cosTheta;
-	    this.m01 = xyOne + rotationAxis.z * sinTheta;
-	    this.m02 = xzOne - rotationAxis.y * sinTheta;
+	    te[ 0 ] = rotationAxis.x * rotationAxis.x * oneMinusCosTheta + cosTheta;
+	    te[ 3 ] = xyOne + rotationAxis.z * sinTheta;
+	    te[ 6 ] = xzOne - rotationAxis.y * sinTheta;
 
 	    // Calculate rotated y-axis
-	    this.m10 = xyOne - rotationAxis.z * sinTheta;
-	    this.m11 = rotationAxis.y * rotationAxis.y * oneMinusCosTheta + cosTheta;
-	    this.m12 = yzOne + rotationAxis.x * sinTheta;
+	    te[ 1 ] = xyOne - rotationAxis.z * sinTheta;
+	    te[ 4 ] = rotationAxis.y * rotationAxis.y * oneMinusCosTheta + cosTheta;
+	    te[ 7 ] = yzOne + rotationAxis.x * sinTheta;
 
 	    // Calculate rotated z-axis
-	    this.m20 = xzOne + rotationAxis.y * sinTheta;
-	    this.m21 = yzOne - rotationAxis.x * sinTheta;
-	    this.m22 = rotationAxis.z * rotationAxis.z * oneMinusCosTheta + cosTheta;
+	    te[ 2 ] = xzOne + rotationAxis.y * sinTheta;
+	    te[ 5 ] = yzOne - rotationAxis.x * sinTheta;
+	    te[ 8 ] = rotationAxis.z * rotationAxis.z * oneMinusCosTheta + cosTheta;
 
 	    // Multiply the source by the rotation matrix we just created to perform the rotation
-	    return this.times( v );
+	    //return this.times( v );
+	    return v.clone().applyM3( this );
 
 	},
 
-	getAngleLimitedUnitVectorDegs: function ( vecToLimit, vecBaseline, angleLimitDegs ) {
+	/*times: function ( v ) {
+
+		if( v.isVector3 ){
+
+			var te = this.elements;
+
+			return new V3(
+		        te[ 0 ] * v.x + te[ 1 ] * v.y + te[ 2 ] * v.z,
+		        te[ 3 ] * v.x + te[ 4 ] * v.y + te[ 5 ] * v.z,
+		        te[ 6 ] * v.x + te[ 7 ] * v.y + te[ 8 ] * v.z
+		    );
+
+		}
+
+	},*/
+
+	/*getAngleLimitedUnitVectorDegs: function ( vecToLimit, vecBaseline, angleLimitDegs ) {
 
 	    // Get the angle between the two vectors
 	    // Note: This will ALWAYS be a positive value between 0 and 180 degrees.
@@ -963,68 +1114,38 @@ Object.assign( M3.prototype, {
 	    }
 
 
-	},
+	},*/
 
-	transpose: function ( m ) {
+	/*transpose: function ( m ) {
 
-	    return new M3( m.m00, m.m10, m.m20,   m.m01, m.m11, m.m21,   m.m02, m.m12, m.m22 );
+	    return new M3( m.m11, m.m21, m.m31,   m.m12, m.m22, m.m32,   m.m13, m.m23, m.m33 );
 
 	},
 
 	zero: function () {
 
-	    this.m00 = this.m01 = this.m02 = this.m10 = this.m11 = this.m12 = this.m20 = this.m21 = this.m22 = 0;
+	    te[ 0 ] = te[ 3 ] = te[ 6 ] = te[ 1 ] = te[ 4 ] = te[ 7 ] = te[ 2 ] = te[ 5 ] = te[ 8 ] = 0;
 	    return this;
 
 	},
 
 	setIdentity: function () {
 
-	    this.m00 = this.m11 = this.m22 = 1;
-	    this.m01 = this.m02 = this.m10 = this.m12 = this.m20 = this.m21 = 0;
+	    te[ 0 ] = te[ 4 ] = te[ 8 ] = 1;
+	    te[ 3 ] = te[ 6 ] = te[ 1 ] = te[ 7 ] = te[ 2 ] = te[ 5 ] = 0;
 	    return this;
 
 	},
 
 	determinant: function(){
 
-	    return this.m20 * this.m01 * this.m12 - this.m20  * this.m02 * this.m11 - this.m10 * this.m01 * this.m22 + this.m10 * this.m02 * this.m21 + this.m00 * this.m11 * this.m22 - this.m00 * this.m12 * this.m21;
+	    return te[ 2 ] * te[ 3 ] * te[ 7 ] - te[ 2 ]  * te[ 6 ] * te[ 4 ] - te[ 1 ] * te[ 3 ] * te[ 8 ] + te[ 1 ] * te[ 6 ] * te[ 5 ] + te[ 0 ] * te[ 4 ] * te[ 8 ] - te[ 0 ] * te[ 7 ] * te[ 5 ];
 
-	},
+	},*/
 
-	times: function ( m ) {
+	
 
-		if( m.isVector3 ){
-
-			return new V3(
-		        this.m00 * m.x + this.m10 * m.y + this.m20 * m.z,
-		        this.m01 * m.x + this.m11 * m.y + this.m21 * m.z,
-		        this.m02 * m.x + this.m12 * m.y + this.m22 * m.z
-		    );
-
-		} else if( m.isMatrix3 ){
-
-			var temp = new M3();
-
-		    temp.m00 = this.m00 * m.m00 + this.m10 * m.m01 + this.m20 * m.m02;
-		    temp.m01 = this.m01 * m.m00 + this.m11 * m.m01 + this.m21 * m.m02;
-		    temp.m02 = this.m02 * m.m00 + this.m12 * m.m01 + this.m22 * m.m02;
-
-		    temp.m10 = this.m00 * m.m10 + this.m10 * m.m11 + this.m20 * m.m12;
-		    temp.m11 = this.m01 * m.m10 + this.m11 * m.m11 + this.m21 * m.m12;
-		    temp.m12 = this.m02 * m.m10 + this.m12 * m.m11 + this.m22 * m.m12;
-
-		    temp.m20 = this.m00 * m.m20 + this.m10 * m.m21 + this.m20 * m.m22;
-		    temp.m21 = this.m01 * m.m20 + this.m11 * m.m21 + this.m21 * m.m22;
-		    temp.m22 = this.m02 * m.m20 + this.m12 * m.m21 + this.m22 * m.m22;
-
-		    return temp;
-
-		}
-
-	},
-
-	isOrthogonal: function () {
+	/*isOrthogonal: function () {
 
 	    var xCrossYDot = _Math.dotProduct( this.getXBasis(), this.getYBasis() );
 	    var xCrossZDot = _Math.dotProduct( this.getXBasis(), this.getZBasis() );
@@ -1041,15 +1162,15 @@ Object.assign( M3.prototype, {
 	        
 	    var temp = new M3();
 	    
-	    temp.m00 =  (m.m11  * m.m22 - m.m12 * m.m21) * d;
-	    temp.m01 = -(m.m01  * m.m22 - m.m02 * m.m21) * d;
-	    temp.m02 =  (m.m01  * m.m12 - m.m02 * m.m11) * d;
-	    temp.m10 = -(-m.m20 * m.m12 + m.m10 * m.m22) * d;
-	    temp.m11 =  (-m.m20 * m.m02 + m.m00 * m.m22) * d;
-	    temp.m12 = -(-m.m10 * m.m02 + m.m00 * m.m12) * d;
-	    temp.m20 =  (-m.m20 * m.m11 + m.m10 * m.m21) * d;
-	    temp.m21 = -(-m.m20 * m.m01 + m.m00 * m.m21) * d;
-	    temp.m22 =  (-m.m10 * m.m02 + m.m00 * m.m11) * d;
+	    temp.m11 =  (m.m22  * m.m33 - m.m23 * m.m32) * d;
+	    temp.m12 = -(m.m12  * m.m33 - m.m13 * m.m32) * d;
+	    temp.m13 =  (m.m12  * m.m23 - m.m13 * m.m22) * d;
+	    temp.m21 = -(-m.m31 * m.m23 + m.m21 * m.m33) * d;
+	    temp.m22 =  (-m.m31 * m.m13 + m.m11 * m.m33) * d;
+	    temp.m23 = -(-m.m21 * m.m13 + m.m11 * m.m23) * d;
+	    temp.m31 =  (-m.m31 * m.m22 + m.m21 * m.m32) * d;
+	    temp.m32 = -(-m.m31 * m.m12 + m.m11 * m.m32) * d;
+	    temp.m33 =  (-m.m21 * m.m13 + m.m11 * m.m22) * d;
 
 	    return temp;
 
@@ -1082,26 +1203,26 @@ Object.assign( M3.prototype, {
 	    var f21 = yz * oneMinusCos - xs;
 	    var f22 = rotationAxis.z * rotationAxis.z * oneMinusCos + cos;
 
-	    var t00 = this.m00 * f00 + this.m10 * f01 + this.m20 * f02;
-	    var t01 = this.m01 * f00 + this.m11 * f01 + this.m21 * f02;
-	    var t02 = this.m02 * f00 + this.m12 * f01 + this.m22 * f02;
+	    var t00 = te[ 0 ] * f00 + te[ 1 ] * f01 + te[ 2 ] * f02;
+	    var t01 = te[ 3 ] * f00 + te[ 4 ] * f01 + te[ 5 ] * f02;
+	    var t02 = te[ 6 ] * f00 + te[ 7 ] * f01 + te[ 8 ] * f02;
 
-	    var t10 = this.m00 * f10 + this.m10 * f11 + this.m20 * f12;
-	    var t11 = this.m01 * f10 + this.m11 * f11 + this.m21 * f12;
-	    var t12 = this.m02 * f10 + this.m12 * f11 + this.m22 * f12;
+	    var t10 = te[ 0 ] * f10 + te[ 1 ] * f11 + te[ 2 ] * f12;
+	    var t11 = te[ 3 ] * f10 + te[ 4 ] * f11 + te[ 5 ] * f12;
+	    var t12 = te[ 6 ] * f10 + te[ 7 ] * f11 + te[ 8 ] * f12;
 
 	    // Construct and return rotation matrix
-	    dest.m20 = this.m00 * f20 + this.m10 * f21 + this.m20 * f22;
-	    dest.m21 = this.m01 * f20 + this.m11 * f21 + this.m21 * f22;
-	    dest.m22 = this.m02 * f20 + this.m12 * f21 + this.m22 * f22;
+	    dest.m31 = te[ 0 ] * f20 + te[ 1 ] * f21 + te[ 2 ] * f22;
+	    dest.m32 = te[ 3 ] * f20 + te[ 4 ] * f21 + te[ 5 ] * f22;
+	    dest.m33 = te[ 6 ] * f20 + te[ 7 ] * f21 + te[ 8 ] * f22;
 
-	    dest.m00 = t00;
-	    dest.m01 = t01;
-	    dest.m02 = t02;
+	    dest.m11 = t00;
+	    dest.m12 = t01;
+	    dest.m13 = t02;
 
-	    dest.m10 = t10;
-	    dest.m11 = t11;
-	    dest.m12 = t12;
+	    dest.m21 = t10;
+	    dest.m22 = t11;
+	    dest.m23 = t12;
 
 	    return dest;
 
@@ -1115,39 +1236,39 @@ Object.assign( M3.prototype, {
 
 	setXBasis: function ( v ) {
 
-	    this.m00 = v.x; this.m01 = v.y; this.m02 = v.z;
+	    te[ 0 ] = v.x; te[ 3 ] = v.y; te[ 6 ] = v.z;
 
 	},
 
 	setYBasis: function ( v ) {
 
-	    this.m10 = v.x; this.m11 = v.y; this.m12 = v.z;
+	    te[ 1 ] = v.x; te[ 4 ] = v.y; te[ 7 ] = v.z;
 
 	},
 
 	setZBasis: function ( v ) {
 	    
-	    this.m20 = v.x; this.m21 = v.y; this.m22 = v.z;
+	    te[ 2 ] = v.x; te[ 5 ] = v.y; te[ 8 ] = v.z;
 
 	},
 
 	getXBasis: function() {
 
-	    return new V3( this.m00, this.m01, this.m02 );
+	    return new V3( te[ 0 ], te[ 3 ], te[ 6 ] );
 	    
 	},
 
 	getYBasis: function(){
 
-	    return new V3( this.m10, this.m11, this.m12 );
+	    return new V3( te[ 1 ], te[ 4 ], te[ 7 ] );
 
 	},
 
 	getZBasis: function () {
 
-	    return new V3( this.m20, this.m21, this.m22 );
+	    return new V3( te[ 2 ], te[ 5 ], te[ 8 ] );
 
-	}
+	}*/
 
 
 } );
@@ -1161,9 +1282,13 @@ var REVISION = '1.3.3';
 
 var MIN_DEGS = 0;
 var MAX_DEGS = 180;
+var MAX_RAD = Math.PI;
 var PRECISION = 0.001;
 var PRECISION_DEG = 0.01;
 var MAX_VALUE = Infinity;
+
+var TORAD = Math.PI / 180;
+var TODEG = 180 / Math.PI;
 
 // chain Basebone Constraint Type
 
@@ -1206,12 +1331,14 @@ var RIGHT = new V2( 1, 0 );
 
 function Joint3D(){
 
-    this.mRotorConstraintDegs = MAX_DEGS;
-    this.mHingeClockwiseConstraintDegs = MAX_DEGS;
-    this.mHingeAnticlockwiseConstraintDegs = MAX_DEGS;
+    this.rotor = MAX_RAD;
+    this.min = -MAX_RAD;
+    this.max = MAX_RAD;
 
-    this.mRotationAxisUV = new V3();
-    this.mReferenceAxisUV = new V3();
+    this.freeHinge = true;
+
+    this.rotationAxisUV = new V3();
+    this.referenceAxisUV = new V3();
     this.type = J_BALL;
 
 }
@@ -1223,94 +1350,107 @@ Object.assign( Joint3D.prototype, {
     clone:function(){
 
         var j = new Joint3D();
+
         j.type = this.type;
-        j.mRotorConstraintDegs = this.mRotorConstraintDegs;
-        j.mHingeClockwiseConstraintDegs = this.mHingeClockwiseConstraintDegs;
-        j.mHingeAnticlockwiseConstraintDegs = this.mHingeAnticlockwiseConstraintDegs;
-        j.mRotationAxisUV.copy( this.mRotationAxisUV );
-        j.mReferenceAxisUV.copy( this.mReferenceAxisUV );
+        j.rotor = this.rotor;
+        j.max = this.max;
+        j.min = this.min;
+        j.rotationAxisUV.copy( this.rotationAxisUV );
+        j.referenceAxisUV.copy( this.referenceAxisUV );
+
         return j;
 
     },
 
-    validateAngle:function( angle ){
+    testAngle: function () {
 
-        return _Math.clamp( angle, MIN_DEGS, MAX_DEGS );
+        if( this.max === MAX_RAD && this.min === -MAX_RAD ) this.freeHinge = true;
+        else this.freeHinge = true;
+
+    },
+
+    validateAngle: function ( a ) {
+
+        a = a < 0 ? 0 : a;
+        a = a > 180 ? 180 : a;
+        return a;
 
     },
 
     setAsBallJoint:function( angle ){
 
-        this.mRotorConstraintDegs = this.validateAngle( angle );
+        this.rotor = this.validateAngle( angle ) * TORAD;
         this.type = J_BALL;
         
     },
 
-    // Specify this joint to be a hinge with the provided settings.
+    // Specify this joint to be a hinge with the provided settings
+
     setHinge: function( type, rotationAxis, clockwiseConstraintDegs, anticlockwiseConstraintDegs, referenceAxis ){
 
         this.type = type;
-        this.mHingeClockwiseConstraintDegs     = this.validateAngle( clockwiseConstraintDegs );
-        this.mHingeAnticlockwiseConstraintDegs = this.validateAngle( anticlockwiseConstraintDegs );
-        this.mRotationAxisUV.copy( rotationAxis.normalised() );
-        this.mReferenceAxisUV.copy( referenceAxis.normalised() );
+        this.min = - ( this.validateAngle( clockwiseConstraintDegs ) * TORAD );
+        this.max = this.validateAngle( anticlockwiseConstraintDegs ) * TORAD;
+
+        this.testAngle();
+
+        this.rotationAxisUV.copy( rotationAxis.normalised() );
+        this.referenceAxisUV.copy( referenceAxis.normalised() );
 
     },
 
     // GET
 
-    getJointType:function(){
+    getJointType: function () {
+
         return this.type; 
+
     },
 
-    getHingeClockwiseConstraintDegs:function(){
-        if ( !(this.type === J_BALL) ) return this.mHingeClockwiseConstraintDegs;
+    getHingeReferenceAxis:function () {
+
+        return this.referenceAxisUV; 
+
     },
 
-    getHingeAnticlockwiseConstraintDegs:function(){
-        if ( !(this.type === J_BALL) ) return this.mHingeAnticlockwiseConstraintDegs;
-    },
+    getHingeRotationAxis:function () {
 
-    getHingeReferenceAxis:function(){
-        if ( !(this.type === J_BALL) ) return this.mReferenceAxisUV; 
-    },
+        return this.rotationAxisUV; 
 
-    getHingeRotationAxis:function(){
-        if ( !(this.type === J_BALL) ) return this.mRotationAxisUV; 
-    },
-
-    getBallJointConstraintDegs:function(){
-        if ( this.type === J_BALL ) return this.mRotorConstraintDegs; 
     },
 
     // SET
 
-    /*setAsGlobalHinge:function( globalRotationAxis, cwConstraintDegs, acwConstraintDegs, globalReferenceAxis ){
-        this.setHinge( J_GLOBAL, globalRotationAxis, cwConstraintDegs, acwConstraintDegs, globalReferenceAxis );
+    setBallJointConstraintDegs: function ( angle ) {
+
+        this.rotor = this.validateAngle( angle ) * TORAD;
+
     },
 
-    setAsLocalHinge:function( localRotationAxis, cwConstraintDegs, acwConstraintDegs, localReferenceAxis ){
-        this.setHinge( J_LOCAL, localRotationAxis, cwConstraintDegs, acwConstraintDegs, localReferenceAxis );
-    },*/
+    setHingeJointClockwiseConstraintDegs: function ( angle ) {
 
-    setBallJointConstraintDegs:function( angle ){
-        if ( this.type === J_BALL ) this.mRotorConstraintDegs = this.validateAngle( angle );
+        this.min = - ( this.validateAngle( angle ) * TORAD );
+        this.testAngle();
+
     },
 
-    setHingeJointClockwiseConstraintDegs:function( angle ){
-        if ( !(this.type === J_BALL) ) this.mHingeClockwiseConstraintDegs = this.validateAngle( angle ); 
+    setHingeJointAnticlockwiseConstraintDegs: function ( angle ) {
+
+        this.max = this.validateAngle( angle ) * TORAD;
+        this.testAngle();
+
     },
 
-    setHingeJointAnticlockwiseConstraintDegs:function( angle ){
-        if ( !(this.type === J_BALL) ) this.mHingeAnticlockwiseConstraintDegs = this.validateAngle( angle ); 
+    setHingeRotationAxis: function ( axis ) {
+
+        this.rotationAxisUV.copy( axis ).normalize();
+
     },
 
-    setHingeRotationAxis:function( axis ){
-        if ( !(this.type === J_BALL) ) this.mRotationAxisUV.copy( axis.normalised() ); 
-    },
+    setHingeReferenceAxis: function ( referenceAxis ) {
 
-    setHingeReferenceAxis:function( referenceAxis ){
-        if ( !(this.type === J_BALL) ) this.mReferenceAxisUV.copy( referenceAxis.normalised() ); 
+        this.referenceAxisUV.copy( referenceAxis ).normalize(); 
+
     },
 
     
@@ -1319,12 +1459,12 @@ Object.assign( Joint3D.prototype, {
 
 function Bone3D ( startLocation, endLocation, directionUV, length, color ){
 
-    this.mJoint = new Joint3D();
-    this.mStartLocation = new V3();
-    this.mEndLocation = new V3();
+    this.joint = new Joint3D();
+    this.start = new V3();
+    this.end = new V3();
     
-    this.mBoneConnectionPoint = 'end';
-    this.mLength = 0;
+    this.boneConnectionPoint = END;
+    this.length = 0;
 
     this.color = color || 0xFFFFFF;
     this.name = '';
@@ -1341,37 +1481,24 @@ Object.assign( Bone3D.prototype, {
         this.setStartLocation( startLocation );
         if( endLocation ){ 
             this.setEndLocation( endLocation );
-            this.setLength( _Math.distanceBetween( this.mStartLocation, this.mEndLocation ) );
+            this.length = this.getLength();
+
         } else {
             this.setLength( length );
-            this.setEndLocation( this.mStartLocation.plus( directionUV.normalised().times( length ) ) );
+            this.setEndLocation( this.start.plus( directionUV.normalised().times( length ) ) );
         }
 
     },
 
     clone:function(){
 
-        var b = new Bone3D( this.mStartLocation, this.mEndLocation );
-        b.mJoint = this.mJoint.clone();
+        var b = new Bone3D( this.start, this.end );
+        b.joint = this.joint.clone();
         return b;
 
     },
 
-    length: function(){
-        return this.mLength;
-    },
-
-    liveLength: function(){
-        return _Math.distanceBetween( this.mStartLocation, this.mEndLocation );
-    },
-
     // SET
-
-    setName: function ( name ) {
-
-        this.name = name;
-
-    },
 
     setColor: function ( c ) {
 
@@ -1381,129 +1508,136 @@ Object.assign( Bone3D.prototype, {
 
     setBoneConnectionPoint: function ( bcp ) {
 
-        this.mBoneConnectionPoint = bcp;
+        this.boneConnectionPoint = bcp;
 
     },
 
     setHingeJointClockwiseConstraintDegs: function ( angle ){
 
-        this.mJoint.setHingeJointClockwiseConstraintDegs( angle );
+        this.joint.setHingeJointClockwiseConstraintDegs( angle );
 
     },
 
     setHingeJointAnticlockwiseConstraintDegs: function ( angle ){
 
-        this.mJoint.setHingeJointAnticlockwiseConstraintDegs( angle );
+        this.joint.setHingeJointAnticlockwiseConstraintDegs( angle );
 
     },
 
     setBallJointConstraintDegs: function ( angle ){
 
-        this.mJoint.setBallJointConstraintDegs( angle );
+        this.joint.setBallJointConstraintDegs( angle );
 
     },
 
     setStartLocation: function ( location ) {
 
-        this.mStartLocation.copy ( location );
+        this.start.copy ( location );
 
     },
 
     setEndLocation:function( location ){
 
-        this.mEndLocation.copy ( location );
+        this.end.copy ( location );
 
     },
 
     setLength:function( lng ){
 
-        if ( lng > 0 ) this.mLength = lng;
+        if ( lng > 0 ) this.length = lng;
 
     },
 
     setJoint:function( joint ){
 
-        this.mJoint = joint;
+        this.joint = joint;
 
     },
 
 
     // GET
 
-    getHingeJointClockwiseConstraintDegs: function(){
-        return this.mJoint.getHingeClockwiseConstraintDegs();
+    getBoneConnectionPoint: function () {
+
+        return this.boneConnectionPoint;
+
     },
 
-    
-    getHingeJointAnticlockwiseConstraintDegs: function(){
-        return this.mJoint.getHingeAnticlockwiseConstraintDegs();
+    getDirectionUV: function () {
+
+        return this.end.minus( this.start ).normalize();
+
     },
 
-    
-    getBallJointConstraintDegs : function(){
-        return this.mJoint.getBallJointConstraintDegs();
+    getStartLocation: function(){
+
+        return this.start;
+
     },
 
-    getBoneConnectionPoint:function(){
-        return this.mBoneConnectionPoint;
-    },
+    getEndLocation: function () {
 
-    getDirectionUV:function(){
-        return _Math.getDirectionUV( this.mStartLocation, this.mEndLocation );
-    },
-    getStartLocation : function(){
-        return this.mStartLocation;
-    },
-    getEndLocation : function(){
-        return this.mEndLocation;
+        return this.end;
+
     },
 
     getJointType : function(){
-        return this.mJoint.getJointType();
+        return this.joint.getJointType();
     },
 
-    getLength : function(){
-        return this.mLength;
+    getLength: function(){
+
+        return this.start.distanceTo( this.end );
+
     },
 
-    getJoint : function(){
-        return this.mJoint;
-    },
+    /*getJoint : function(){
+        return this.joint;
+    },*/
 
 } );
 
 function Chain3D ( color ){
 
+    this.tmpTarget = new V3();
+    this.tmpMtx = new M3();
+
     this.bones = [];
     this.name = '';
     this.color = color || 0xFFFFFF;
 
-    this.mSolveDistanceThreshold = 1.0;
-    this.mMaxIterationAttempts = 20;
-    this.mMinIterationChange = 0.01;
+    this.solveDistanceThreshold = 1.0;
+    this.maxIteration = 20;
+    this.minIterationChange = 0.01;
+    this.precision = 0.001;
 
-    this.mChainLength = 0;
-    this.mNumBones = 0;
+    this.chainLength = 0;
+    this.numBones = 0;
 
-    this.mFixedBaseLocation = new V3();
-    this.mFixedBaseMode = true;
+    this.baseLocation = new V3();
+    this.fixedBaseMode = true;
 
-    this.mBaseboneConstraintType = NONE;
+    this.baseboneConstraintType = NONE;
 
-    this.mBaseboneConstraintUV = new V3();
-    this.mBaseboneRelativeConstraintUV = new V3();
-    this.mBaseboneRelativeReferenceConstraintUV = new V3();
-    this.mLastTargetLocation = new V3( MAX_VALUE, MAX_VALUE, MAX_VALUE );
+    this.baseboneConstraintUV = new V3();
+    this.baseboneRelativeConstraintUV = new V3();
+    this.baseboneRelativeReferenceConstraintUV = new V3();
+    this.lastTargetLocation = new V3( MAX_VALUE, MAX_VALUE, MAX_VALUE );
 
-    this.mLastBaseLocation =  new V3( MAX_VALUE, MAX_VALUE, MAX_VALUE );
-    this.mCurrentSolveDistance = MAX_VALUE;
-    this.mConnectedChainNumber = -1;
-    this.mConnectedBoneNumber = -1;
+    this.lastBaseLocation =  new V3( MAX_VALUE, MAX_VALUE, MAX_VALUE );
+    this.currentSolveDistance = MAX_VALUE;
+
+    this.connectedChainNumber = -1;
+    this.connectedBoneNumber = -1;
+    this.boneConnectionPoint = END;
+
+    // test full restrict angle 
+    this.isFullForward = false;
 
     
 
-    this.mEmbeddedTarget = new V3();
-    this.mUseEmbeddedTarget = false;
+    this.embeddedTarget = new V3();
+    this.useEmbeddedTarget = false;
 
 }
 
@@ -1515,26 +1649,38 @@ Object.assign( Chain3D.prototype, {
 
         var c = new Chain3D();
 
-        c.bones = this.cloneIkChain();
-        c.mFixedBaseLocation.copy( this.mFixedBaseLocation );
-        c.mLastTargetLocation.copy( this.mLastTargetLocation );
-        c.mLastBaseLocation.copy( this.mLastBaseLocation );
+        c.solveDistanceThreshold = this.solveDistanceThreshold;
+        c.minIterationChange = this.minIterationChange;
+        c.maxIteration = this.maxIteration;
+        c.precision = this.precision;
+
+        c.bones = this.cloneBones();
+        c.baseLocation.copy( this.baseLocation );
+        c.lastTargetLocation.copy( this.lastTargetLocation );
+        c.lastBaseLocation.copy( this.lastBaseLocation );
                 
         // Copy the basebone constraint UV if there is one to copy
-        if ( !(this.mBaseboneConstraintType === NONE) ){
-            c.mBaseboneConstraintUV.copy( this.mBaseboneConstraintUV );
-            c.mBaseboneRelativeConstraintUV.copy( this.mBaseboneRelativeConstraintUV );
+        if ( !(this.baseboneConstraintType === NONE) ){
+            c.baseboneConstraintUV.copy( this.baseboneConstraintUV );
+            c.baseboneRelativeConstraintUV.copy( this.baseboneRelativeConstraintUV );
         }       
         
         // Native copy by value for primitive members
-        c.mChainLength            = this.mChainLength;
-        c.mNumBones               = this.mNumBones;
-        c.mCurrentSolveDistance   = this.mCurrentSolveDistance;
-        c.mConnectedChainNumber   = this.mConnectedChainNumber;
-        c.mConnectedBoneNumber    = this.mConnectedBoneNumber;
-        c.mBaseboneConstraintType = this.mBaseboneConstraintType;
+        c.fixedBaseMode          = this.fixedBaseMode;
+        
+        c.chainLength            = this.chainLength;
+        c.numBones               = this.numBones;
+        c.currentSolveDistance   = this.currentSolveDistance;
+
+        c.boneConnectionPoint    = this.boneConnectionPoint;
+        c.connectedChainNumber   = this.connectedChainNumber;
+        c.connectedBoneNumber    = this.connectedBoneNumber;
+        c.baseboneConstraintType = this.baseboneConstraintType;
 
         c.color = this.color;
+
+        c.embeddedTarget = this.embeddedTarget.clone();
+        c.useEmbeddedTarget = this.useEmbeddedTarget;
 
         return c;
 
@@ -1542,12 +1688,12 @@ Object.assign( Chain3D.prototype, {
 
     clear:function(){
 
-        var i = this.mNumBones;
+        var i = this.numBones;
         while(i--){
             this.removeBone(i);
         }
 
-        this.mNumBones = 0;
+        this.numBones = 0;
 
     },
 
@@ -1558,15 +1704,15 @@ Object.assign( Chain3D.prototype, {
         // Add the new bone to the end of the ArrayList of bones
         this.bones.push( bone );
         // Increment the number of bones in the chain and update the chain length
-        this.mNumBones ++;
+        this.numBones ++;
 
         // If this is the basebone...
-        if ( this.mNumBones === 1 ){
+        if ( this.numBones === 1 ){
             // ...then keep a copy of the fixed start location...
-            this.mFixedBaseLocation.copy( bone.getStartLocation() );//.clone();
+            this.baseLocation.copy( bone.getStartLocation() );//.clone();
             
             // ...and set the basebone constraint UV to be around the initial bone direction
-            this.mBaseboneConstraintUV.copy( bone.getDirectionUV() );
+            this.baseboneConstraintUV.copy( bone.getDirectionUV() );
         }
         
         // Increment the number of bones in the chain and update the chain length
@@ -1575,19 +1721,19 @@ Object.assign( Chain3D.prototype, {
     },
 
     removeBone:function( id ){
-        if ( id < this.mNumBones ){   
+        if ( id < this.numBones ){   
             // ...then remove the bone, decrease the bone count and update the chain length.
             this.bones.splice(id, 1);
-            this.mNumBones --;
+            this.numBones --;
             this.updateChainLength();
         }
     },
 
     addConsecutiveBone : function( directionUV, length ){
          //this.addConsecutiveBone( directionUV, length )
-         if (this.mNumBones > 0) {               
+         if (this.numBones > 0) {               
             // Get the end location of the last bone, which will be used as the start location of the new bone
-            var prevBoneEnd = this.bones[this.mNumBones-1].getEndLocation();//.clone();
+            var prevBoneEnd = this.bones[this.numBones-1].getEndLocation();//.clone();
                 
             // Add a bone to the end of this IK chain
             // Note: We use a normalised version of the bone direction
@@ -1605,21 +1751,21 @@ Object.assign( Chain3D.prototype, {
     addConsecutiveHingedBone: function( DirectionUV, length, type, HingeRotationAxis, clockwiseDegs, anticlockwiseDegs, hingeReferenceAxis ){
 
         // Cannot add a consectuive bone of any kind if the there is no basebone
-        if ( this.mNumBones === 0 ) return;
+        if ( this.numBones === 0 ) return;
 
         // Normalise the direction and hinge rotation axis 
         var directionUV = DirectionUV.normalised();
         var hingeRotationAxis = HingeRotationAxis.normalised();
             
         // Get the end location of the last bone, which will be used as the start location of the new bone
-        var prevBoneEnd = this.bones[this.mNumBones-1].getEndLocation().clone();
+        var prevBoneEnd = this.bones[this.numBones-1].getEndLocation().clone();
             
         // Create a bone
         var bone = new Bone3D( prevBoneEnd, undefined, directionUV, length, this.color );
 
         type = type || 'global';
 
-        bone.getJoint().setHinge( type === 'global' ? J_GLOBAL : J_LOCAL, hingeRotationAxis, clockwiseDegs, anticlockwiseDegs, hingeReferenceAxis );
+        bone.joint.setHinge( type === 'global' ? J_GLOBAL : J_LOCAL, hingeRotationAxis, clockwiseDegs, anticlockwiseDegs, hingeReferenceAxis );
         
         // ...then create and set up a joint which we'll apply to that bone.
         /*var joint = new Joint3D();
@@ -1644,13 +1790,13 @@ Object.assign( Chain3D.prototype, {
 
     addConsecutiveRotorConstrainedBone:function( boneDirectionUV, length, constraintAngleDegs ){
 
-        if (this.mNumBones === 0) return;
+        if (this.numBones === 0) return;
 
         // Create the bone starting at the end of the previous bone, set its direction, constraint angle and colour
         // then add it to the chain. Note: The default joint type of a new Bone is J_BALL.
         boneDirectionUV = boneDirectionUV.normalised();
-        var bone = new Bone3D( this.bones[ this.mNumBones-1 ].getEndLocation(), undefined , boneDirectionUV, length );
-        bone.getJoint().setAsBallJoint( constraintAngleDegs );
+        var bone = new Bone3D( this.bones[ this.numBones-1 ].getEndLocation(), undefined , boneDirectionUV, length );
+        bone.joint.setAsBallJoint( constraintAngleDegs );
         //bone.setBallJointConstraintDegs( constraintAngleDegs );
         this.addBone( bone );
 
@@ -1658,7 +1804,7 @@ Object.assign( Chain3D.prototype, {
 
     // Connect this chain to the specified bone in the specified chain in the provided structure.
 
-    connectToStructure : function( structure, chainNumber, boneNumber ){
+    /*connectToStructure : function( structure, chainNumber, boneNumber ){
 
         // Sanity check chain exists
         var numChains = structure.getNumChains();
@@ -1669,20 +1815,26 @@ Object.assign( Chain3D.prototype, {
         if ( boneNumber > numBones ) return;//{ throw new IllegalArgumentException("Chain does not contain a bone " + boneNumber + " - it has " + numBones + " bones."); }
         
         // All good? Set the connection details
-        this.mConnectedChainNumber = chainNumber;
-        this.mConnectedBoneNumber  = boneNumber; 
+        this.connectedChainNumber = chainNumber;
+        this.connectedBoneNumber  = boneNumber; 
 
-    },
+    },*/
 
     // -------------------------------
     //      GET
     // -------------------------------
 
+    getBoneConnectionPoint: function () {
+
+        return this.boneConnectionPoint;
+
+    },
+
     getBaseboneConstraintType:function(){
-        return this.mBaseboneConstraintType;
+        return this.baseboneConstraintType;
     },
     getBaseboneConstraintUV:function(){
-        if ( !(this.mBaseboneConstraintType === NONE) ) return this.mBaseboneConstraintUV;
+        if ( !(this.baseboneConstraintType === NONE) ) return this.baseboneConstraintUV;
     },
     getBaseLocation:function(){
         return this.bones[0].getStartLocation();
@@ -1694,24 +1846,24 @@ Object.assign( Chain3D.prototype, {
         return this.bones;
     },
     getChainLength:function(){
-        return this.mChainLength;
+        return this.chainLength;
     },
     getConnectedBoneNumber:function(){
-        return this.mConnectedBoneNumber;
+        return this.connectedBoneNumber;
     },
     getConnectedChainNumber:function(){
-        return this.mConnectedChainNumber;
+        return this.connectedChainNumber;
     },
     getEffectorLocation:function(){
-        return this.bones[this.mNumBones-1].getEndLocation();
+        return this.bones[this.numBones-1].getEndLocation();
     },
     getLastTargetLocation:function(){
-        return this.mLastTargetLocation;
+        return this.lastTargetLocation;
     },
     getLiveChainLength:function(){
         var lng = 0;        
-        for (var i = 0; i < this.mNumBones; i++){  
-            lng += this.bones[i].liveLength();
+        for (var i = 0; i < this.numBones; i++){  
+            lng += this.bones[i].getLength();
         }       
         return lng;
     },
@@ -1719,47 +1871,65 @@ Object.assign( Chain3D.prototype, {
         return this.name;
     },
     getNumBones: function () {
-        return this.mNumBones;
+        return this.numBones;
     },
 
     getBaseboneRelativeReferenceConstraintUV: function () {
-        return this.mBaseboneRelativeReferenceConstraintUV;
+        return this.baseboneRelativeReferenceConstraintUV;
     },
 
     // -------------------------------
     //      SET
     // -------------------------------
 
+    setConnectedBoneNumber: function ( boneNumber ) {
+
+        this.connectedBoneNumber = boneNumber;
+
+    },
+
+    setConnectedChainNumber: function ( chainNumber ) {
+
+        this.connectedChainNumber = chainNumber;
+
+    },
+
+    setBoneConnectionPoint: function ( point ) {
+
+        this.boneConnectionPoint = point;
+
+    },
+
     setColor:function(c){
         this.color = c;
-        for (var i = 0; i < this.mNumBones; i++){  
+        for (var i = 0; i < this.numBones; i++){  
             this.bones[i].setColor( c );
         }
         
     },
 
-    setBaseboneRelativeConstraintUV: function( constraintUV ){ this.mBaseboneRelativeConstraintUV = constraintUV; },
-    setBaseboneRelativeReferenceConstraintUV: function( constraintUV ){ this.mBaseboneRelativeReferenceConstraintUV = constraintUV; },
+    setBaseboneRelativeConstraintUV: function( constraintUV ){ this.baseboneRelativeConstraintUV = constraintUV; },
+    setBaseboneRelativeReferenceConstraintUV: function( constraintUV ){ this.baseboneRelativeReferenceConstraintUV = constraintUV; },
 
     setRotorBaseboneConstraint : function( type, constraintAxis, angleDegs ){
 
         // Sanity checking
-        if (this.mNumBones === 0){ Tools.error("Chain must contain a basebone before we can specify the basebone constraint type."); return; }     
+        if (this.numBones === 0){ Tools.error("Chain must contain a basebone before we can specify the basebone constraint type."); return; }     
         if ( !(constraintAxis.length() > 0) ){ Tools.error("Constraint axis cannot be zero."); return;}
 
         type = type || 'global';       
         // Set the constraint type, axis and angle
-        this.mBaseboneConstraintType = type === 'global' ? GLOBAL_ROTOR : LOCAL_ROTOR;
-        this.mBaseboneConstraintUV = constraintAxis.normalised();
-        this.mBaseboneRelativeConstraintUV.copy( this.mBaseboneConstraintUV );
-        this.getBone(0).getJoint().setAsBallJoint( angleDegs );
+        this.baseboneConstraintType = type === 'global' ? GLOBAL_ROTOR : LOCAL_ROTOR;
+        this.baseboneConstraintUV = constraintAxis.normalised();
+        this.baseboneRelativeConstraintUV.copy( this.baseboneConstraintUV );
+        this.getBone(0).joint.setAsBallJoint( angleDegs );
 
     },
 
     setHingeBaseboneConstraint : function( type, hingeRotationAxis, cwConstraintDegs, acwConstraintDegs, hingeReferenceAxis ){
 
         // Sanity checking
-        if ( this.mNumBones === 0){ Tools.error("Chain must contain a basebone before we can specify the basebone constraint type."); return; }   
+        if ( this.numBones === 0){ Tools.error("Chain must contain a basebone before we can specify the basebone constraint type."); return; }   
         if ( hingeRotationAxis.length() <= 0 ){ Tools.error("Hinge rotation axis cannot be zero."); return;  }          
         if ( hingeReferenceAxis.length() <= 0 ){ Tools.error("Hinge reference axis cannot be zero."); return; }     
         if ( !( _Math.perpendicular( hingeRotationAxis, hingeReferenceAxis ) ) ){ Tools.error("The hinge reference axis must be in the plane of the hinge rotation axis, that is, they must be perpendicular."); return;}
@@ -1768,14 +1938,14 @@ Object.assign( Chain3D.prototype, {
         type = type || 'global';
 
         // Set the constraint type, axis and angle
-        this.mBaseboneConstraintType = type === 'global' ? GLOBAL_HINGE : LOCAL_HINGE;
-        this.mBaseboneConstraintUV.copy( hingeRotationAxis.normalised() );
+        this.baseboneConstraintType = type === 'global' ? GLOBAL_HINGE : LOCAL_HINGE;
+        this.baseboneConstraintUV.copy( hingeRotationAxis.normalised() );
         
         //if ( type === 'global' ) hinge.setHinge( J_GLOBAL, hingeRotationAxis, cwConstraintDegs, acwConstraintDegs, hingeReferenceAxis );
         //else hinge.setHinge( J_LOCAL, hingeRotationAxis, cwConstraintDegs, acwConstraintDegs, hingeReferenceAxis );
         
         //this.getBone(0).setJoint( hinge );
-        this.getBone(0).getJoint().setHinge( type === 'global' ? J_GLOBAL : J_LOCAL, hingeRotationAxis, cwConstraintDegs, acwConstraintDegs, hingeReferenceAxis );
+        this.getBone(0).joint.setHinge( type === 'global' ? J_GLOBAL : J_LOCAL, hingeRotationAxis, cwConstraintDegs, acwConstraintDegs, hingeReferenceAxis );
 
     },
 
@@ -1803,16 +1973,16 @@ Object.assign( Chain3D.prototype, {
 
     setBaseboneConstraintUV : function( constraintUV ){
 
-        if ( this.mBaseboneConstraintType === NONE ) return;
+        if ( this.baseboneConstraintType === NONE ) return;
 
         this.constraintUV.normalize();
-        this.mBaseboneConstraintUV.copy( constraintUV );
+        this.baseboneConstraintUV.copy( constraintUV );
 
     },
 
     setBaseLocation : function( baseLocation ){
 
-        this.mFixedBaseLocation.copy( baseLocation );
+        this.baseLocation.copy( baseLocation );
     },
 
     setChain : function( bones ){
@@ -1832,30 +2002,30 @@ Object.assign( Chain3D.prototype, {
     setFixedBaseMode : function( value ){
 
         // Enforce that a chain connected to another chain stays in fixed base mode (i.e. it moves with the chain it's connected to instead of independently)
-        if ( !value && this.mConnectedChainNumber !== -1) return;
-        if ( this.mBaseboneConstraintType === GLOBAL_ROTOR && !value ) return;
+        if ( !value && this.connectedChainNumber !== -1) return;
+        if ( this.baseboneConstraintType === GLOBAL_ROTOR && !value ) return;
         // Above conditions met? Set the fixedBaseMode
-        this.mFixedBaseMode = value;
+        this.fixedBaseMode = value;
     },
 
     setMaxIterationAttempts : function( maxIterations ){
 
         if (maxIterations < 1) return;
-        this.mMaxIterationAttempts = maxIterations;
+        this.maxIteration = maxIterations;
 
     },
 
     setMinIterationChange : function( minIterationChange ){
 
         if (minIterationChange < 0) return;
-        this.mMinIterationChange = minIterationChange;
+        this.minIterationChange = minIterationChange;
 
     },
 
     setSolveDistanceThreshold : function( solveDistance ){
 
         if (solveDistance < 0) return;
-        this.mSolveDistanceThreshold = solveDistance;
+        this.solveDistanceThreshold = solveDistance;
 
     },
 
@@ -1867,9 +2037,17 @@ Object.assign( Chain3D.prototype, {
     //
     // -------------------------------
 
-    resetTarget : function( ){
-        this.mLastBaseLocation = new V3( MAX_VALUE, MAX_VALUE, MAX_VALUE );
-        this.mCurrentSolveDistance = MAX_VALUE;
+    solveForEmbeddedTarget : function () {
+
+        if ( this.useEmbeddedTarget ) return this.solveForTarget( this.embeddedTarget );
+
+    },
+
+    resetTarget: function () {
+
+        this.lastBaseLocation = new V3( MAX_VALUE, MAX_VALUE, MAX_VALUE );
+        this.currentSolveDistance = MAX_VALUE;
+
     },
 
 
@@ -1877,15 +2055,31 @@ Object.assign( Chain3D.prototype, {
     // The end result of running this method is that the IK chain configuration is updated.
 
     // To minimuse CPU usage, this method dynamically aborts if:
-    // - The solve distance (i.e. distance between the end effector and the target) is below the mSolveDistanceThreshold,
-    // - A solution incrementally improves on the previous solution by less than the mMinIterationChange, or
-    // - The number of attempts to solve the IK chain exceeds the mMaxIterationAttempts.
+    // - The solve distance (i.e. distance between the end effector and the target) is below the solveDistanceThreshold,
+    // - A solution incrementally improves on the previous solution by less than the minIterationChange, or
+    // - The number of attempts to solve the IK chain exceeds the maxIteration.
 
-    updateTarget : function( t ){
+    solveForTarget : function( t ){
 
-        var newTarget = new V3( t.x, t.y, t.z );//.copy(t);//( newTarget.x, newTarget.y, newTarget.z );
+        this.tmpTarget.set( t.x, t.y, t.z );
+        var p = this.precision;
+
         // If we have both the same target and base location as the last run then do not solve
-        if ( this.mLastTargetLocation.approximatelyEquals( newTarget, 0.001) && this.mLastBaseLocation.approximatelyEquals( this.getBaseLocation(), 0.001) ) return this.mCurrentSolveDistance;
+        if ( this.lastTargetLocation.approximatelyEquals( this.tmpTarget, p ) && this.lastBaseLocation.approximatelyEquals( this.baseLocation, p ) ) return this.currentSolveDistance;
+
+        // Keep starting solutions and distance
+        var startingDistance;
+        var startingSolution = null;
+
+        // If the base location of a chain hasn't moved then we may opt to keep the current solution if our 
+        // best new solution is worse...
+        if ( this.lastBaseLocation.approximatelyEquals( this.baseLocation, p ) ) {
+            startingDistance = _Math.distanceBetween( this.bones[ this.numBones-1 ].getEndLocation(), this.tmpTarget );
+            startingSolution = this.cloneBones();
+        } else {
+            // Base has changed? Then we have little choice but to recalc the solution and take that new solution.
+            startingDistance = MAX_VALUE;
+        }
         
         /*
          * NOTE: We must allow the best solution of THIS run to be used for a new target or base location - we cannot
@@ -1893,39 +2087,38 @@ Object.assign( Chain3D.prototype, {
          * location combination and NOT for the current setup.
          */
                         
-        // Declare a list of bones to use to store our best solution
+        // Not the same target? Then we must solve the chain for the new target.
+        // We'll start by creating a list of bones to store our best solution
         var bestSolution = [];
         
-        // We start with a best solve distance that can be easily beaten
+        // We'll keep track of our best solve distance, starting it at a huge value which will be beaten on first attempt
         var bestSolveDistance = MAX_VALUE;
-        
-        // We'll also keep track of the solve distance from the last pass
         var lastPassSolveDistance = MAX_VALUE;
         
         // Allow up to our iteration limit attempts at solving the chain
         var solveDistance;
 
-        var i = this.mMaxIterationAttempts;
-        while( i-- ){
-        //for ( var i = 0; i < this.mMaxIterationAttempts; i++ ){   
+        var i = this.maxIteration;
+
+        while( i-- ){   
 
             // Solve the chain for this target
-            solveDistance = this.solveIK( newTarget );
+            solveDistance = this.solveIK( this.tmpTarget );
             
             // Did we solve it for distance? If so, update our best distance and best solution, and also
             // update our last pass solve distance. Note: We will ALWAYS beat our last solve distance on the first run. 
             if ( solveDistance < bestSolveDistance ) {   
 
                 bestSolveDistance = solveDistance;
-                bestSolution = this.cloneIkChain();
+                bestSolution = this.cloneBones();
                 
                 // If we are happy that this solution meets our distance requirements then we can exit the loop now
-                if ( solveDistance <= this.mSolveDistanceThreshold ) break;
+                if ( solveDistance <= this.solveDistanceThreshold ) break;
                 
             } else {// Did not solve to our satisfaction? Okay...
             
                 // Did we grind to a halt? If so break out of loop to set the best distance and solution that we have
-                if ( Math.abs( solveDistance - lastPassSolveDistance ) < this.mMinIterationChange )  break; //System.out.println("Ground to halt on iteration: " + loop);
+                if ( Math.abs( solveDistance - lastPassSolveDistance ) < this.minIterationChange )  break; 
 
             }
             
@@ -1933,18 +2126,23 @@ Object.assign( Chain3D.prototype, {
             lastPassSolveDistance = solveDistance;
             
         } // End of loop
-        
-        // Update our solve distance and chain configuration to the best solution found
-        this.mCurrentSolveDistance = bestSolveDistance;
-        this.bones = bestSolution;
 
-        //console.log('dddddd' , this.bones )
+        // Did we get a solution that's better than the starting solution's to the new target location?
+        if ( bestSolveDistance < startingDistance ){
+            // If so, set the newly found solve distance and solution as the best found.
+            this.currentSolveDistance = bestSolveDistance;
+            this.bones = bestSolution;
+        } else {
+            // Did we make things worse? Then we keep our starting distance and solution!
+            this.currentSolveDistance = startingDistance;
+            this.bones = startingSolution; 
+        }
         
         // Update our base and target locations
-        this.mLastBaseLocation.copy( this.getBaseLocation() );
-        this.mLastTargetLocation.copy( newTarget );
+        this.lastBaseLocation.copy( this.baseLocation );
+        this.lastTargetLocation.copy( this.tmpTarget );
         
-        return this.mCurrentSolveDistance;
+        return this.currentSolveDistance;
         
     },
 
@@ -1959,69 +2157,88 @@ Object.assign( Chain3D.prototype, {
 
     solveIK : function( target ){
 
-        if ( this.mNumBones === 0 ) return;
+        if ( this.numBones === 0 ) return;
 
         var bone, boneLength, joint, jointType;
-        var tmpMtx = new FIK.M3();
+        var tmpMtx = this.tmpMtx;
         
         // ---------- Forward pass from end effector to base -----------
 
         // Loop over all bones in the chain, from the end effector (numBones-1) back to the basebone (0) 
-        var i = this.mNumBones;
+        var i = this.numBones;
+
         while( i-- ){
 
 
             // Get the length of the bone we're working on
             bone = this.bones[i];
-            boneLength  = bone.length();
-            joint = bone.getJoint();
+            boneLength  = bone.length;
+            joint = bone.joint;
             jointType = bone.getJointType();
 
             // If we are NOT working on the end effector bone
-            if ( i !== this.mNumBones - 1 ) {
+            if ( i !== this.numBones - 1 ) {
                 // Get the outer-to-inner unit vector of the bone further out
-                var outerBoneOuterToInnerUV = this.bones[ i+1 ].getDirectionUV().negated();
+                var outerBoneOuterToInnerUV = this.bones[ i+1 ].getDirectionUV().negate();
 
                 // Get the outer-to-inner unit vector of this bone
-                var boneOuterToInnerUV = bone.getDirectionUV().negated();
+                var boneOuterToInnerUV = bone.getDirectionUV().negate();
                 
                 // Get the joint type for this bone and handle constraints on boneInnerToOuterUV
                 
                 if ( jointType === J_BALL ) { 
 
                     // Constrain to relative angle between this bone and the outer bone if required
-                    var angleBetweenDegs    = _Math.getAngleBetweenDegs( outerBoneOuterToInnerUV, boneOuterToInnerUV );
-                    var constraintAngleDegs = joint.getBallJointConstraintDegs();
-                    if ( angleBetweenDegs > constraintAngleDegs ){   
-                        boneOuterToInnerUV = tmpMtx.getAngleLimitedUnitVectorDegs( boneOuterToInnerUV, outerBoneOuterToInnerUV, constraintAngleDegs );
-                    }
-                }
-                else if ( jointType === J_GLOBAL ) {  
+                    boneOuterToInnerUV.limitAngle( outerBoneOuterToInnerUV, tmpMtx, joint.rotor );
+
+                } else if ( jointType === J_GLOBAL ) {  
 
                     // Project this bone outer-to-inner direction onto the hinge rotation axis
                     // Note: The returned vector is normalised.
-                    boneOuterToInnerUV = boneOuterToInnerUV.projectOnPlane( joint.getHingeRotationAxis() );//.normalize(); 
-                    
+                    boneOuterToInnerUV.projectOnPlane( joint.getHingeRotationAxis() ); 
+
                     // NOTE: Constraining about the hinge reference axis on this forward pass leads to poor solutions... so we won't.
-                }
-                else if ( jointType === J_LOCAL ) {   
-                    // Not a basebone? Then construct a rotation matrix based on the previous bones inner-to-to-inner direction...
+                    if( this.isFullForward ){
+
+                        if( !joint.freeHinge ) boneOuterToInnerUV.constrainedUV( joint.getHingeReferenceAxis(), joint.getHingeRotationAxis(), tmpMtx, joint.min, joint.max );
+
+                    }
                     
-                    var relativeHingeRotationAxis; // V3
+                    
+                } else if ( jointType === J_LOCAL ) {   
+
+                    // Not a basebone? Then construct a rotation matrix based on the previous bones inner-to-to-inner direction...
+                    var relativeHingeRotationAxis, relativeHingeReferenceAxis; // V3
+
                     if ( i > 0 ) {
                         tmpMtx.createRotationMatrix( this.bones[i-1].getDirectionUV() );
-                        relativeHingeRotationAxis = tmpMtx.times( joint.getHingeRotationAxis() ).normalize();
+                        relativeHingeRotationAxis = joint.getHingeRotationAxis().clone().applyM3( tmpMtx );//.normalize();
+
+                        if( this.isFullForward ){ 
+                            tmpMtx.createRotationMatrix( this.bones[i-1].getDirectionUV().negate() );
+                            relativeHingeRotationAxis = joint.getHingeRotationAxis().clone().applyM3( tmpMtx );
+                            relativeHingeReferenceAxis = joint.getHingeReferenceAxis().clone().applyM3( tmpMtx );
+                        }
+                        //relativeHingeRotationAxis = tmpMtx.times( joint.getHingeRotationAxis() ).normalize();
                     } else {// ...basebone? Need to construct matrix from the relative constraint UV.
-                        relativeHingeRotationAxis = this.mBaseboneRelativeConstraintUV.clone();
+                        if( this.isFullForward ) relativeHingeReferenceAxis = this.baseboneRelativeReferenceConstraintUV;
+                        relativeHingeRotationAxis = this.baseboneRelativeConstraintUV.clone();
                     }
                     
                     // ...and transform the hinge rotation axis into the previous bones frame of reference.
 
                     // Project this bone's outer-to-inner direction onto the plane described by the relative hinge rotation axis
                     // Note: The returned vector is normalised.                 
-                    boneOuterToInnerUV = boneOuterToInnerUV.projectOnPlane( relativeHingeRotationAxis );//.normalize();
+                    boneOuterToInnerUV.projectOnPlane( relativeHingeRotationAxis );//.normalize();
+
+                    // NOTE: Constraining about the hinge reference axis on this forward pass leads to poor solutions... so we won't.  
+                    if( this.isFullForward ){
+
+                        if( !joint.freeHinge ) boneOuterToInnerUV.constrainedUV( relativeHingeReferenceAxis, relativeHingeRotationAxis, tmpMtx, joint.min, joint.max );
+
+                    }
                                         
-                    // NOTE: Constraining about the hinge reference axis on this forward pass leads to poor solutions... so we won't.                                       
+                                                         
                 }
                     
                 // At this stage we have a outer-to-inner unit vector for this bone which is within our constraints,
@@ -2053,7 +2270,7 @@ Object.assign( Chain3D.prototype, {
                     break;                      
                     case J_GLOBAL:
                         // Global hinges get constrained to the hinge rotation axis, but not the reference axis within the hinge plane
-                        boneOuterToInnerUV = boneOuterToInnerUV.projectOnPlane( joint.getHingeRotationAxis() );//.normalize();
+                        boneOuterToInnerUV.projectOnPlane( joint.getHingeRotationAxis() );//.normalize();
                     break;
                     case J_LOCAL:
                         // Local hinges get constrained to the hinge rotation axis, but not the reference axis within the hinge plane
@@ -2062,11 +2279,12 @@ Object.assign( Chain3D.prototype, {
                         tmpMtx.createRotationMatrix( this.bones[i-1].getDirectionUV() );
                         
                         // ...and transform the hinge rotation axis into the previous bones frame of reference.
-                        var relativeHingeRotationAxis = tmpMtx.times( joint.getHingeRotationAxis() ).normalize();
+                        //var relativeHingeRotationAxis = tmpMtx.times( joint.getHingeRotationAxis() ).normalize();
+                        var relativeHingeRotationAxis = joint.getHingeRotationAxis().clone().applyM3( tmpMtx );//.normalize();
                                             
                         // Project this bone's outer-to-inner direction onto the plane described by the relative hinge rotation axis
                         // Note: The returned vector is normalised.                 
-                        boneOuterToInnerUV = boneOuterToInnerUV.projectOnPlane( relativeHingeRotationAxis );//.normalize();
+                        boneOuterToInnerUV.projectOnPlane( relativeHingeRotationAxis );//.normalize();
                     break;
                 }
                                                 
@@ -2087,88 +2305,64 @@ Object.assign( Chain3D.prototype, {
 
         // ---------- Backward pass from base to end effector -----------
  
-        for ( i = 0; i < this.mNumBones; i++ ){
+        for ( i = 0; i < this.numBones; i++ ){
 
             bone = this.bones[i];
-            boneLength  = bone.length();
+            boneLength  = bone.length;
+            joint = bone.joint;
+            jointType = joint.getJointType();
 
             // If we are not working on the basebone
             if ( i !== 0 ){
+
                 // Get the inner-to-outer direction of this bone as well as the previous bone to use as a baseline
                 var boneInnerToOuterUV = bone.getDirectionUV();
+
                 var prevBoneInnerToOuterUV = this.bones[i-1].getDirectionUV();
-                
-                // Dealing with a ball joint?
-                joint = bone.getJoint();
-                jointType = joint.getJointType();
 
-                if ( jointType === J_BALL ){                   
-                    var angleBetweenDegs    = _Math.getAngleBetweenDegs( prevBoneInnerToOuterUV, boneInnerToOuterUV );
-                    var constraintAngleDegs = joint.getBallJointConstraintDegs(); 
-                    
-                    // Keep this bone direction constrained within the rotor about the previous bone direction
-                    if (angleBetweenDegs > constraintAngleDegs){
-                        boneInnerToOuterUV = tmpMtx.getAngleLimitedUnitVectorDegs( boneInnerToOuterUV, prevBoneInnerToOuterUV, constraintAngleDegs );
-                    }
+                var hingeRotationAxis, hingeReferenceAxis;
+
+                switch ( jointType ) {
+
+                    case J_BALL:
+
+                        // Keep this bone direction constrained within the rotor about the previous bone direction
+                        boneInnerToOuterUV.limitAngle( prevBoneInnerToOuterUV, tmpMtx, joint.rotor );
+
+                    break;    
+                    case J_GLOBAL:
+
+                        // Get the hinge rotation axis and project our inner-to-outer UV onto it
+                        hingeRotationAxis  = joint.getHingeRotationAxis();
+                        hingeReferenceAxis = joint.getHingeReferenceAxis();
+
+                        boneInnerToOuterUV.projectOnPlane( hingeRotationAxis );
+
+                        // Constrain rotation about reference axis if required
+                        if( !joint.freeHinge ) boneInnerToOuterUV.constrainedUV( hingeReferenceAxis, hingeRotationAxis, tmpMtx, joint.min, joint.max );
+
+                    break;
+                    case J_LOCAL:
+
+                        // Transform the hinge rotation axis to be relative to the previous bone in the chain
+                        // Construct a rotation matrix based on the previous bone's direction
+                        tmpMtx.createRotationMatrix( prevBoneInnerToOuterUV );
+                        
+                        // Transform the hinge rotation axis into the previous bone's frame of reference
+                        hingeRotationAxis  = joint.getHingeRotationAxis().clone().applyM3( tmpMtx );//tmpMtx.times( joint.getHingeRotationAxis() ).normalize();
+                        hingeReferenceAxis = joint.getHingeReferenceAxis().clone().applyM3( tmpMtx );//tmpMtx.times( joint.getHingeReferenceAxis() ).normalize();
+
+                        
+                        // Project this bone direction onto the plane described by the hinge rotation axis
+                        // Note: The returned vector is normalised.
+                        boneInnerToOuterUV.projectOnPlane( hingeRotationAxis );
+
+                        // Constrain rotation about reference axis if required
+                        if( !joint.freeHinge ) boneInnerToOuterUV.constrainedUV( hingeReferenceAxis, hingeRotationAxis, tmpMtx, joint.min, joint.max );
+
+                    break;
+
                 }
-                else if ( jointType === J_GLOBAL ) {                   
-                    // Get the hinge rotation axis and project our inner-to-outer UV onto it
-                    var hingeRotationAxis  = joint.getHingeRotationAxis();
-                    boneInnerToOuterUV = boneInnerToOuterUV.projectOnPlane(hingeRotationAxis);
-                    
-                    // If there are joint constraints, then we must honour them...
-                    var cwConstraintDegs   = -joint.getHingeClockwiseConstraintDegs();
-                    var acwConstraintDegs  =  joint.getHingeAnticlockwiseConstraintDegs();
-
-                    if ( !( _Math.nearEquals( cwConstraintDegs, -MAX_DEGS, PRECISION ) ) && !( _Math.nearEquals( acwConstraintDegs, MAX_DEGS, PRECISION ) ) ) {
-
-                        var hingeReferenceAxis = joint.getHingeReferenceAxis();
-                        
-                        // Get the signed angle (about the hinge rotation axis) between the hinge reference axis and the hinge-rotation aligned bone UV
-                        // Note: ACW rotation is positive, CW rotation is negative.
-                        var signedAngleDegs = _Math.getSignedAngleBetweenDegs( hingeReferenceAxis, boneInnerToOuterUV, hingeRotationAxis );
-                        
-                        // Make our bone inner-to-outer UV the hinge reference axis rotated by its maximum clockwise or anticlockwise rotation as required
-                        if (signedAngleDegs > acwConstraintDegs) boneInnerToOuterUV = tmpMtx.rotateAboutAxisDegs( hingeReferenceAxis, acwConstraintDegs, hingeRotationAxis ).normalised();
-                        else if (signedAngleDegs < cwConstraintDegs) boneInnerToOuterUV = tmpMtx.rotateAboutAxisDegs( hingeReferenceAxis, cwConstraintDegs, hingeRotationAxis ).normalised();
-                        
-                    }
-                }
-                else if ( jointType === J_LOCAL ){   
-                    // Transform the hinge rotation axis to be relative to the previous bone in the chain
-                    var hingeRotationAxis = joint.getHingeRotationAxis();
-                    
-                    // Construct a rotation matrix based on the previous bone's direction
-                    tmpMtx.createRotationMatrix( prevBoneInnerToOuterUV );
-                    
-                    // Transform the hinge rotation axis into the previous bone's frame of reference
-                    var relativeHingeRotationAxis  = tmpMtx.times( hingeRotationAxis ).normalize();
-                    
-                    
-                    // Project this bone direction onto the plane described by the hinge rotation axis
-                    // Note: The returned vector is normalised.
-                    boneInnerToOuterUV = boneInnerToOuterUV.projectOnPlane( relativeHingeRotationAxis );
-                    
-                    // Constrain rotation about reference axis if required
-                    var cwConstraintDegs  = -joint.getHingeClockwiseConstraintDegs();
-                    var acwConstraintDegs =  joint.getHingeAnticlockwiseConstraintDegs();
-                    if ( !( _Math.nearEquals( cwConstraintDegs, -MAX_DEGS, PRECISION ) ) && !( _Math.nearEquals( acwConstraintDegs, MAX_DEGS, PRECISION ) ) ) {
-
-                        // Calc. the reference axis in local space
-                        //Vec3f relativeHingeReferenceAxis = mBaseboneRelativeReferenceConstraintUV;//m.times( joint.getHingeReferenceAxis() ).normalise();
-                        var relativeHingeReferenceAxis = tmpMtx.times( joint.getHingeReferenceAxis() ).normalize();
-                        
-                        // Get the signed angle (about the hinge rotation axis) between the hinge reference axis and the hinge-rotation aligned bone UV
-                        // Note: ACW rotation is positive, CW rotation is negative.
-                        var signedAngleDegs = _Math.getSignedAngleBetweenDegs( relativeHingeReferenceAxis, boneInnerToOuterUV, relativeHingeRotationAxis );
-                        
-                        // Make our bone inner-to-outer UV the hinge reference axis rotated by its maximum clockwise or anticlockwise rotation as required
-                        if (signedAngleDegs > acwConstraintDegs) boneInnerToOuterUV = tmpMtx.rotateAboutAxisDegs( relativeHingeReferenceAxis, acwConstraintDegs, relativeHingeRotationAxis ).normalize();
-                        else if (signedAngleDegs < cwConstraintDegs) boneInnerToOuterUV = tmpMtx.rotateAboutAxisDegs( relativeHingeReferenceAxis, cwConstraintDegs, relativeHingeRotationAxis ).normalize();                            
-                        
-                    }
-                    
-                } // End of local hinge section
                 
                 // At this stage we have a outer-to-inner unit vector for this bone which is within our constraints,
                 // so we can set the new inner joint location to be the end joint location of this bone plus the
@@ -2180,180 +2374,110 @@ Object.assign( Chain3D.prototype, {
 
                 // If we are not working on the end effector bone, then we set the start joint location of the next bone in
                 // the chain (i.e. the bone closer to the target) to be the new end joint location of this bone.
-                if (i < (this.mNumBones - 1)) { this.bones[i+1].setStartLocation( newEndLocation ); }
+                if (i < (this.numBones - 1)) { this.bones[i+1].setStartLocation( newEndLocation ); }
 
             } else { // If we ARE working on the basebone...
                
                 // If the base location is fixed then snap the start location of the basebone back to the fixed base...
-                if ( this.mFixedBaseMode ){
-                    bone.setStartLocation( this.mFixedBaseLocation );
+                if ( this.fixedBaseMode ){
+
+                    bone.setStartLocation( this.baseLocation );
+
                 } else { // ...otherwise project it backwards from the end to the start by its length.
                 
                     bone.setStartLocation( bone.getEndLocation().minus( bone.getDirectionUV().times( boneLength ) ) );
+
                 }
+
+                // Get the inner-to-outer direction of this bone
+                var boneInnerToOuterUV = bone.getDirectionUV();
+
+                var hingeRotationAxis, hingeReferenceAxis;
+
+                switch ( this.baseboneConstraintType ){
+
+                    case NONE:  // Nothing to do because there's no basebone constraint
+                    break; 
+                    case GLOBAL_ROTOR: 
+
+                        boneInnerToOuterUV.limitAngle( this.baseboneConstraintUV, tmpMtx, joint.rotor );
+
+                    break;
+                    case LOCAL_ROTOR:
+
+                        boneInnerToOuterUV.limitAngle( this.baseboneRelativeConstraintUV, tmpMtx, joint.rotor );
+
+                    break;
+                    case GLOBAL_HINGE:
+
+                        hingeRotationAxis  = joint.getHingeRotationAxis();
+                        hingeReferenceAxis = joint.getHingeReferenceAxis();
+
+                        // Get the inner-to-outer direction of this bone and project it onto the global hinge rotation axis
+                        boneInnerToOuterUV.projectOnPlane( hingeRotationAxis );
+
+                        // Constrain as necessary
+                        if( !joint.freeHinge ) boneInnerToOuterUV.constrainedUV( hingeReferenceAxis, hingeRotationAxis, tmpMtx, joint.min, joint.max );
+                        
+                    break;
+                    case LOCAL_HINGE:
+
+                        hingeRotationAxis  = this.baseboneRelativeConstraintUV;
+                        hingeReferenceAxis = this.baseboneRelativeReferenceConstraintUV;
+
+                        // Get the inner-to-outer direction of this bone and project it onto the global hinge rotation axis
+                        //var boneInnerToOuterUV = bone.getDirectionUV();
+                        boneInnerToOuterUV.projectOnPlane( hingeRotationAxis );
+
+                        // Constrain as necessary
+                        if( !joint.freeHinge ) boneInnerToOuterUV.constrainedUV( hingeReferenceAxis, hingeRotationAxis, tmpMtx, joint.min, joint.max );
+
+                    break;
+
+                }
+
+
+                // Set the new end location of this bone, and if there are more bones,
+                // then set the start location of the next bone to be the end location of this bone
+                var newEndLocation = bone.getStartLocation().plus( boneInnerToOuterUV.times( boneLength ) );
+                bone.setEndLocation( newEndLocation );    
                 
-                // If the basebone is unconstrained then process it as usual...
-                if ( this.mBaseboneConstraintType === NONE ) {
-                    // Set the new end location of this bone, and if there are more bones,
-                    // then set the start location of the next bone to be the end location of this bone
-                    var newEndLocation = bone.getStartLocation().plus( bone.getDirectionUV().times( boneLength ) );
-                    bone.setEndLocation( newEndLocation );    
-                    
-                    if ( this.mNumBones > 1 ) { this.bones[1].setStartLocation( newEndLocation ); }
-                } else {// ...otherwise we must constrain it to the basebone constraint unit vector
-                  
-                    if ( this.mBaseboneConstraintType === GLOBAL_ROTOR ){   
-                        // Get the inner-to-outer direction of this bone
-                        var boneInnerToOuterUV = bone.getDirectionUV();
-                                
-                        var angleBetweenDegs    = _Math.getAngleBetweenDegs( this.mBaseboneConstraintUV, boneInnerToOuterUV );
-                        var constraintAngleDegs = bone.getBallJointConstraintDegs(); 
-                    
-                        if ( angleBetweenDegs > constraintAngleDegs ){
-                            boneInnerToOuterUV = tmpMtx.getAngleLimitedUnitVectorDegs( boneInnerToOuterUV, this.mBaseboneConstraintUV, constraintAngleDegs );
-                        }
-                        
-                        var newEndLocation = bone.getStartLocation().plus( boneInnerToOuterUV.times( boneLength ) );
-                        
-                        bone.setEndLocation( newEndLocation );
-                        
-                        // Also, set the start location of the next bone to be the end location of this bone
-                        if ( this.mNumBones > 1 ) { this.bones[1].setStartLocation( newEndLocation ); }
-                    }
-                    else if ( this.mBaseboneConstraintType === LOCAL_ROTOR ){
-                        // Note: The mBaseboneRelativeConstraintUV is updated in the Structure.updateTarget()
-                        // method BEFORE this Chain.updateTarget() method is called. We no knowledge of the
-                        // direction of the bone we're connected to in another chain and so cannot calculate this 
-                        // relative basebone constraint direction on our own, but the Structure does it for
-                        // us so we are now free to use it here.
-                        
-                        // Get the inner-to-outer direction of this bone
-                        var boneInnerToOuterUV = bone.getDirectionUV();
-                                
-                        // Constrain about the relative basebone constraint unit vector as neccessary
-                        var angleBetweenDegs    = _Math.getAngleBetweenDegs( this.mBaseboneRelativeConstraintUV, boneInnerToOuterUV);
-                        var constraintAngleDegs = bone.getBallJointConstraintDegs();
-                        if ( angleBetweenDegs > constraintAngleDegs ){
-                            boneInnerToOuterUV = tmpMtx.getAngleLimitedUnitVectorDegs(boneInnerToOuterUV, this.mBaseboneRelativeConstraintUV, constraintAngleDegs);
-                        }
-                        
-                        // Set the end location
-                        var newEndLocation = bone.getStartLocation().plus( boneInnerToOuterUV.times( boneLength ) );                        
-                        bone.setEndLocation( newEndLocation );
-                        
-                        // Also, set the start location of the next bone to be the end location of this bone
-                        if ( this.mNumBones > 1 ) { this.bones[1].setStartLocation(newEndLocation); }
-
-                    } else if ( this.mBaseboneConstraintType === GLOBAL_HINGE ) {
-
-                        joint = bone.getJoint();
-                        var hingeRotationAxis  =  joint.getHingeRotationAxis();
-                        var cwConstraintDegs   = - joint.getHingeClockwiseConstraintDegs(); // Clockwise rotation is negative!
-                        var acwConstraintDegs  =  joint.getHingeAnticlockwiseConstraintDegs();
-                        
-                        // Get the inner-to-outer direction of this bone and project it onto the global hinge rotation axis
-                        var boneInnerToOuterUV = bone.getDirectionUV().projectOnPlane( hingeRotationAxis ).normalize();
-                                
-                        // If we have a global hinge which is not freely rotating then we must constrain about the reference axis
-                        if ( !( _Math.nearEquals( cwConstraintDegs, -MAX_DEGS, PRECISION_DEG ) ) && !( _Math.nearEquals( acwConstraintDegs, MAX_DEGS, PRECISION_DEG ) ) ) {
-
-                            // Grab the hinge reference axis and calculate the current signed angle between it and our bone direction (about the hinge
-                            // rotation axis). Note: ACW rotation is positive, CW rotation is negative.
-                            var hingeReferenceAxis = joint.getHingeReferenceAxis();
-                            var signedAngleDegs    = _Math.getSignedAngleBetweenDegs( hingeReferenceAxis, boneInnerToOuterUV, hingeRotationAxis );
-                            
-                            // Constrain as necessary
-                            if (signedAngleDegs > acwConstraintDegs) boneInnerToOuterUV = tmpMtx.rotateAboutAxisDegs( hingeReferenceAxis, acwConstraintDegs, hingeRotationAxis ).normalize();
-                            else if (signedAngleDegs < cwConstraintDegs) boneInnerToOuterUV = tmpMtx.rotateAboutAxisDegs( hingeReferenceAxis, cwConstraintDegs, hingeRotationAxis ).normalize();                            
-                            
-                        }
-                        
-                        // Calc and set the end location of this bone
-                        var newEndLocation = bone.getStartLocation().plus( boneInnerToOuterUV.times( boneLength ) );                        
-                        bone.setEndLocation( newEndLocation );
-                        
-                        // Also, set the start location of the next bone to be the end location of this bone
-                        if ( this.mNumBones > 1 ) { this.bones[1].setStartLocation(newEndLocation); }
-
-                    } else if ( this.mBaseboneConstraintType === LOCAL_HINGE ){
-
-                        joint = bone.getJoint();
-                        var hingeRotationAxis  =  this.mBaseboneRelativeConstraintUV;          // Basebone relative constraint is our hinge rotation axis!
-                        var cwConstraintDegs   = - joint.getHingeClockwiseConstraintDegs();    // Clockwise rotation is negative!
-                        var acwConstraintDegs  =  joint.getHingeAnticlockwiseConstraintDegs();
-                        
-                        // Get the inner-to-outer direction of this bone and project it onto the global hinge rotation axis
-                        var boneInnerToOuterUV = bone.getDirectionUV().projectOnPlane(hingeRotationAxis);
-                        
-                        //If we have a local hinge which is not freely rotating then we must constrain about the reference axis
-                        if ( !( _Math.nearEquals( cwConstraintDegs, -MAX_DEGS, PRECISION_DEG ) ) && !( _Math.nearEquals( acwConstraintDegs, MAX_DEGS, PRECISION_DEG ) ) ) {
-        
-                            // Grab the hinge reference axis and calculate the current signed angle between it and our bone direction (about the hinge
-                            // rotation axis). Note: ACW rotation is positive, CW rotation is negative.
-                            var hingeReferenceAxis = this.mBaseboneRelativeReferenceConstraintUV; //joint.getHingeReferenceAxis();
-                            var signedAngleDegs    = _Math.getSignedAngleBetweenDegs( hingeReferenceAxis, boneInnerToOuterUV, hingeRotationAxis );
-                            
-                            // Constrain as necessary
-                            if ( signedAngleDegs > acwConstraintDegs ) boneInnerToOuterUV = tmpMtx.rotateAboutAxisDegs( hingeReferenceAxis, acwConstraintDegs, hingeRotationAxis ).normalize();
-                            else if (signedAngleDegs < cwConstraintDegs) boneInnerToOuterUV = tmpMtx.rotateAboutAxisDegs( hingeReferenceAxis, cwConstraintDegs, hingeRotationAxis ).normalize();   
-
-                        }
-                        
-                        // Calc and set the end location of this bone
-                        var newEndLocation = bone.getStartLocation().plus( boneInnerToOuterUV.times( boneLength ) );                        
-                        bone.setEndLocation( newEndLocation );
-                        
-                        // Also, set the start location of the next bone to be the end location of this bone
-                        if ( this.mNumBones > 1 ) { this.bones[1].setStartLocation( newEndLocation ); }
-                    }
-                    
-                } // End of basebone constraint handling section
+                if ( this.numBones > 1 ) { this.bones[1].setStartLocation( newEndLocation ); }
 
             } // End of basebone handling section
 
         } // End of backward-pass i over all bones
 
         // Update our last target location
-        this.mLastTargetLocation.copy( target );
+        this.lastTargetLocation.copy( target );
                 
         // DEBUG - check the live chain length and the originally calculated chain length are the same
-        /*
-        if (Math.abs( this.getLiveChainLength() - mChainLength) > 0.01f)
-        {
-            System.out.println("Chain length off by > 0.01f");
-        }
-        */
-
-        
+        // if (Math.abs( this.getLiveChainLength() - chainLength) > 0.01) Tools.error(""Chain length off by > 0.01");
+  
         // Finally, calculate and return the distance between the current effector location and the target.
-        return _Math.distanceBetween( this.bones[this.mNumBones-1].getEndLocation(), target );
+        //return _Math.distanceBetween( this.bones[this.numBones-1].getEndLocation(), target );
+        return this.bones[this.numBones-1].getEndLocation().distanceTo( target );
 
     },
 
     updateChainLength: function () {
 
-        // Loop over all the bones in the chain, adding the length of each bone to the mChainLength property
-        this.mChainLength = 0;
-        var i = this.mNumBones;
-        while(i--) this.mChainLength += this.bones[i].length();
+        // Loop over all the bones in the chain, adding the length of each bone to the chainLength property
+        this.chainLength = 0;
+        var i = this.numBones;
+        while(i--) this.chainLength += this.bones[i].length;
 
     },
 
-    cloneIkChain: function () {
+    cloneBones: function () {
 
-        // How many bones are in this chain?
+        // Use clone to create a new Bone with the values from the source Bone.
         
-        // Create a new Array
-        var clonedChain = [];
+        var chain = [];
+    
+        for ( var i = 0, n = this.bones.length; i < n; i++ ) chain.push( this.bones[i].clone() );
 
-        // For each bone in the chain being cloned...       
-        for (var i = 0; i < this.mNumBones; i++){
-            // Use the copy constructor to create a new Bone with the values set from the source Bone.
-            // and add it to the cloned chain.
-            clonedChain.push( this.bones[i].clone() );
-        }
-        
-        return clonedChain;
+        return chain;
 
     }
 
@@ -2364,12 +2488,16 @@ Object.assign( Chain3D.prototype, {
 
 function Structure3D ( scene ) {
 
+    this.fixedBaseMode = true;
+
     this.chains = [];
     this.meshChains = [];
     this.targets = [];
-    this.mNumChains = 0;
+    this.numChains = 0;
 
     this.scene = scene;
+
+    this.tmpMtx = new FIK.M3();
 
     this.isWithMesh = false;
 
@@ -2379,90 +2507,86 @@ Object.assign( Structure3D.prototype, {
 
     update:function(){
 
-        var c, m, b, t;
-        var connectedChainNumber;
-        var hostChain, hostBone, constraintType;
+        var chain, mesh, bone, target;
+        var hostChainNumber;
+        var hostBone, constraintType;
 
-        //var i =  this.mNumChains;
+        //var i =  this.numChains;
 
         //while(i--){
 
-        for( var i = 0; i < this.mNumChains; i++ ){
+        for( var i = 0; i < this.numChains; i++ ){
 
-            c = this.chains[i];
-            m = this.meshChains[i];
-            t = this.targets[i];
+            chain = this.chains[i];
+            target = this.targets[i];
 
-            connectedChainNumber = c.getConnectedChainNumber();
+            hostChainNumber = chain.getConnectedChainNumber();
 
-            //this.chains[0].updateTarget( this.targets[0] );
+            if ( hostChainNumber !== -1 ){
 
-            if (connectedChainNumber === -1) c.updateTarget( t );
-            else{
-                hostChain = this.chains[connectedChainNumber];
-                hostBone  = hostChain.getBone( c.getConnectedBoneNumber() );
+                hostBone  = this.chains[ hostChainNumber ].getBone( chain.getConnectedBoneNumber() );
 
-                c.setBaseLocation( hostBone.getBoneConnectionPoint() === 'start' ? hostBone.getStartLocation() : hostBone.getEndLocation() );
+                chain.setBaseLocation( chain.getBoneConnectionPoint() === START ? hostBone.getStartLocation() : hostBone.getEndLocation() );
 
                 // Now that we've clamped the base location of this chain to the start or end point of the bone in the chain we are connected to, it's
                 // time to deal with any base bone constraints...
 
-                constraintType = c.getBaseboneConstraintType();
+                constraintType = chain.getBaseboneConstraintType();
+
                 switch (constraintType){
+
                     case NONE:         // Nothing to do because there's no basebone constraint
                     case GLOBAL_ROTOR: // Nothing to do because the basebone constraint is not relative to bones in other chains in this structure
                     case GLOBAL_HINGE: // Nothing to do because the basebone constraint is not relative to bones in other chains in this structure
                         break;
                         
-                    // If we have a local rotor or hinge constraint then we must calculate the relative basebone constraint before calling updateTarget
+                    // If we have a local rotor or hinge constraint then we must calculate the relative basebone constraint before calling solveForTarget
                     case LOCAL_ROTOR:
                     case LOCAL_HINGE:
 
+                    //chain.resetTarget(); // ??
+
                     // Get the direction of the bone this chain is connected to and create a rotation matrix from it.
-                    var connectionBoneMatrix = new FIK.M3().createRotationMatrix( hostBone.getDirectionUV() );
+                    this.tmpMtx.createRotationMatrix( hostBone.getDirectionUV() );
+                    //var connectionBoneMatrix = new FIK.M3().createRotationMatrix( hostBone.getDirectionUV() );
                         
                     // We'll then get the basebone constraint UV and multiply it by the rotation matrix of the connected bone 
                     // to make the basebone constraint UV relative to the direction of bone it's connected to.
-                    var relativeBaseboneConstraintUV = connectionBoneMatrix.times( c.getBaseboneConstraintUV() ).normalize();
+                    //var relativeBaseboneConstraintUV = connectionBoneMatrix.times( c.getBaseboneConstraintUV() ).normalize();
+                    var relativeBaseboneConstraintUV = chain.getBaseboneConstraintUV().clone().applyM3( this.tmpMtx );
                             
                     // Update our basebone relative constraint UV property
-                    c.setBaseboneRelativeConstraintUV( relativeBaseboneConstraintUV );
+                    chain.setBaseboneRelativeConstraintUV( relativeBaseboneConstraintUV );
                         
-                    // Updat the relative reference constraint UV if we hav a local hinge
+                    // Update the relative reference constraint UV if we hav a local hinge
                     if (constraintType === LOCAL_HINGE )
-                        c.setBaseboneRelativeReferenceConstraintUV( connectionBoneMatrix.times( c.getBone(0).getJoint().getHingeReferenceAxis() ) );
+                        chain.setBaseboneRelativeReferenceConstraintUV( chain.bones[0].joint.getHingeReferenceAxis().clone().applyM3( this.tmpMtx ) );
+                        //c.setBaseboneRelativeReferenceConstraintUV( connectionBoneMatrix.times( c.getBone(0).getJoint().getHingeReferenceAxis() ) );
                         
                     break;
 
                 }
 
-                // NOTE: If the base bone constraint type is NONE then we don't do anything with the base bone constraint of the connected chain.
                 
-                // Finally, update the target and solve the chain
-                // Update the target and solve the chain
-
-                //if ( !c.getEmbeddedTargetMode() ) c.solveForTarget(newTargetLocation);
-                //else c.solveForEmbeddedTarget();
-
                 
-                c.resetTarget();//
-                //hostChain.updateTarget( this.targets[connectedChainNumber] );
-
-                c.updateTarget( t );
-
 
             }
 
+            // Finally, update the target and solve the chain
+
+            if ( !chain.useEmbeddedTarget ) chain.solveForTarget( target );
+            else chain.solveForEmbeddedTarget();
+
             // update 3d mesh
 
-           // var m1 = new THREE.Matrix4();
-           // var vector = new THREE.Vector3();
-
             if( this.isWithMesh ){
-                for ( var j = 0; j < c.mNumBones; j++ ) {
-                    b = c.getBone(j);
-                    m[j].position.copy( b.getStartLocation() );
-                    m[j].lookAt( b.getEndLocation() );
+
+                mesh = this.meshChains[i];
+
+                for ( var j = 0; j < chain.numBones; j++ ) {
+                    bone = chain.bones[j];
+                    mesh[j].position.copy( bone.getStartLocation() );
+                    mesh[j].lookAt( bone.getEndLocation() );
                 }
 
             }
@@ -2477,7 +2601,7 @@ Object.assign( Structure3D.prototype, {
 
         var i;
 
-        i = this.mNumChains;
+        i = this.numChains;
         while(i--){
             this.remove(i);
         }
@@ -2493,7 +2617,7 @@ Object.assign( Structure3D.prototype, {
         this.chains.push( chain );
          
         this.targets.push( target ); 
-        this.mNumChains ++;
+        this.numChains ++;
 
         if( meshBone ) this.addChainMeshs( chain );
     },
@@ -2506,19 +2630,24 @@ Object.assign( Structure3D.prototype, {
         this.chains.splice(id, 1);
         this.meshChains.splice(id, 1);
         this.targets.splice(id, 1);
-        this.mNumChains --;
+        this.numChains --;
 
     },
 
-    setFixedBaseMode:function( fixedBaseMode ){
-        for ( var i = 0; i < this.mNumChains; i++) {
-            this.chains[i].setFixedBaseMode( fixedBaseMode );
+    setFixedBaseMode:function( value ){
+
+        this.fixedBaseMode = value; 
+        var i = this.numChains, host;
+        while(i--){
+            host = this.chains[i].getConnectedChainNumber();
+            if( host===-1 ) this.chains[i].setFixedBaseMode( this.fixedBaseMode );
         }
+
     },
 
     getNumChains:function(){
 
-        return this.mNumChains;
+        return this.numChains;
 
     },
 
@@ -2528,48 +2657,46 @@ Object.assign( Structure3D.prototype, {
 
     },
 
-    connectChain : function( newChain, existingChainNumber, existingBoneNumber, boneConnectionPoint, target, meshBone, color ){
+    connectChain : function( Chain, chainNumber, boneNumber, point, target, meshBone, color ){
 
-        if ( existingChainNumber > this.mNumChains ) return;
-        if ( existingBoneNumber > this.chains[existingChainNumber].getNumBones() ) return;
+        var c = chainNumber;
+        var n = boneNumber;
+
+        if ( chainNumber > this.numChains ) return;
+        if ( boneNumber > this.chains[chainNumber].numBones ) return;
 
         // Make a copy of the provided chain so any changes made to the original do not affect this chain
-        var relativeChain = newChain.clone();//new Fullik.Chain( newChain );
-        if( color !== undefined ) relativeChain.setColor( color );
+        var chain = Chain.clone();//new Fullik.Chain( newChain );
+        if( color !== undefined ) chain.setColor( color );
 
         // Connect the copy of the provided chain to the specified chain and bone in this structure
-        relativeChain.connectToStructure( this, existingChainNumber, existingBoneNumber );
+        //chain.connectToStructure( this, chainNumber, boneNumber );
+
+        chain.setBoneConnectionPoint( point === 'end' ? END : START );
+        chain.setConnectedChainNumber( c );
+        chain.setConnectedBoneNumber( n );
 
         // The chain as we were provided should be centred on the origin, so we must now make it
         // relative to the start location of the given bone in the given chain.
 
-        var connectionPoint = boneConnectionPoint || this.getChain( existingChainNumber ).getBone( existingBoneNumber ).getBoneConnectionPoint();
-        var connectionLocation;
-
-        if ( connectionPoint === 'start' ) connectionLocation = this.chains[existingChainNumber].getBone(existingBoneNumber).getStartLocation();
-        else connectionLocation = this.chains[existingChainNumber].getBone(existingBoneNumber).getEndLocation();
+        var position = point === 'end' ? this.chains[ c ].bones[ n ].end : this.chains[ c ].bones[ n ].start;
          
 
-        relativeChain.setBaseLocation( connectionLocation );
+        chain.setBaseLocation( position );
         // When we have a chain connected to a another 'host' chain, the chain is which is connecting in
         // MUST have a fixed base, even though that means the base location is 'fixed' to the connection
         // point on the host chain, rather than a static location.
-        relativeChain.setFixedBaseMode( true );
+        chain.setFixedBaseMode( true );
 
         // Translate the chain we're connecting to the connection point
-        for ( var i = 0; i < relativeChain.getNumBones(); i++ ){
+        for ( var i = 0; i < chain.numBones; i++ ){
 
-            var origStart = relativeChain.getBone(i).getStartLocation();
-            var origEnd   = relativeChain.getBone(i).getEndLocation();
-            
-            var translatedStart = origStart.plus(connectionLocation);
-            var translatedEnd   = origEnd.plus(connectionLocation);
-            
-            relativeChain.getBone(i).setStartLocation(translatedStart);
-            relativeChain.getBone(i).setEndLocation(translatedEnd);
+            chain.bones[i].start.add( position );
+            chain.bones[i].end.add( position );
+
         }
         
-        this.add( relativeChain, target, meshBone );
+        this.add( chain, target, meshBone );
 
     },
 
@@ -2592,7 +2719,7 @@ Object.assign( Structure3D.prototype, {
 
     addBoneMesh:function( bone, prev, ar, chain ){
 
-        var size = bone.mLength;
+        var size = bone.length;
         var color = bone.color;
         var g = new THREE.CylinderBufferGeometry ( 1, 0.5, size, 4 );
         g.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
@@ -2605,13 +2732,13 @@ Object.assign( Structure3D.prototype, {
         var extraMesh = null;
         var extraGeo;
 
-        var type = bone.getJoint().type;
+        var type = bone.joint.type;
         switch(type){
             case J_BALL :
                 m2.color.setHex(0xFF6600);
-                var angle = bone.getJoint().mRotorConstraintDegs;
+                var angle = bone.joint.rotor;
              
-                if(angle === 180) break;
+                if(angle === Math.PI) break;
                 var s = 2;//size/4;
                 var r = 2;//
                 extraGeo = new THREE.CylinderBufferGeometry ( 0, r, s, 6,1, true );
@@ -2620,14 +2747,14 @@ Object.assign( Structure3D.prototype, {
                 extraMesh = new THREE.Mesh( extraGeo,  m2 );
             break;
             case J_GLOBAL :
-            var axe =  bone.getJoint().getHingeRotationAxis();
+            var axe =  bone.joint.getHingeRotationAxis();
             //console.log( axe );
-            var a1 = bone.getJoint().mHingeClockwiseConstraintDegs * _Math.toRad;
-            var a2 = bone.getJoint().mHingeAnticlockwiseConstraintDegs * _Math.toRad;
+            var a1 = bone.joint.min;
+            var a2 = bone.joint.max;
             var r = 2;
             //console.log('global', a1, a2)
             m2.color.setHex(0xFFFF00);
-            extraGeo = new THREE.CircleBufferGeometry( r, 12, a1, a1+a2 );
+            extraGeo = new THREE.CircleBufferGeometry( r, 12, a1, -a1+a2 );
             //extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
             if( axe.z === 1 ) extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
             if( axe.y === 1 ) {extraGeo.applyMatrix( new THREE.Matrix4().makeRotationY( -Math.PI*0.5 ) );extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );}
@@ -2637,15 +2764,15 @@ Object.assign( Structure3D.prototype, {
             break;
             case J_LOCAL :
 
-            var axe =  bone.getJoint().getHingeRotationAxis();
+            var axe =  bone.joint.getHingeRotationAxis();
             
 
             var r = 2;
-            var a1 = bone.getJoint().mHingeClockwiseConstraintDegs * _Math.toRad;
-            var a2 = bone.getJoint().mHingeAnticlockwiseConstraintDegs * _Math.toRad;
+            var a1 = bone.joint.min;
+            var a2 = bone.joint.max;
             //console.log('local', a1, a2)
             m2.color.setHex(0x00FFFF);
-            extraGeo = new THREE.CircleBufferGeometry( r, 12, a1, a1+a2 );
+            extraGeo = new THREE.CircleBufferGeometry( r, 12, a1, -a1+a2 );
             extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
 
             if( axe.z === 1 ) { extraGeo.applyMatrix( new THREE.Matrix4().makeRotationY( -Math.PI*0.5 ) ); extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( Math.PI*0.5 ) );}
@@ -2670,7 +2797,7 @@ Object.assign( Structure3D.prototype, {
         if( prev !== -1 ){
             if( extraMesh !== null ){ 
                 if(type!==J_GLOBAL){
-                    extraMesh.position.z = chain.bones[prev].mLength;
+                    extraMesh.position.z = chain.bones[prev].length;
                     ar[prev].add( extraMesh );
                 } else {
                     b.add( extraMesh );
@@ -2708,14 +2835,12 @@ Object.assign( Structure3D.prototype, {
 
 } );
 
-function Joint2D( clockwiseConstraintDegs, antiClockwiseConstraintDegs, constraintCoordSystem ){
+function Joint2D( clockwise, antiClockwise, coordSystem ){
 
-    this.minDeg = clockwiseConstraintDegs !== undefined ? clockwiseConstraintDegs : MAX_DEGS;
-    this.maxDeg = antiClockwiseConstraintDegs !== undefined ? antiClockwiseConstraintDegs : MAX_DEGS;
-    this.coordinateSystem = constraintCoordSystem || J_LOCAL;
+    this.coordinateSystem = coordSystem || J_LOCAL;
 
-    this.min = -this.minDeg * _Math.toRad;
-    this.max = this.maxDeg * _Math.toRad;
+    this.min = clockwise !== undefined ? -clockwise * TORAD : -MAX_RAD;
+    this.max = antiClockwise !== undefined ? antiClockwise * TORAD : MAX_RAD;
     
 }
 
@@ -2726,21 +2851,20 @@ Object.assign( Joint2D.prototype, {
     clone: function () {
 
         var j = new Joint2D();
-        j.minDeg = this.minDeg;
-        j.maxDeg = this.maxDeg;
-        j.coordinateSystem = this.coordinateSystem;
 
+        j.coordinateSystem = this.coordinateSystem;
         j.max = this.max;
         j.min = this.min;
-
 
         return j;
 
     },
 
-    validateAngle: function ( angle ) {
+    validateAngle: function ( a ) {
 
-        return _Math.clamp( angle, MIN_DEGS, MAX_DEGS );
+        a = a < 0 ? 0 : a;
+        a = a > 180 ? 180 : a;
+        return a;
 
     },
 
@@ -2748,8 +2872,6 @@ Object.assign( Joint2D.prototype, {
 
     set: function ( joint ) {
 
-        this.minDeg = joint.minDeg;
-        this.maxDeg = joint.maxDeg;
         this.max = joint.max;
         this.min = joint.min;
         this.coordinateSystem = joint.coordinateSystem;
@@ -2759,16 +2881,14 @@ Object.assign( Joint2D.prototype, {
     setClockwiseConstraintDegs: function ( angle ) {
 
         // 0 to -180 degrees represents clockwise rotation
-        this.minDeg = this.validateAngle( angle );
-        this.min = -this.minDeg * _Math.toRad;
+        this.min = - (this.validateAngle( angle ) * TORAD);
         
     },
 
     setAnticlockwiseConstraintDegs: function ( angle ) {
 
         // 0 to 180 degrees represents anti-clockwise rotation
-        this.maxDeg = this.validateAngle( angle );
-        this.max = this.maxDeg * _Math.toRad;
+        this.max = this.validateAngle( angle ) * TORAD;
         
     },
 
@@ -2780,18 +2900,6 @@ Object.assign( Joint2D.prototype, {
 
 
     // GET
-
-    getClockwiseConstraintDegs: function () {
-
-        return this.minDeg;
-
-    },
-
-    getAnticlockwiseConstraintDegs: function () {
-
-        return this.maxDeg;
-
-    },
 
     getConstraintCoordinateSystem: function () {
 
@@ -2814,8 +2922,6 @@ function Bone2D ( Start, End, directionUV, length, clockwiseDegs, anticlockwiseD
 
     this.color = color || null;
     this.name = '';
-
-    this.angle = 0;
 
     // init
 
@@ -2846,7 +2952,6 @@ Object.assign( Bone2D.prototype, {
         b.joint = this.joint.clone();
         b.color = this.color;
         b.name = this.name;
-        b.angle = this.angle;
         return b;
 
     },
@@ -2939,13 +3044,13 @@ Object.assign( Bone2D.prototype, {
 
     getDirectionUV: function () {
 
-        return _Math.getDirectionUV( this.start, this.end );
+        return this.end.minus( this.start ).normalize();
 
     },
 
     getLength: function () {
 
-        return _Math.distanceBetween( this.start, this.end );
+        return this.start.distanceTo( this.end );
 
     },
 
@@ -2960,27 +3065,6 @@ Object.assign( Bone2D.prototype, {
         return this.end;
 
     },
-
-    // GET JOINT
-
-    /*getClockwiseConstraintDegs: function () {
-
-        return this.joint.getClockwiseConstraintDegs();
-
-    },
-
-    
-    getAnticlockwiseConstraintDegs: function () {
-
-        return this.joint.getAnticlockwiseConstraintDegs();
-
-    },
-
-    getJointConstraintCoordinateSystem: function () {
-
-        return this.joint.getConstraintCoordinateSystem();
-
-    },*/
     
 
 } );
@@ -2997,7 +3081,7 @@ function Chain2D ( color ){
     this.maxIteration = 15;
     this.precision = 0.001;
     
-    this.bonesLength = 0;
+    this.chainLength = 0;
     this.numBones = 0;
 
     this.baseLocation = new V2();
@@ -3049,13 +3133,15 @@ Object.assign( Chain2D.prototype, {
         }       
         
         // Native copy by value for primitive members
-        c.fixedBaseMode = this.fixedBaseMode;
-        c.boneConnectionPoint = this.boneConnectionPoint;
-        c.bonesLength = this.bonesLength;
-        c.numBones = this.numBones;
-        c.currentSolveDistance = this.currentSolveDistance;
-        c.connectedChainNumber = this.connectedChainNumber;
-        c.connectedBoneNumber = this.connectedBoneNumber;
+        c.fixedBaseMode          = this.fixedBaseMode;
+        
+        c.chainLength            = this.chainLength;
+        c.numBones               = this.numBones;
+        c.currentSolveDistance   = this.currentSolveDistance;
+
+        c.boneConnectionPoint    = this.boneConnectionPoint;
+        c.connectedChainNumber   = this.connectedChainNumber;
+        c.connectedBoneNumber    = this.connectedBoneNumber;
         c.baseboneConstraintType = this.baseboneConstraintType;
 
         c.color = this.color;
@@ -3214,7 +3300,7 @@ Object.assign( Chain2D.prototype, {
 
     getChainLength: function () {
 
-        return this.bonesLength;
+        return this.chainLength;
 
     },
 
@@ -3370,7 +3456,7 @@ Object.assign( Chain2D.prototype, {
 
     solveForEmbeddedTarget : function () {
 
-        if ( this.useEmbeddedTarget ) return this.updateTarget( this.embeddedTarget );
+        if ( this.useEmbeddedTarget ) return this.solveForTarget( this.embeddedTarget );
 
     },
 
@@ -3390,7 +3476,7 @@ Object.assign( Chain2D.prototype, {
     // - A solution incrementally improves on the previous solution by less than the minIterationChange, or
     // - The number of attempts to solve the IK chain exceeds the maxIteration.
 
-    updateTarget: function ( t ) {
+    solveForTarget: function ( t ) {
 
         this.tmpTarget.set( t.x, t.y );
         var p = this.precision;
@@ -3405,7 +3491,7 @@ Object.assign( Chain2D.prototype, {
         // If the base location of a chain hasn't moved then we may opt to keep the current solution if our 
         // best new solution is worse...
         if ( this.lastBaseLocation.approximatelyEquals( this.baseLocation, p ) ) {
-            startingDistance  = _Math.distanceBetween( this.bones[ this.numBones-1 ].getEndLocation(), this.tmpTarget );
+            startingDistance = _Math.distanceBetween( this.bones[ this.numBones-1 ].getEndLocation(), this.tmpTarget );
             startingSolution = this.cloneBones();
         } else {
             // Base has changed? Then we have little choice but to recalc the solution and take that new solution.
@@ -3426,7 +3512,6 @@ Object.assign( Chain2D.prototype, {
         var i = this.maxIteration;
 
         while( i-- ){
-        //for ( var i = 0; i < this.maxIteration; i++ ){
 
             // Solve the chain for this target
             solveDistance = this.solveIK( this.tmpTarget );
@@ -3545,7 +3630,7 @@ Object.assign( Chain2D.prototype, {
                     if(bone.joint.coordinateSystem !== J_LOCAL){
 
                         // Can constrain if constraining against global coordinate system
-                        baselineUV = bone.getGlobalConstraintUV().negate();
+                        baselineUV = bone.getGlobalConstraintUV().negated();
                         directionUV.constrainedUV( baselineUV, bone.joint.min, bone.joint.max );
 
                     }
@@ -3669,16 +3754,15 @@ Object.assign( Chain2D.prototype, {
     updateChainLength: function () {
 
         // Loop over all the bones in the chain, adding the length of each bone to the mChainLength property
-        this.bonesLength = 0;
+        this.chainLength = 0;
         var i = this.numBones;
-        while(i--) this.bonesLength += this.bones[i].length;
+        while(i--) this.chainLength += this.bones[i].length;
 
     },
 
     cloneBones : function(){
 
-       // Use clone to create a new Bone with the values from the source Bone.
-       // and add it to the cloned chain.
+        // Use clone to create a new Bone with the values from the source Bone.
 
         var chain = [];
     
@@ -3716,7 +3800,7 @@ Object.assign( Structure2D.prototype, {
 
         //console.log('up')
 
-        var chain, mesh, bone, t, tmp = new THREE.Vector3();
+        var chain, mesh, bone, target, tmp = new THREE.Vector3();
         var hostChainNumber;
         var hostBone, constraintType;
 
@@ -3724,7 +3808,7 @@ Object.assign( Structure2D.prototype, {
 
             chain = this.chains[i];
             
-            t = this.targets[i];
+            target = this.targets[i];
 
             hostChainNumber = chain.getConnectedChainNumber();
 
@@ -3733,22 +3817,13 @@ Object.assign( Structure2D.prototype, {
 
             // If this chain is not connected to another chain and the basebone constraint type of this chain is not global absolute
             // then we must update the basebone constraint UV for LOCAL_RELATIVE and the basebone relative constraint UV for LOCAL_ABSOLUTE connection types.
-            // Note: For NONE or GLOBAL_ABSOLUTE we don't need to update anything before calling updateTarget().
+            // Note: For NONE or GLOBAL_ABSOLUTE we don't need to update anything before calling solveForTarget().
             if ( hostChainNumber !== -1 && constraintType !== GLOBAL_ABSOLUTE ) {   
                 // Get the bone which this chain is connected to in the 'host' chain
-                var hostBone = this.chains[hostChainNumber].getBone( chain.getConnectedBoneNumber() );
-                
-                // If we're connecting this chain to the start location of the bone in the 'host' chain...
-                if( chain.getBoneConnectionPoint() === START ){
-                    // ...set the base location of this bone to be the start location of the bone it's connected to.
-                    chain.setBaseLocation( hostBone.getStartLocation() );
+                var hostBone = this.chains[ hostChainNumber ].getBone( chain.getConnectedBoneNumber() );
 
-                } else {
-                    // If the bone connection point is BoneConnectionPoint.END...
-                   
-                    // ...set the base location of the chain to be the end location of the bone we're connecting to.
-                    chain.setBaseLocation( hostBone.getEndLocation() );
-                }
+                chain.setBaseLocation( chain.getBoneConnectionPoint() === START ? hostBone.getStartLocation() : hostBone.getEndLocation() );
+               
                 
                 // If the basebone is constrained to the direction of the bone it's connected to...
                 var hostBoneUV = hostBone.getDirectionUV();
@@ -3779,12 +3854,13 @@ Object.assign( Structure2D.prototype, {
                 
             } // End of if chain is connected to another chain section
 
-            if ( !chain.useEmbeddedTarget ) chain.updateTarget( t );
+            // Finally, update the target and solve the chain
+
+            if ( !chain.useEmbeddedTarget ) chain.solveForTarget( target );
             else chain.solveForEmbeddedTarget();
 
 
             // update 3d mesh
-
 
             if( this.isWithMesh ){
 
@@ -3810,7 +3886,7 @@ Object.assign( Structure2D.prototype, {
         var i = this.numChains, host;
         while(i--){
             host = this.chains[i].getConnectedChainNumber();
-            if(host===-1)this.chains[i].setFixedBaseMode( this.fixedBaseMode );
+            if(host===-1) this.chains[i].setFixedBaseMode( this.fixedBaseMode );
         }
         //this.chains[0].setFixedBaseMode( this.fixedBaseMode );
 
@@ -4049,4 +4125,4 @@ Object.assign( IKSolver.prototype, {
 
 } );
 
-export { _Math, V2, V3, M3, Joint3D, Bone3D, Chain3D, Structure3D, Joint2D, Bone2D, Chain2D, Structure2D, IKSolver, REVISION, MIN_DEGS, MAX_DEGS, PRECISION, PRECISION_DEG, MAX_VALUE, NONE, GLOBAL_ROTOR, GLOBAL_HINGE, LOCAL_ROTOR, LOCAL_HINGE, GLOBAL_ABSOLUTE, LOCAL_RELATIVE, LOCAL_ABSOLUTE, J_BALL, J_LOCAL, J_GLOBAL, START, END, X_AXE, Y_AXE, Z_AXE, X_NEG, Y_NEG, Z_NEG, UP, DOWN, LEFT, RIGHT };
+export { _Math, V2, V3, M3, Joint3D, Bone3D, Chain3D, Structure3D, Joint2D, Bone2D, Chain2D, Structure2D, IKSolver, REVISION, MIN_DEGS, MAX_DEGS, MAX_RAD, PRECISION, PRECISION_DEG, MAX_VALUE, TORAD, TODEG, NONE, GLOBAL_ROTOR, GLOBAL_HINGE, LOCAL_ROTOR, LOCAL_HINGE, GLOBAL_ABSOLUTE, LOCAL_RELATIVE, LOCAL_ABSOLUTE, J_BALL, J_LOCAL, J_GLOBAL, START, END, X_AXE, Y_AXE, Z_AXE, X_NEG, Y_NEG, Z_NEG, UP, DOWN, LEFT, RIGHT };

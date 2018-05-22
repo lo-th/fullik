@@ -29,6 +29,8 @@ for (var i = 0; i < numChains; i++ ){
 
     for (var j = 0; j < 6; j++) {
 
+        //chain.addConsecutiveHingedBone( defaultBoneDirection, defaultBoneLength, 'local', hingeRotationAxis, 90, 90, hingeReferenceAxis );
+
         if (j % 2 == 0) chain.addConsecutiveHingedBone( defaultBoneDirection, defaultBoneLength, 'local', hingeRotationAxis, 90, 90, hingeReferenceAxis );
         
         else chain.addConsecutiveBone( defaultBoneDirection, defaultBoneLength );

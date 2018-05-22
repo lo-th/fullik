@@ -26,7 +26,7 @@ Object.assign( Structure2D.prototype, {
 
         //console.log('up')
 
-        var chain, mesh, bone, t, tmp = new THREE.Vector3();
+        var chain, mesh, bone, target, tmp = new THREE.Vector3();
         var hostChainNumber;
         var hostChain, hostBone, constraintType;
 
@@ -34,7 +34,7 @@ Object.assign( Structure2D.prototype, {
 
             chain = this.chains[i];
             
-            t = this.targets[i];
+            target = this.targets[i];
 
             hostChainNumber = chain.getConnectedChainNumber();
 
@@ -43,22 +43,13 @@ Object.assign( Structure2D.prototype, {
 
             // If this chain is not connected to another chain and the basebone constraint type of this chain is not global absolute
             // then we must update the basebone constraint UV for LOCAL_RELATIVE and the basebone relative constraint UV for LOCAL_ABSOLUTE connection types.
-            // Note: For NONE or GLOBAL_ABSOLUTE we don't need to update anything before calling updateTarget().
+            // Note: For NONE or GLOBAL_ABSOLUTE we don't need to update anything before calling solveForTarget().
             if ( hostChainNumber !== -1 && constraintType !== GLOBAL_ABSOLUTE ) {   
                 // Get the bone which this chain is connected to in the 'host' chain
-                var hostBone = this.chains[hostChainNumber].getBone( chain.getConnectedBoneNumber() );
-                
-                // If we're connecting this chain to the start location of the bone in the 'host' chain...
-                if( chain.getBoneConnectionPoint() === START ){
-                    // ...set the base location of this bone to be the start location of the bone it's connected to.
-                    chain.setBaseLocation( hostBone.getStartLocation() );
+                var hostBone = this.chains[ hostChainNumber ].getBone( chain.getConnectedBoneNumber() );
 
-                } else {
-                    // If the bone connection point is BoneConnectionPoint.END...
-                   
-                    // ...set the base location of the chain to be the end location of the bone we're connecting to.
-                    chain.setBaseLocation( hostBone.getEndLocation() );
-                }
+                chain.setBaseLocation( chain.getBoneConnectionPoint() === START ? hostBone.getStartLocation() : hostBone.getEndLocation() );
+               
                 
                 // If the basebone is constrained to the direction of the bone it's connected to...
                 var hostBoneUV = hostBone.getDirectionUV();
@@ -89,12 +80,13 @@ Object.assign( Structure2D.prototype, {
                 
             } // End of if chain is connected to another chain section
 
-            if ( !chain.useEmbeddedTarget ) chain.updateTarget( t );
+            // Finally, update the target and solve the chain
+
+            if ( !chain.useEmbeddedTarget ) chain.solveForTarget( target );
             else chain.solveForEmbeddedTarget();
 
 
             // update 3d mesh
-
 
             if( this.isWithMesh ){
 
@@ -120,7 +112,7 @@ Object.assign( Structure2D.prototype, {
         var i = this.numChains, host;
         while(i--){
             host = this.chains[i].getConnectedChainNumber();
-            if(host===-1)this.chains[i].setFixedBaseMode( this.fixedBaseMode );
+            if(host===-1) this.chains[i].setFixedBaseMode( this.fixedBaseMode );
         }
         //this.chains[0].setFixedBaseMode( this.fixedBaseMode );
 

@@ -1,16 +1,15 @@
 import { Joint3D } from './Joint3D.js';
-import { _Math } from '../math/Math.js';
 import { V3 } from '../math/V3.js';
-import { MIN_DEGS, MAX_DEGS } from '../constants.js';
+import { MIN_DEGS, MAX_DEGS, END, START } from '../constants.js';
 
 function Bone3D ( startLocation, endLocation, directionUV, length, color ){
 
-    this.mJoint = new Joint3D();
-    this.mStartLocation = new V3();
-    this.mEndLocation = new V3();
+    this.joint = new Joint3D();
+    this.start = new V3();
+    this.end = new V3();
     
-    this.mBoneConnectionPoint = 'end';
-    this.mLength = 0;
+    this.boneConnectionPoint = END;
+    this.length = 0;
 
     this.color = color || 0xFFFFFF;
     this.name = '';
@@ -28,37 +27,24 @@ Object.assign( Bone3D.prototype, {
         this.setStartLocation( startLocation );
         if( endLocation ){ 
             this.setEndLocation( endLocation );
-            this.setLength( _Math.distanceBetween( this.mStartLocation, this.mEndLocation ) );
+            this.length = this.getLength();
+
         } else {
             this.setLength( length );
-            this.setEndLocation( this.mStartLocation.plus( directionUV.normalised().times( length ) ) );
+            this.setEndLocation( this.start.plus( directionUV.normalised().times( length ) ) );
         }
 
     },
 
     clone:function(){
 
-        var b = new Bone3D( this.mStartLocation, this.mEndLocation );
-        b.mJoint = this.mJoint.clone();
+        var b = new Bone3D( this.start, this.end );
+        b.joint = this.joint.clone();
         return b;
 
     },
 
-    length: function(){
-        return this.mLength;
-    },
-
-    liveLength: function(){
-        return _Math.distanceBetween( this.mStartLocation, this.mEndLocation );
-    },
-
     // SET
-
-    setName: function ( name ) {
-
-        this.name = name;
-
-    },
 
     setColor: function ( c ) {
 
@@ -68,94 +54,92 @@ Object.assign( Bone3D.prototype, {
 
     setBoneConnectionPoint: function ( bcp ) {
 
-        this.mBoneConnectionPoint = bcp;
+        this.boneConnectionPoint = bcp;
 
     },
 
     setHingeJointClockwiseConstraintDegs: function ( angle ){
 
-        this.mJoint.setHingeJointClockwiseConstraintDegs( angle );
+        this.joint.setHingeJointClockwiseConstraintDegs( angle );
 
     },
 
     setHingeJointAnticlockwiseConstraintDegs: function ( angle ){
 
-        this.mJoint.setHingeJointAnticlockwiseConstraintDegs( angle );
+        this.joint.setHingeJointAnticlockwiseConstraintDegs( angle );
 
     },
 
     setBallJointConstraintDegs: function ( angle ){
 
-        this.mJoint.setBallJointConstraintDegs( angle );
+        this.joint.setBallJointConstraintDegs( angle );
 
     },
 
     setStartLocation: function ( location ) {
 
-        this.mStartLocation.copy ( location );
+        this.start.copy ( location );
 
     },
 
     setEndLocation:function( location ){
 
-        this.mEndLocation.copy ( location );
+        this.end.copy ( location );
 
     },
 
     setLength:function( lng ){
 
-        if ( lng > 0 ) this.mLength = lng;
+        if ( lng > 0 ) this.length = lng;
 
     },
 
     setJoint:function( joint ){
 
-        this.mJoint = joint;
+        this.joint = joint;
 
     },
 
 
     // GET
 
-    getHingeJointClockwiseConstraintDegs: function(){
-        return this.mJoint.getHingeClockwiseConstraintDegs();
+    getBoneConnectionPoint: function () {
+
+        return this.boneConnectionPoint;
+
     },
 
-    
-    getHingeJointAnticlockwiseConstraintDegs: function(){
-        return this.mJoint.getHingeAnticlockwiseConstraintDegs();
+    getDirectionUV: function () {
+
+        return this.end.minus( this.start ).normalize();
+
     },
 
-    
-    getBallJointConstraintDegs : function(){
-        return this.mJoint.getBallJointConstraintDegs();
+    getStartLocation: function(){
+
+        return this.start;
+
     },
 
-    getBoneConnectionPoint:function(){
-        return this.mBoneConnectionPoint;
-    },
+    getEndLocation: function () {
 
-    getDirectionUV:function(){
-        return _Math.getDirectionUV( this.mStartLocation, this.mEndLocation );
-    },
-    getStartLocation : function(){
-        return this.mStartLocation;
-    },
-    getEndLocation : function(){
-        return this.mEndLocation;
+        return this.end;
+
     },
 
     getJointType : function(){
-        return this.mJoint.getJointType();
+        return this.joint.getJointType();
     },
 
-    getLength : function(){
-        return this.mLength;
+    getLength: function(){
+
+        return this.start.distanceTo( this.end );
+
     },
 
-    getJoint : function(){
-        return this.mJoint;
-    },
+    /*getJoint : function(){
+        return this.joint;
+    },*/
 
 } );
 

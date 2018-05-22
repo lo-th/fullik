@@ -2,7 +2,6 @@ import { NONE, GLOBAL_ABSOLUTE, LOCAL_RELATIVE, LOCAL_ABSOLUTE, END, START, J_LO
 import { _Math } from '../math/Math.js';
 import { V2 } from '../math/V2.js';
 import { Bone2D } from './Bone2D.js';
-import { Joint2D } from './Joint2D.js';
 import { Tools } from './Tools.js';
 
  function Chain2D ( color ){
@@ -17,7 +16,7 @@ import { Tools } from './Tools.js';
     this.maxIteration = 15;
     this.precision = 0.001;
     
-    this.bonesLength = 0;
+    this.chainLength = 0;
     this.numBones = 0;
 
     this.baseLocation = new V2();
@@ -69,13 +68,15 @@ Object.assign( Chain2D.prototype, {
         }       
         
         // Native copy by value for primitive members
-        c.fixedBaseMode = this.fixedBaseMode;
-        c.boneConnectionPoint = this.boneConnectionPoint;
-        c.bonesLength = this.bonesLength;
-        c.numBones = this.numBones;
-        c.currentSolveDistance = this.currentSolveDistance;
-        c.connectedChainNumber = this.connectedChainNumber;
-        c.connectedBoneNumber = this.connectedBoneNumber;
+        c.fixedBaseMode          = this.fixedBaseMode;
+        
+        c.chainLength            = this.chainLength;
+        c.numBones               = this.numBones;
+        c.currentSolveDistance   = this.currentSolveDistance;
+
+        c.boneConnectionPoint    = this.boneConnectionPoint;
+        c.connectedChainNumber   = this.connectedChainNumber;
+        c.connectedBoneNumber    = this.connectedBoneNumber;
         c.baseboneConstraintType = this.baseboneConstraintType;
 
         c.color = this.color;
@@ -235,7 +236,7 @@ Object.assign( Chain2D.prototype, {
 
     getChainLength: function () {
 
-        return this.bonesLength;
+        return this.chainLength;
 
     },
 
@@ -391,7 +392,7 @@ Object.assign( Chain2D.prototype, {
 
     solveForEmbeddedTarget : function () {
 
-        if ( this.useEmbeddedTarget ) return this.updateTarget( this.embeddedTarget );
+        if ( this.useEmbeddedTarget ) return this.solveForTarget( this.embeddedTarget );
 
     },
 
@@ -411,7 +412,7 @@ Object.assign( Chain2D.prototype, {
     // - A solution incrementally improves on the previous solution by less than the minIterationChange, or
     // - The number of attempts to solve the IK chain exceeds the maxIteration.
 
-    updateTarget: function ( t ) {
+    solveForTarget: function ( t ) {
 
         this.tmpTarget.set( t.x, t.y );
         var p = this.precision;
@@ -426,7 +427,7 @@ Object.assign( Chain2D.prototype, {
         // If the base location of a chain hasn't moved then we may opt to keep the current solution if our 
         // best new solution is worse...
         if ( this.lastBaseLocation.approximatelyEquals( this.baseLocation, p ) ) {
-            startingDistance  = _Math.distanceBetween( this.bones[ this.numBones-1 ].getEndLocation(), this.tmpTarget );
+            startingDistance = _Math.distanceBetween( this.bones[ this.numBones-1 ].getEndLocation(), this.tmpTarget );
             startingSolution = this.cloneBones();
         } else {
             // Base has changed? Then we have little choice but to recalc the solution and take that new solution.
@@ -447,7 +448,6 @@ Object.assign( Chain2D.prototype, {
         var i = this.maxIteration;
 
         while( i-- ){
-        //for ( var i = 0; i < this.maxIteration; i++ ){
 
             // Solve the chain for this target
             solveDistance = this.solveIK( this.tmpTarget );
@@ -566,7 +566,7 @@ Object.assign( Chain2D.prototype, {
                     if(bone.joint.coordinateSystem !== J_LOCAL){
 
                         // Can constrain if constraining against global coordinate system
-                        baselineUV = bone.getGlobalConstraintUV().negate();
+                        baselineUV = bone.getGlobalConstraintUV().negated();
                         directionUV.constrainedUV( baselineUV, bone.joint.min, bone.joint.max );
 
                     }
@@ -690,16 +690,15 @@ Object.assign( Chain2D.prototype, {
     updateChainLength: function () {
 
         // Loop over all the bones in the chain, adding the length of each bone to the mChainLength property
-        this.bonesLength = 0;
+        this.chainLength = 0;
         var i = this.numBones;
-        while(i--) this.bonesLength += this.bones[i].length;
+        while(i--) this.chainLength += this.bones[i].length;
 
     },
 
     cloneBones : function(){
 
-       // Use clone to create a new Bone with the values from the source Bone.
-       // and add it to the cloned chain.
+        // Use clone to create a new Bone with the values from the source Bone.
 
         var chain = [];
     

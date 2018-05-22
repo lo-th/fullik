@@ -22,6 +22,20 @@ Object.assign( V3.prototype, {
 
 	},
 
+	distanceTo: function ( v ) {
+
+		return Math.sqrt( this.distanceToSquared( v ) );
+
+	},
+
+	distanceToSquared: function ( v ) {
+
+		var dx = this.x - v.x, dy = this.y - v.y, dz = this.z - v.z;
+
+		return dx * dx + dy * dy + dz * dz;
+
+	},
+
 	abs: function () {
 
 		return new V3( 
@@ -184,7 +198,7 @@ Object.assign( V3.prototype, {
 
 	},
 
-	projectOnPlane: function ( planeNormal ) {
+	/*projectOnPlane_old: function ( planeNormal ) {
 
 	    if ( planeNormal.length() <= 0 ){ Tools.error("Plane normal cannot be a zero vector."); return; }
 	        
@@ -195,7 +209,7 @@ Object.assign( V3.prototype, {
 
         return b.min( n.times( _Math.dotProduct( b, planeNormal ) ) ).normalize();
 
-	},
+	},*/
 
 	// added
 
@@ -206,7 +220,7 @@ Object.assign( V3.prototype, {
 
 	},
 
-	projectOnPlane_new: function () {
+	projectOnPlane: function () {
 
 		var v1 = new V3();
 
@@ -219,6 +233,32 @@ Object.assign( V3.prototype, {
 		};
 
 	}(),
+
+	applyM3: function ( m ) {
+
+		var x = this.x, y = this.y, z = this.z;
+		var e = m.elements;
+
+		this.x = e[ 0 ] * x + e[ 1 ] * y + e[ 2 ] * z;
+		this.y = e[ 3 ] * x + e[ 4 ] * y + e[ 5 ] * z;
+		this.z = e[ 6 ] * x + e[ 7 ] * y + e[ 8 ] * z;
+
+		return this.normalize();
+
+	},
+
+	applyMatrix3: function ( m ) {
+
+		var x = this.x, y = this.y, z = this.z;
+		var e = m.elements;
+
+		this.x = e[ 0 ] * x + e[ 3 ] * y + e[ 6 ] * z;
+		this.y = e[ 1 ] * x + e[ 4 ] * y + e[ 7 ] * z;
+		this.z = e[ 2 ] * x + e[ 5 ] * y + e[ 8 ] * z;
+
+		return this;
+
+	},
 
 	applyQuaternion: function ( q ) {
 
@@ -241,6 +281,56 @@ Object.assign( V3.prototype, {
 		return this;
 
 	},
+
+	/////
+
+	sign: function( v, normal ) { //  Method to determine the sign of the angle between two V2 objects.
+
+		var s = this.cross( v ).dot( normal );//_Math.dotProduct( this.cross( v ), normal );
+		return s >= 0 ? 1 : -1;
+		/*if ( s > 0 ) return 1; 
+		else if ( s < 0 ) return -1;
+		return 0;*/
+
+	},
+
+	angleTo: function ( v ) {
+
+		var a = this.dot(v) / (Math.sqrt( this.lengthSq() * v.lengthSq() ));
+		//return Math.acos( _Math.clamp( a, - 1, 1 ) );
+		if(a <= -1) return Math.PI;
+		if(a >= 1) return 0;
+		return Math.acos( a );
+
+	},
+
+	getSignedAngle: function ( v, normal ) {
+
+		var a = this.angleTo( v );
+		var s = this.sign( v, normal );
+		return s === 1 ? a : -a;
+		
+	},
+
+	constrainedUV: function( referenceAxis, rotationAxis, mtx, min, max ) {
+
+        var angle = referenceAxis.getSignedAngle( this, rotationAxis );
+        if( angle > max ) this.copy( mtx.rotateAboutAxis( referenceAxis, max, rotationAxis ) );
+        if( angle < min ) this.copy( mtx.rotateAboutAxis( referenceAxis, min, rotationAxis ) );
+        return this;
+
+    },
+
+    limitAngle: function( base, mtx, max ) {
+
+        var angle = base.angleTo( this );
+        if( angle > max ){ 
+        	var correctionAxis = base.normalised().cross(this).normalize();
+        	this.copy( mtx.rotateAboutAxis( base, max, correctionAxis ) );
+        }
+        return this;
+
+    },
 
 
 } );

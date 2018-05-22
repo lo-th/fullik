@@ -61,7 +61,9 @@ var _Math = {
 
 	perpendicular: function ( a, b ) {
 
-	    return _Math.nearEquals( _Math.dotProduct(a, b), 0.0, 0.01 ) ? true : false;
+		return _Math.nearEquals( a.dot(b), 0.0, 0.01 ) ? true : false;
+
+	    //return _Math.nearEquals( _Math.dotProduct(a, b), 0.0, 0.01 ) ? true : false;
 
 	},
 
@@ -103,7 +105,7 @@ var _Math = {
 
 	},
 
-	getUvBetween: function ( v1, v2 ) {
+	/*getUvBetween: function ( v1, v2 ) {
 
 	     return v2.minus(v1).normalize();
 
@@ -111,9 +113,10 @@ var _Math = {
 
 	dotProduct: function ( v1, v2 ) { 
 
-	    var v1Norm = v1.normalised();
-	    var v2Norm = v2.normalised();
-	    return v1Norm.x * v2Norm.x + v1Norm.y * v2Norm.y + v1Norm.z * v2Norm.z;
+	    //var v1Norm = v1.normalised();
+	    //var v2Norm = v2.normalised();
+	    //return v1Norm.x * v2Norm.x + v1Norm.y * v2Norm.y + v1Norm.z * v2Norm.z;
+	    return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 
 	},
 
@@ -153,9 +156,9 @@ var _Math = {
 
 	    return v2.minus( v1 ).normalize();
 
-	},
+	},*/
 
-	getSignedAngleBetweenDegs: function ( referenceVector, otherVector, normalVector ) {
+	/*getSignedAngleBetweenDegs: function ( referenceVector, otherVector, normalVector ) {
 
 	    var unsignedAngle = _Math.getAngleBetweenDegs( referenceVector, otherVector );
 	    var sign          = _Math.sign( _Math.dotProduct( _Math.crossProduct( referenceVector, otherVector ), normalVector ) ); 
@@ -175,7 +178,7 @@ var _Math = {
 
 		return v >= 0 ? 1 : -1; 
 
-	},
+	},*/
 
 
 	// rotation

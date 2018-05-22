@@ -1,15 +1,16 @@
 import { V3 } from '../math/V3.js';
-import { _Math } from '../math/Math.js';
-import { J_BALL, J_GLOBAL, J_LOCAL, MIN_DEGS, MAX_DEGS } from '../constants.js';
+import { J_BALL, J_GLOBAL, J_LOCAL, MAX_RAD, TORAD } from '../constants.js';
 
 function Joint3D(){
 
-    this.mRotorConstraintDegs = MAX_DEGS;
-    this.mHingeClockwiseConstraintDegs = MAX_DEGS;
-    this.mHingeAnticlockwiseConstraintDegs = MAX_DEGS;
+    this.rotor = MAX_RAD;
+    this.min = -MAX_RAD;
+    this.max = MAX_RAD;
 
-    this.mRotationAxisUV = new V3();
-    this.mReferenceAxisUV = new V3();
+    this.freeHinge = true;
+
+    this.rotationAxisUV = new V3();
+    this.referenceAxisUV = new V3();
     this.type = J_BALL;
 
 }
@@ -21,94 +22,107 @@ Object.assign( Joint3D.prototype, {
     clone:function(){
 
         var j = new Joint3D();
+
         j.type = this.type;
-        j.mRotorConstraintDegs = this.mRotorConstraintDegs;
-        j.mHingeClockwiseConstraintDegs = this.mHingeClockwiseConstraintDegs;
-        j.mHingeAnticlockwiseConstraintDegs = this.mHingeAnticlockwiseConstraintDegs;
-        j.mRotationAxisUV.copy( this.mRotationAxisUV );
-        j.mReferenceAxisUV.copy( this.mReferenceAxisUV );
+        j.rotor = this.rotor;
+        j.max = this.max;
+        j.min = this.min;
+        j.rotationAxisUV.copy( this.rotationAxisUV );
+        j.referenceAxisUV.copy( this.referenceAxisUV );
+
         return j;
 
     },
 
-    validateAngle:function( angle ){
+    testAngle: function () {
 
-        return _Math.clamp( angle, MIN_DEGS, MAX_DEGS );
+        if( this.max === MAX_RAD && this.min === -MAX_RAD ) this.freeHinge = true;
+        else this.freeHinge = true;
+
+    },
+
+    validateAngle: function ( a ) {
+
+        a = a < 0 ? 0 : a;
+        a = a > 180 ? 180 : a;
+        return a;
 
     },
 
     setAsBallJoint:function( angle ){
 
-        this.mRotorConstraintDegs = this.validateAngle( angle );
+        this.rotor = this.validateAngle( angle ) * TORAD;
         this.type = J_BALL;
         
     },
 
-    // Specify this joint to be a hinge with the provided settings.
+    // Specify this joint to be a hinge with the provided settings
+
     setHinge: function( type, rotationAxis, clockwiseConstraintDegs, anticlockwiseConstraintDegs, referenceAxis ){
 
         this.type = type;
-        this.mHingeClockwiseConstraintDegs     = this.validateAngle( clockwiseConstraintDegs );
-        this.mHingeAnticlockwiseConstraintDegs = this.validateAngle( anticlockwiseConstraintDegs );
-        this.mRotationAxisUV.copy( rotationAxis.normalised() );
-        this.mReferenceAxisUV.copy( referenceAxis.normalised() );
+        this.min = - ( this.validateAngle( clockwiseConstraintDegs ) * TORAD );
+        this.max = this.validateAngle( anticlockwiseConstraintDegs ) * TORAD;
+
+        this.testAngle();
+
+        this.rotationAxisUV.copy( rotationAxis.normalised() );
+        this.referenceAxisUV.copy( referenceAxis.normalised() );
 
     },
 
     // GET
 
-    getJointType:function(){
+    getJointType: function () {
+
         return this.type; 
+
     },
 
-    getHingeClockwiseConstraintDegs:function(){
-        if ( !(this.type === J_BALL) ) return this.mHingeClockwiseConstraintDegs;
+    getHingeReferenceAxis:function () {
+
+        return this.referenceAxisUV; 
+
     },
 
-    getHingeAnticlockwiseConstraintDegs:function(){
-        if ( !(this.type === J_BALL) ) return this.mHingeAnticlockwiseConstraintDegs;
-    },
+    getHingeRotationAxis:function () {
 
-    getHingeReferenceAxis:function(){
-        if ( !(this.type === J_BALL) ) return this.mReferenceAxisUV; 
-    },
+        return this.rotationAxisUV; 
 
-    getHingeRotationAxis:function(){
-        if ( !(this.type === J_BALL) ) return this.mRotationAxisUV; 
-    },
-
-    getBallJointConstraintDegs:function(){
-        if ( this.type === J_BALL ) return this.mRotorConstraintDegs; 
     },
 
     // SET
 
-    /*setAsGlobalHinge:function( globalRotationAxis, cwConstraintDegs, acwConstraintDegs, globalReferenceAxis ){
-        this.setHinge( J_GLOBAL, globalRotationAxis, cwConstraintDegs, acwConstraintDegs, globalReferenceAxis );
+    setBallJointConstraintDegs: function ( angle ) {
+
+        this.rotor = this.validateAngle( angle ) * TORAD;
+
     },
 
-    setAsLocalHinge:function( localRotationAxis, cwConstraintDegs, acwConstraintDegs, localReferenceAxis ){
-        this.setHinge( J_LOCAL, localRotationAxis, cwConstraintDegs, acwConstraintDegs, localReferenceAxis );
-    },*/
+    setHingeJointClockwiseConstraintDegs: function ( angle ) {
 
-    setBallJointConstraintDegs:function( angle ){
-        if ( this.type === J_BALL ) this.mRotorConstraintDegs = this.validateAngle( angle );
+        this.min = - ( this.validateAngle( angle ) * TORAD );
+        this.testAngle();
+
     },
 
-    setHingeJointClockwiseConstraintDegs:function( angle ){
-        if ( !(this.type === J_BALL) ) this.mHingeClockwiseConstraintDegs = this.validateAngle( angle ); 
+    setHingeJointAnticlockwiseConstraintDegs: function ( angle ) {
+
+        this.max = this.validateAngle( angle ) * TORAD;
+        this.testAngle();
+
     },
 
-    setHingeJointAnticlockwiseConstraintDegs:function( angle ){
-        if ( !(this.type === J_BALL) ) this.mHingeAnticlockwiseConstraintDegs = this.validateAngle( angle ); 
+    setHingeRotationAxis: function ( axis ) {
+
+        this.rotationAxisUV.copy( axis ).normalize();
+
     },
 
-    setHingeRotationAxis:function( axis ){
-        if ( !(this.type === J_BALL) ) this.mRotationAxisUV.copy( axis.normalised() ); 
-    },
+    setHingeReferenceAxis: function ( referenceAxis ) {
 
-    setHingeReferenceAxis:function( referenceAxis ){
-        if ( !(this.type === J_BALL) ) this.mReferenceAxisUV.copy( referenceAxis.normalised() ); 
+        this.referenceAxisUV.copy( referenceAxis ).normalize(); 
+
     },
 
     
