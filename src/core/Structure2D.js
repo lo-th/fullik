@@ -46,7 +46,7 @@ Object.assign( Structure2D.prototype, {
             // Note: For NONE or GLOBAL_ABSOLUTE we don't need to update anything before calling solveForTarget().
             if ( hostChainNumber !== -1 && constraintType !== GLOBAL_ABSOLUTE ) {   
                 // Get the bone which this chain is connected to in the 'host' chain
-                var hostBone = this.chains[ hostChainNumber ].getBone( chain.getConnectedBoneNumber() );
+                var hostBone = this.chains[ hostChainNumber ].bones[ chain.getConnectedBoneNumber() ];
 
                 chain.setBaseLocation( chain.getBoneConnectionPoint() === START ? hostBone.getStartLocation() : hostBone.getEndLocation() );
                
@@ -93,7 +93,7 @@ Object.assign( Structure2D.prototype, {
                 mesh = this.meshChains[i];
 
                 for ( var j = 0; j < chain.numBones; j++ ) {
-                    bone = chain.getBone(j);
+                    bone = chain.bones[j];
                     mesh[j].position.set( bone.start.x, bone.start.y, 0 );
                     mesh[j].lookAt( tmp.set( bone.end.x, bone.end.y, 0 ) );
                 }

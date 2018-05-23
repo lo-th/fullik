@@ -67,8 +67,8 @@ Object.assign( Joint3D.prototype, {
 
         this.testAngle();
 
-        this.rotationAxisUV.copy( rotationAxis.normalised() );
-        this.referenceAxisUV.copy( referenceAxis.normalised() );
+        this.rotationAxisUV.copy( rotationAxis ).normalize();
+        this.referenceAxisUV.copy( referenceAxis ).normalize();
 
     },
 

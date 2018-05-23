@@ -1395,8 +1395,8 @@ Object.assign( Joint3D.prototype, {
 
         this.testAngle();
 
-        this.rotationAxisUV.copy( rotationAxis.normalised() );
-        this.referenceAxisUV.copy( referenceAxis.normalised() );
+        this.rotationAxisUV.copy( rotationAxis ).normalize();
+        this.referenceAxisUV.copy( referenceAxis ).normalize();
 
     },
 
@@ -1596,8 +1596,8 @@ function Chain3D ( color ){
     this.color = color || 0xFFFFFF;
 
     this.solveDistanceThreshold = 1.0;
-    this.maxIteration = 20;
     this.minIterationChange = 0.01;
+    this.maxIteration = 20;
     this.precision = 0.001;
 
     this.chainLength = 0;
@@ -1634,7 +1634,7 @@ Object.assign( Chain3D.prototype, {
 
     isChain3D: true,
 
-    clone:function(){
+    clone: function () {
 
         var c = new Chain3D();
 
@@ -1675,7 +1675,7 @@ Object.assign( Chain3D.prototype, {
 
     },
 
-    clear:function(){
+    clear: function () {
 
         var i = this.numBones;
         while(i--) this.removeBone(i);
@@ -1729,7 +1729,7 @@ Object.assign( Chain3D.prototype, {
 
     },
 
-    addConsecutiveFreelyRotatingHingedBone : function ( directionUV, length, type, hingeRotationAxis ){
+    addConsecutiveFreelyRotatingHingedBone: function ( directionUV, length, type, hingeRotationAxis ) {
 
         this.addConsecutiveHingedBone( directionUV, length, type, hingeRotationAxis, 180, 180, _Math.genPerpendicularVectorQuick( hingeRotationAxis ) );
 
@@ -1780,52 +1780,62 @@ Object.assign( Chain3D.prototype, {
 
     },
 
-    getBaseboneConstraintType:function(){
-        return this.baseboneConstraintType;
-    },
-    getBaseboneConstraintUV:function(){
-        if ( !(this.baseboneConstraintType === NONE) ) return this.baseboneConstraintUV;
-    },
-    getBaseLocation:function(){
-        return this.bones[0].getStartLocation();
-    },
-    getBone:function(id){
-        return this.bones[id];
-    },
-    getChain:function(){
-        return this.bones;
-    },
-    getChainLength:function(){
-        return this.chainLength;
-    },
     getConnectedBoneNumber:function(){
+
         return this.connectedBoneNumber;
-    },
-    getConnectedChainNumber:function(){
-        return this.connectedChainNumber;
-    },
-    getEffectorLocation:function(){
-        return this.bones[this.numBones-1].getEndLocation();
-    },
-    getLastTargetLocation:function(){
-        return this.lastTargetLocation;
-    },
-    getLiveChainLength:function(){
-        var lng = 0;        
-        for (var i = 0; i < this.numBones; i++){  
-            lng += this.bones[i].getLength();
-        }       
-        return lng;
-    },
-    getName:function(){
-        return this.name;
-    },
-    getNumBones: function () {
-        return this.numBones;
+
     },
 
+    getConnectedChainNumber:function(){
+
+        return this.connectedChainNumber;
+
+    },
+
+    getBaseboneConstraintType:function(){
+
+        return this.baseboneConstraintType;
+
+    },
+
+    getBaseboneConstraintUV:function(){
+
+        if ( !(this.baseboneConstraintType === NONE) ) return this.baseboneConstraintUV;
+
+    },
+
+    getBaseLocation: function () {
+
+        return this.bones[0].getStartLocation();
+
+    },
+
+    getEffectorLocation: function () {
+
+        return this.bones[this.numBones-1].getEndLocation();
+
+    },
+
+    getLastTargetLocation: function () {
+
+        return this.lastTargetLocation;
+
+    },
+
+    getLiveChainLength: function () {
+
+        var lng = 0;
+        var i = this.numBones;
+        while( i-- ) lng += this.bones[i].getLength();
+        return lng;
+
+    },
+
+
     getBaseboneRelativeReferenceConstraintUV: function () {
+
         return this.baseboneRelativeReferenceConstraintUV;
+
     },
 
     // -------------------------------
@@ -1850,16 +1860,31 @@ Object.assign( Chain3D.prototype, {
 
     },
 
-    setColor:function(c){
+    setColor: function ( c ) {
+
         this.color = c;
-        for (var i = 0; i < this.numBones; i++){  
-            this.bones[i].setColor( c );
-        }
+        var i = this.numBones;
+        while( i-- ) this.bones[i].setColor( this.color );
         
     },
 
-    setBaseboneRelativeConstraintUV: function( constraintUV ){ this.baseboneRelativeConstraintUV = constraintUV; },
-    setBaseboneRelativeReferenceConstraintUV: function( constraintUV ){ this.baseboneRelativeReferenceConstraintUV = constraintUV; },
+    setBaseboneRelativeConstraintUV: function( uv ){ 
+
+        this.baseboneRelativeConstraintUV = uv.normalised(); 
+
+    },
+
+    setBaseboneRelativeReferenceConstraintUV: function( uv ){ 
+
+        this.baseboneRelativeReferenceConstraintUV = uv.normalised(); 
+
+    },
+
+    setBaseboneConstraintUV : function( uv ){
+
+        this.baseboneConstraintUV = uv.normalised(); 
+
+    },
 
     setRotorBaseboneConstraint : function( type, constraintAxis, angleDegs ){
 
@@ -1872,30 +1897,24 @@ Object.assign( Chain3D.prototype, {
         this.baseboneConstraintType = type === 'global' ? GLOBAL_ROTOR : LOCAL_ROTOR;
         this.baseboneConstraintUV = constraintAxis.normalised();
         this.baseboneRelativeConstraintUV.copy( this.baseboneConstraintUV );
-        this.getBone(0).joint.setAsBallJoint( angleDegs );
+        this.bones[0].joint.setAsBallJoint( angleDegs );
 
     },
 
-    setHingeBaseboneConstraint : function( type, hingeRotationAxis, cwConstraintDegs, acwConstraintDegs, hingeReferenceAxis ){
+    setHingeBaseboneConstraint : function( type, hingeRotationAxis, cwDegs, acwDegs, hingeReferenceAxis ){
 
         // Sanity checking
         if ( this.numBones === 0){ Tools.error("Chain must contain a basebone before we can specify the basebone constraint type."); return; }   
         if ( hingeRotationAxis.length() <= 0 ){ Tools.error("Hinge rotation axis cannot be zero."); return;  }          
         if ( hingeReferenceAxis.length() <= 0 ){ Tools.error("Hinge reference axis cannot be zero."); return; }     
-        if ( !( _Math.perpendicular( hingeRotationAxis, hingeReferenceAxis ) ) ){ Tools.error("The hinge reference axis must be in the plane of the hinge rotation axis, that is, they must be perpendicular."); return;}
-        //if ( !(hingeType === GLOBAL_HINGE || hingeType === LOCAL_HINGE) ) return;//throw new IllegalArgumentException("The only valid hinge types for this method are GLOBAL_HINGE and LOCAL_HINGE.");
+        if ( !( _Math.perpendicular( hingeRotationAxis, hingeReferenceAxis ) ) ){ Tools.error("The hinge reference axis must be in the plane of the hinge rotation axis, that is, they must be perpendicular."); return; }
         
         type = type || 'global';
 
         // Set the constraint type, axis and angle
         this.baseboneConstraintType = type === 'global' ? GLOBAL_HINGE : LOCAL_HINGE;
-        this.baseboneConstraintUV.copy( hingeRotationAxis.normalised() );
-        
-        //if ( type === 'global' ) hinge.setHinge( J_GLOBAL, hingeRotationAxis, cwConstraintDegs, acwConstraintDegs, hingeReferenceAxis );
-        //else hinge.setHinge( J_LOCAL, hingeRotationAxis, cwConstraintDegs, acwConstraintDegs, hingeReferenceAxis );
-        
-        //this.getBone(0).setJoint( hinge );
-        this.getBone(0).joint.setHinge( type === 'global' ? J_GLOBAL : J_LOCAL, hingeRotationAxis, cwConstraintDegs, acwConstraintDegs, hingeReferenceAxis );
+        this.baseboneConstraintUV = hingeRotationAxis.normalised();
+        this.bones[0].joint.setHinge( type === 'global' ? J_GLOBAL : J_LOCAL, hingeRotationAxis, cwDegs, acwDegs, hingeReferenceAxis );
 
     },
 
@@ -1904,82 +1923,60 @@ Object.assign( Chain3D.prototype, {
         this.setHingeBaseboneConstraint( 'global', hingeRotationAxis, 180, 180, _Math.genPerpendicularVectorQuick( hingeRotationAxis ) );
     },
 
-    setGlobalHingedBasebone : function( hingeRotationAxis, cwDegs, acwDegs, hingeReferenceAxis ){
+    setGlobalHingedBasebone: function ( hingeRotationAxis, cwDegs, acwDegs, hingeReferenceAxis ) {
 
         this.setHingeBaseboneConstraint( 'global', hingeRotationAxis, cwDegs, acwDegs, hingeReferenceAxis );
+
     },
 
-    setFreelyRotatingLocalHingedBasebone : function( hingeRotationAxis ){
+    setFreelyRotatingLocalHingedBasebone: function ( hingeRotationAxis ) {
 
         this.setHingeBaseboneConstraint( 'local', hingeRotationAxis, 180, 180, _Math.genPerpendicularVectorQuick( hingeRotationAxis ) );
+
     },
 
-    setLocalHingedBasebone : function( hingeRotationAxis, cwDegs, acwDegs, hingeReferenceAxis ){
+    setLocalHingedBasebone: function ( hingeRotationAxis, cwDegs, acwDegs, hingeReferenceAxis ) {
 
         this.setHingeBaseboneConstraint( 'local', hingeRotationAxis, cwDegs, acwDegs, hingeReferenceAxis );
-    },
-
-    
-
-    setBaseboneConstraintUV : function( constraintUV ){
-
-        if ( this.baseboneConstraintType === NONE ) return;
-
-        this.constraintUV.normalize();
-        this.baseboneConstraintUV.copy( constraintUV );
 
     },
 
-    setBaseLocation : function( baseLocation ){
+    setBaseLocation: function ( baseLocation ) {
 
         this.baseLocation.copy( baseLocation );
-    },
-
-    setChain : function( bones ){
-
-        //this.bones = bones;
-
-        this.bones = [];
-        var lng = bones.length;
-        for(var i = 0; i< lng; i++){
-            this.bones[i] = bones[i];
-        }
 
     },
-
     
-
-    setFixedBaseMode : function( value ){
+    setFixedBaseMode: function( value ){
 
         // Enforce that a chain connected to another chain stays in fixed base mode (i.e. it moves with the chain it's connected to instead of independently)
         if ( !value && this.connectedChainNumber !== -1) return;
         if ( this.baseboneConstraintType === GLOBAL_ROTOR && !value ) return;
         // Above conditions met? Set the fixedBaseMode
         this.fixedBaseMode = value;
+
     },
 
-    setMaxIterationAttempts : function( maxIterations ){
+    setMaxIterationAttempts: function ( maxIterations ) {
 
         if (maxIterations < 1) return;
         this.maxIteration = maxIterations;
 
     },
 
-    setMinIterationChange : function( minIterationChange ){
+    setMinIterationChange: function ( minIterationChange ) {
 
         if (minIterationChange < 0) return;
         this.minIterationChange = minIterationChange;
 
     },
 
-    setSolveDistanceThreshold : function( solveDistance ){
+    setSolveDistanceThreshold: function ( solveDistance ) {
 
         if (solveDistance < 0) return;
         this.solveDistanceThreshold = solveDistance;
 
     },
-
-
 
     // -------------------------------
     //
@@ -1987,7 +1984,7 @@ Object.assign( Chain3D.prototype, {
     //
     // -------------------------------
 
-    solveForEmbeddedTarget : function () {
+    solveForEmbeddedTarget: function () {
 
         if ( this.useEmbeddedTarget ) return this.solveForTarget( this.embeddedTarget );
 
@@ -2024,7 +2021,7 @@ Object.assign( Chain3D.prototype, {
         // If the base location of a chain hasn't moved then we may opt to keep the current solution if our 
         // best new solution is worse...
         if ( this.lastBaseLocation.approximatelyEquals( this.baseLocation, p ) ) {
-            startingDistance = _Math.distanceBetween( this.bones[ this.numBones-1 ].getEndLocation(), this.tmpTarget );
+            startingDistance = this.bones[ this.numBones-1 ].end.distanceTo( this.tmpTarget );
             startingSolution = this.cloneBones();
         } else {
             // Base has changed? Then we have little choice but to recalc the solution and take that new solution.
@@ -2406,7 +2403,7 @@ Object.assign( Chain3D.prototype, {
   
         // Finally, calculate and return the distance between the current effector location and the target.
         //return _Math.distanceBetween( this.bones[this.numBones-1].getEndLocation(), target );
-        return this.bones[this.numBones-1].getEndLocation().distanceTo( target );
+        return this.bones[this.numBones-1].end.distanceTo( target );
 
     },
 
@@ -2422,17 +2419,11 @@ Object.assign( Chain3D.prototype, {
     cloneBones: function () {
 
         // Use clone to create a new Bone with the values from the source Bone.
-        
         var chain = [];
-    
         for ( var i = 0, n = this.bones.length; i < n; i++ ) chain.push( this.bones[i].clone() );
-
         return chain;
 
     }
-
-
-// end
 
 } );
 
@@ -2474,7 +2465,7 @@ Object.assign( Structure3D.prototype, {
 
             if ( hostChainNumber !== -1 ){
 
-                hostBone  = this.chains[ hostChainNumber ].getBone( chain.getConnectedBoneNumber() );
+                hostBone  = this.chains[ hostChainNumber ].bones[ chain.getConnectedBoneNumber() ];
 
                 chain.setBaseLocation( chain.getBoneConnectionPoint() === START ? hostBone.getStartLocation() : hostBone.getEndLocation() );
 
@@ -2511,7 +2502,6 @@ Object.assign( Structure3D.prototype, {
                     // Update the relative reference constraint UV if we hav a local hinge
                     if (constraintType === LOCAL_HINGE )
                         chain.setBaseboneRelativeReferenceConstraintUV( chain.bones[0].joint.getHingeReferenceAxis().clone().applyM3( this.tmpMtx ) );
-                        //c.setBaseboneRelativeReferenceConstraintUV( connectionBoneMatrix.times( c.getBone(0).getJoint().getHingeReferenceAxis() ) );
                         
                     break;
 
@@ -3206,15 +3196,21 @@ Object.assign( Chain2D.prototype, {
 
     },
 
-    getEmbeddedTarget:function () {
+    getConnectedBoneNumber:function () {
 
-        return this.embeddedTarget;
+        return this.connectedBoneNumber;
 
     },
 
-    getEmbeddedTargetMode: function () {
+    getConnectedChainNumber:function(){
 
-        return this.useEmbeddedTarget;
+        return this.connectedChainNumber;
+
+    },
+
+    getEmbeddedTarget:function () {
+
+        return this.embeddedTarget;
 
     },
 
@@ -3236,36 +3232,6 @@ Object.assign( Chain2D.prototype, {
 
     },
 
-    getBone: function (id) {
-
-        return this.bones[id];
-
-    },
-
-    getChain: function () {
-
-        return this.bones;
-
-    },
-
-    getChainLength: function () {
-
-        return this.chainLength;
-
-    },
-
-    getConnectedBoneNumber:function () {
-
-        return this.connectedBoneNumber;
-
-    },
-
-    getConnectedChainNumber:function(){
-
-        return this.connectedChainNumber;
-
-    },
-
     getEffectorLocation: function () {
 
         return this.bones[this.numBones-1].getEndLocation();
@@ -3282,16 +3248,8 @@ Object.assign( Chain2D.prototype, {
 
         var lng = 0;
         var i = this.numBones;
-        while( i-- ){  
-            lng += this.bones[i].getLength();
-        }       
+        while( i-- ) lng += this.bones[i].getLength();
         return lng;
-
-    },
-
-    getNumBones: function () {
-
-        return this.numBones;
 
     },
 
@@ -3304,9 +3262,7 @@ Object.assign( Chain2D.prototype, {
 
         this.color = color;
         var i = this.numBones;
-        while( i-- ){  
-            this.bones[i].setColor( this.color );
-        }
+        while( i-- ) this.bones[i].setColor( this.color );
         
     },
 
@@ -3336,7 +3292,6 @@ Object.assign( Chain2D.prototype, {
 
     setBaseboneConstraintUV: function ( constraintUV ) {
 
-        //if ( this.baseboneConstraintType === NONE ) return;
         _Math.validateDirectionUV( constraintUV );
         this.baseboneConstraintUV.copy( constraintUV.normalised() );
 
@@ -3347,18 +3302,6 @@ Object.assign( Chain2D.prototype, {
         this.baseLocation.copy( baseLocation );
 
     },
-
-    /*setChain : function( bones ){
-
-        //this.bones = bones;
-
-        this.bones = [];
-        var lng = bones.length;
-        for(var i = 0; i< lng; i++){
-            this.bones[i] = bones[i];
-        }
-
-    },*/
 
     setBaseboneConstraintType: function ( value ) {
 
@@ -3373,6 +3316,7 @@ Object.assign( Chain2D.prototype, {
         if ( this.baseboneConstraintType === GLOBAL_ABSOLUTE && !value ) return;
         // Above conditions met? Set the fixedBaseMode
         this.fixedBaseMode = value;
+
     },
 
     setMaxIterationAttempts: function ( maxIteration ) {
@@ -3396,21 +3340,19 @@ Object.assign( Chain2D.prototype, {
 
     },
 
-
-
     // -------------------------------
     //
     //      UPDATE TARGET
     //
     // -------------------------------
 
-    solveForEmbeddedTarget : function () {
+    solveForEmbeddedTarget: function () {
 
         if ( this.useEmbeddedTarget ) return this.solveForTarget( this.embeddedTarget );
 
     },
 
-    resetTarget : function(){
+    resetTarget: function(){
 
         this.lastBaseLocation = new V2( MAX_VALUE, MAX_VALUE );
         this.currentSolveDistance = MAX_VALUE;
@@ -3441,7 +3383,7 @@ Object.assign( Chain2D.prototype, {
         // If the base location of a chain hasn't moved then we may opt to keep the current solution if our 
         // best new solution is worse...
         if ( this.lastBaseLocation.approximatelyEquals( this.baseLocation, p ) ) {
-            startingDistance = _Math.distanceBetween( this.bones[ this.numBones-1 ].getEndLocation(), this.tmpTarget );
+            startingDistance = this.bones[ this.numBones-1 ].end.distanceTo( this.tmpTarget );
             startingSolution = this.cloneBones();
         } else {
             // Base has changed? Then we have little choice but to recalc the solution and take that new solution.
@@ -3693,11 +3635,8 @@ Object.assign( Chain2D.prototype, {
         // Update our last target location
         this.lastTargetLocation.copy( target );
                 
-        // Finally, get the current effector location...
-        var currentEffectorLocation = this.bones[this.numBones-1].getEndLocation();
-                
         // ...and calculate and return the distance between the current effector location and the target.
-        return _Math.distanceBetween( currentEffectorLocation, target );
+        return this.bones[this.numBones-1].end.distanceTo( target );
 
     },
 
@@ -3713,17 +3652,11 @@ Object.assign( Chain2D.prototype, {
     cloneBones : function(){
 
         // Use clone to create a new Bone with the values from the source Bone.
-
         var chain = [];
-    
         for ( var i = 0, n = this.bones.length; i < n; i++ ) chain.push( this.bones[i].clone() );
-
         return chain;
 
     }
-
-
-// end
 
 } );
 
@@ -3770,7 +3703,7 @@ Object.assign( Structure2D.prototype, {
             // Note: For NONE or GLOBAL_ABSOLUTE we don't need to update anything before calling solveForTarget().
             if ( hostChainNumber !== -1 && constraintType !== GLOBAL_ABSOLUTE ) {   
                 // Get the bone which this chain is connected to in the 'host' chain
-                var hostBone = this.chains[ hostChainNumber ].getBone( chain.getConnectedBoneNumber() );
+                var hostBone = this.chains[ hostChainNumber ].bones[ chain.getConnectedBoneNumber() ];
 
                 chain.setBaseLocation( chain.getBoneConnectionPoint() === START ? hostBone.getStartLocation() : hostBone.getEndLocation() );
                
@@ -3817,7 +3750,7 @@ Object.assign( Structure2D.prototype, {
                 mesh = this.meshChains[i];
 
                 for ( var j = 0; j < chain.numBones; j++ ) {
-                    bone = chain.getBone(j);
+                    bone = chain.bones[j];
                     mesh[j].position.set( bone.start.x, bone.start.y, 0 );
                     mesh[j].lookAt( tmp.set( bone.end.x, bone.end.y, 0 ) );
                 }

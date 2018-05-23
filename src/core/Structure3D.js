@@ -39,7 +39,7 @@ Object.assign( Structure3D.prototype, {
 
             if ( hostChainNumber !== -1 ){
 
-                hostBone  = this.chains[ hostChainNumber ].getBone( chain.getConnectedBoneNumber() );
+                hostBone  = this.chains[ hostChainNumber ].bones[ chain.getConnectedBoneNumber() ];
 
                 chain.setBaseLocation( chain.getBoneConnectionPoint() === START ? hostBone.getStartLocation() : hostBone.getEndLocation() );
 
@@ -76,7 +76,6 @@ Object.assign( Structure3D.prototype, {
                     // Update the relative reference constraint UV if we hav a local hinge
                     if (constraintType === LOCAL_HINGE )
                         chain.setBaseboneRelativeReferenceConstraintUV( chain.bones[0].joint.getHingeReferenceAxis().clone().applyM3( this.tmpMtx ) );
-                        //c.setBaseboneRelativeReferenceConstraintUV( connectionBoneMatrix.times( c.getBone(0).getJoint().getHingeReferenceAxis() ) );
                         
                     break;
 
