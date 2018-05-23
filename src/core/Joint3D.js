@@ -37,7 +37,7 @@ Object.assign( Joint3D.prototype, {
     testAngle: function () {
 
         if( this.max === MAX_RAD && this.min === -MAX_RAD ) this.freeHinge = true;
-        else this.freeHinge = true;
+        else this.freeHinge = false;
 
     },
 
@@ -58,11 +58,12 @@ Object.assign( Joint3D.prototype, {
 
     // Specify this joint to be a hinge with the provided settings
 
-    setHinge: function( type, rotationAxis, clockwiseConstraintDegs, anticlockwiseConstraintDegs, referenceAxis ){
+    setHinge: function( type, rotationAxis, clockwise, anticlockwise, referenceAxis ){
 
         this.type = type;
-        this.min = - ( this.validateAngle( clockwiseConstraintDegs ) * TORAD );
-        this.max = this.validateAngle( anticlockwiseConstraintDegs ) * TORAD;
+        if( clockwise < 0 ) clockwise *= -1;
+        this.min = -this.validateAngle( clockwise ) * TORAD;
+        this.max = this.validateAngle( anticlockwise ) * TORAD;
 
         this.testAngle();
 
@@ -72,12 +73,6 @@ Object.assign( Joint3D.prototype, {
     },
 
     // GET
-
-    getJointType: function () {
-
-        return this.type; 
-
-    },
 
     getHingeReferenceAxis:function () {
 
@@ -99,14 +94,15 @@ Object.assign( Joint3D.prototype, {
 
     },
 
-    setHingeJointClockwiseConstraintDegs: function ( angle ) {
+    setHingeClockwise: function ( angle ) {
 
-        this.min = - ( this.validateAngle( angle ) * TORAD );
+        if( angle < 0 ) angle *= -1;
+        this.min = -this.validateAngle( angle ) * TORAD;
         this.testAngle();
 
     },
 
-    setHingeJointAnticlockwiseConstraintDegs: function ( angle ) {
+    setHingeAnticlockwise: function ( angle ) {
 
         this.max = this.validateAngle( angle ) * TORAD;
         this.testAngle();

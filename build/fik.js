@@ -1371,7 +1371,7 @@
 	    testAngle: function () {
 
 	        if( this.max === MAX_RAD && this.min === -MAX_RAD ) this.freeHinge = true;
-	        else this.freeHinge = true;
+	        else this.freeHinge = false;
 
 	    },
 
@@ -1392,11 +1392,12 @@
 
 	    // Specify this joint to be a hinge with the provided settings
 
-	    setHinge: function( type, rotationAxis, clockwiseConstraintDegs, anticlockwiseConstraintDegs, referenceAxis ){
+	    setHinge: function( type, rotationAxis, clockwise, anticlockwise, referenceAxis ){
 
 	        this.type = type;
-	        this.min = - ( this.validateAngle( clockwiseConstraintDegs ) * TORAD );
-	        this.max = this.validateAngle( anticlockwiseConstraintDegs ) * TORAD;
+	        if( clockwise < 0 ) clockwise *= -1;
+	        this.min = -this.validateAngle( clockwise ) * TORAD;
+	        this.max = this.validateAngle( anticlockwise ) * TORAD;
 
 	        this.testAngle();
 
@@ -1406,12 +1407,6 @@
 	    },
 
 	    // GET
-
-	    getJointType: function () {
-
-	        return this.type; 
-
-	    },
 
 	    getHingeReferenceAxis:function () {
 
@@ -1433,14 +1428,15 @@
 
 	    },
 
-	    setHingeJointClockwiseConstraintDegs: function ( angle ) {
+	    setHingeClockwise: function ( angle ) {
 
-	        this.min = - ( this.validateAngle( angle ) * TORAD );
+	        if( angle < 0 ) angle *= -1;
+	        this.min = -this.validateAngle( angle ) * TORAD;
 	        this.testAngle();
 
 	    },
 
-	    setHingeJointAnticlockwiseConstraintDegs: function ( angle ) {
+	    setHingeAnticlockwise: function ( angle ) {
 
 	        this.max = this.validateAngle( angle ) * TORAD;
 	        this.testAngle();
@@ -1496,7 +1492,7 @@
 
 	    },
 
-	    clone:function(){
+	    clone:function () {
 
 	        var b = new Bone3D( this.start, this.end );
 	        b.joint = this.joint.clone();
@@ -1518,19 +1514,20 @@
 
 	    },
 
-	    setHingeJointClockwiseConstraintDegs: function ( angle ){
+	    setHingeClockwise: function ( angle ) {
 
-	        this.joint.setHingeJointClockwiseConstraintDegs( angle );
 
-	    },
-
-	    setHingeJointAnticlockwiseConstraintDegs: function ( angle ){
-
-	        this.joint.setHingeJointAnticlockwiseConstraintDegs( angle );
+	        this.joint.setHingeClockwise( angle );
 
 	    },
 
-	    setBallJointConstraintDegs: function ( angle ){
+	    setHingeAnticlockwise: function ( angle ) {
+
+	        this.joint.setHingeAnticlockwise( angle );
+
+	    },
+
+	    setBallJointConstraintDegs: function ( angle ) {
 
 	        this.joint.setBallJointConstraintDegs( angle );
 
@@ -1542,19 +1539,19 @@
 
 	    },
 
-	    setEndLocation:function( location ){
+	    setEndLocation: function ( location ) {
 
 	        this.end.copy ( location );
 
 	    },
 
-	    setLength:function( lng ){
+	    setLength: function ( lng ) {
 
 	        if ( lng > 0 ) this.length = lng;
 
 	    },
 
-	    setJoint:function( joint ){
+	    setJoint: function ( joint ) {
 
 	        this.joint = joint;
 
@@ -1575,7 +1572,7 @@
 
 	    },
 
-	    getStartLocation: function(){
+	    getStartLocation: function () {
 
 	        return this.start;
 
@@ -1587,19 +1584,11 @@
 
 	    },
 
-	    getJointType : function(){
-	        return this.joint.getJointType();
-	    },
-
 	    getLength: function(){
 
 	        return this.start.distanceTo( this.end );
 
 	    },
-
-	    /*getJoint : function(){
-	        return this.joint;
-	    },*/
 
 	} );
 
@@ -1695,15 +1684,12 @@
 	    clear:function(){
 
 	        var i = this.numBones;
-	        while(i--){
-	            this.removeBone(i);
-	        }
-
+	        while(i--) this.removeBone(i);
 	        this.numBones = 0;
 
 	    },
 
-	    addBone: function( bone ){
+	    addBone: function ( bone ) {
 
 	        bone.setColor( this.color );
 
@@ -1715,7 +1701,7 @@
 	        // If this is the basebone...
 	        if ( this.numBones === 1 ){
 	            // ...then keep a copy of the fixed start location...
-	            this.baseLocation.copy( bone.getStartLocation() );//.clone();
+	            this.baseLocation.copy( bone.getStartLocation() );
 	            
 	            // ...and set the basebone constraint UV to be around the initial bone direction
 	            this.baseboneConstraintUV.copy( bone.getDirectionUV() );
@@ -1726,24 +1712,25 @@
 
 	    },
 
-	    removeBone:function( id ){
+	    removeBone: function ( id ) {
+
 	        if ( id < this.numBones ){   
 	            // ...then remove the bone, decrease the bone count and update the chain length.
 	            this.bones.splice(id, 1);
 	            this.numBones --;
 	            this.updateChainLength();
+
 	        }
+
 	    },
 
-	    addConsecutiveBone : function( directionUV, length ){
-	         //this.addConsecutiveBone( directionUV, length )
+	    addConsecutiveBone: function ( directionUV, length ) {
+
 	         if (this.numBones > 0) {               
 	            // Get the end location of the last bone, which will be used as the start location of the new bone
-	            var prevBoneEnd = this.bones[this.numBones-1].getEndLocation();//.clone();
-	                
 	            // Add a bone to the end of this IK chain
 	            // Note: We use a normalised version of the bone direction
-	            this.addBone( new Bone3D( prevBoneEnd, undefined, directionUV.normalised(), length ) );
+	            this.addBone( new Bone3D(  this.bones[ this.numBones-1 ].getEndLocation(), undefined, directionUV.normalised(), length ) );
 	        }
 
 	    },
@@ -1754,7 +1741,7 @@
 
 	    },
 
-	    addConsecutiveHingedBone: function( DirectionUV, length, type, HingeRotationAxis, clockwiseDegs, anticlockwiseDegs, hingeReferenceAxis ){
+	    addConsecutiveHingedBone: function ( DirectionUV, length, type, HingeRotationAxis, clockwiseDegs, anticlockwiseDegs, hingeReferenceAxis ) {
 
 	        // Cannot add a consectuive bone of any kind if the there is no basebone
 	        if ( this.numBones === 0 ) return;
@@ -1763,38 +1750,20 @@
 	        var directionUV = DirectionUV.normalised();
 	        var hingeRotationAxis = HingeRotationAxis.normalised();
 	            
-	        // Get the end location of the last bone, which will be used as the start location of the new bone
-	        var prevBoneEnd = this.bones[this.numBones-1].getEndLocation().clone();
-	            
-	        // Create a bone
-	        var bone = new Bone3D( prevBoneEnd, undefined, directionUV, length, this.color );
+	        // Create a bone, get the end location of the last bone, which will be used as the start location of the new bone
+	        var bone = new Bone3D( this.bones[ this.numBones-1 ].getEndLocation(), undefined, directionUV, length, this.color );
 
 	        type = type || 'global';
 
+	        // ...set up a joint which we'll apply to that bone.
 	        bone.joint.setHinge( type === 'global' ? J_GLOBAL : J_LOCAL, hingeRotationAxis, clockwiseDegs, anticlockwiseDegs, hingeReferenceAxis );
-	        
-	        // ...then create and set up a joint which we'll apply to that bone.
-	        /*var joint = new Joint3D();
-
-	        switch (type){
-	            case 'global':
-	                joint.setAsGlobalHinge( hingeRotationAxis, clockwiseDegs, anticlockwiseDegs, hingeReferenceAxis );
-	                break;
-	            case 'local':
-	                joint.setAsLocalHinge( hingeRotationAxis, clockwiseDegs, anticlockwiseDegs, hingeReferenceAxis );
-	                break;
-
-	        }
-	        
-	        // Set the joint we just set up on the the new bone we just created
-	        bone.setJoint( joint );*/
 	        
 	        // Finally, add the bone to this chain
 	        this.addBone( bone );
 
 	    },
 
-	    addConsecutiveRotorConstrainedBone:function( boneDirectionUV, length, constraintAngleDegs ){
+	    addConsecutiveRotorConstrainedBone: function ( boneDirectionUV, length, constraintAngleDegs ) {
 
 	        if (this.numBones === 0) return;
 
@@ -1803,28 +1772,9 @@
 	        boneDirectionUV = boneDirectionUV.normalised();
 	        var bone = new Bone3D( this.bones[ this.numBones-1 ].getEndLocation(), undefined , boneDirectionUV, length );
 	        bone.joint.setAsBallJoint( constraintAngleDegs );
-	        //bone.setBallJointConstraintDegs( constraintAngleDegs );
 	        this.addBone( bone );
 
 	    },
-
-	    // Connect this chain to the specified bone in the specified chain in the provided structure.
-
-	    /*connectToStructure : function( structure, chainNumber, boneNumber ){
-
-	        // Sanity check chain exists
-	        var numChains = structure.getNumChains();
-	        if (chainNumber > numChains) return;//{ throw new IllegalArgumentException("Structure does not contain a chain " + chainNumber + " - it has " + numChains + " chains."); }
-	        
-	        // Sanity check bone exists
-	        var numBones = structure.getChain( chainNumber ).getNumBones();
-	        if ( boneNumber > numBones ) return;//{ throw new IllegalArgumentException("Chain does not contain a bone " + boneNumber + " - it has " + numBones + " bones."); }
-	        
-	        // All good? Set the connection details
-	        this.connectedChainNumber = chainNumber;
-	        this.connectedBoneNumber  = boneNumber; 
-
-	    },*/
 
 	    // -------------------------------
 	    //      GET
@@ -2180,7 +2130,7 @@
 	            bone = this.bones[i];
 	            boneLength  = bone.length;
 	            joint = bone.joint;
-	            jointType = bone.getJointType();
+	            jointType = joint.type;
 
 	            // If we are NOT working on the end effector bone
 	            if ( i !== this.numBones - 1 ) {
@@ -2316,7 +2266,7 @@
 	            bone = this.bones[i];
 	            boneLength  = bone.length;
 	            joint = bone.joint;
-	            jointType = joint.getJointType();
+	            jointType = joint.type;
 
 	            // If we are not working on the basebone
 	            if ( i !== 0 ){

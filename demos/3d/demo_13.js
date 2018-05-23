@@ -33,8 +33,6 @@ chain.addBone( basebone );
 //chain.setRotorBaseboneConstraint( 'global', y, 90);
 //chain.setHingeBaseboneConstraint( 'global', y, 180,180, z)
 var ax = FIK.Z_AXE
-console.log(perp(nz))
-
 
 
 chain.addConsecutiveRotorConstrainedBone( y, 27.275, 180 );

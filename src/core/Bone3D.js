@@ -36,7 +36,7 @@ Object.assign( Bone3D.prototype, {
 
     },
 
-    clone:function(){
+    clone:function () {
 
         var b = new Bone3D( this.start, this.end );
         b.joint = this.joint.clone();
@@ -58,19 +58,20 @@ Object.assign( Bone3D.prototype, {
 
     },
 
-    setHingeJointClockwiseConstraintDegs: function ( angle ){
+    setHingeClockwise: function ( angle ) {
 
-        this.joint.setHingeJointClockwiseConstraintDegs( angle );
 
-    },
-
-    setHingeJointAnticlockwiseConstraintDegs: function ( angle ){
-
-        this.joint.setHingeJointAnticlockwiseConstraintDegs( angle );
+        this.joint.setHingeClockwise( angle );
 
     },
 
-    setBallJointConstraintDegs: function ( angle ){
+    setHingeAnticlockwise: function ( angle ) {
+
+        this.joint.setHingeAnticlockwise( angle );
+
+    },
+
+    setBallJointConstraintDegs: function ( angle ) {
 
         this.joint.setBallJointConstraintDegs( angle );
 
@@ -82,19 +83,19 @@ Object.assign( Bone3D.prototype, {
 
     },
 
-    setEndLocation:function( location ){
+    setEndLocation: function ( location ) {
 
         this.end.copy ( location );
 
     },
 
-    setLength:function( lng ){
+    setLength: function ( lng ) {
 
         if ( lng > 0 ) this.length = lng;
 
     },
 
-    setJoint:function( joint ){
+    setJoint: function ( joint ) {
 
         this.joint = joint;
 
@@ -115,7 +116,7 @@ Object.assign( Bone3D.prototype, {
 
     },
 
-    getStartLocation: function(){
+    getStartLocation: function () {
 
         return this.start;
 
@@ -127,19 +128,11 @@ Object.assign( Bone3D.prototype, {
 
     },
 
-    getJointType : function(){
-        return this.joint.getJointType();
-    },
-
     getLength: function(){
 
         return this.start.distanceTo( this.end );
 
     },
-
-    /*getJoint : function(){
-        return this.joint;
-    },*/
 
 } );
 
