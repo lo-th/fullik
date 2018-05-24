@@ -1,6 +1,6 @@
+import { END, START } from '../constants.js';
 import { Joint3D } from './Joint3D.js';
 import { V3 } from '../math/V3.js';
-import { MIN_DEGS, MAX_DEGS, END, START } from '../constants.js';
 
 function Bone3D ( startLocation, endLocation, directionUV, length, color ){
 
@@ -31,7 +31,7 @@ Object.assign( Bone3D.prototype, {
 
         } else {
             this.setLength( length );
-            this.setEndLocation( this.start.plus( directionUV.normalised().times( length ) ) );
+            this.setEndLocation( this.start.plus( directionUV.normalised().multiplyScalar( length ) ) );
         }
 
     },
@@ -113,18 +113,6 @@ Object.assign( Bone3D.prototype, {
     getDirectionUV: function () {
 
         return this.end.minus( this.start ).normalize();
-
-    },
-
-    getStartLocation: function () {
-
-        return this.start;
-
-    },
-
-    getEndLocation: function () {
-
-        return this.end;
 
     },
 

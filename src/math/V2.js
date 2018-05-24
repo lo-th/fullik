@@ -1,10 +1,8 @@
-import { _Math } from './Math.js';
-import { Tools } from '../core/Tools.js';
-
 function V2( x, y ){
 
     this.x = x || 0;
     this.y = y || 0;
+    
 }
 
 Object.assign( V2.prototype, {
@@ -28,7 +26,6 @@ Object.assign( V2.prototype, {
 	distanceToSquared: function ( v ) {
 
 		var dx = this.x - v.x, dy = this.y - v.y;
-
 		return dx * dx + dy * dy;
 
 	},
@@ -37,7 +34,6 @@ Object.assign( V2.prototype, {
 
 		this.x *= scalar;
 		this.y *= scalar;
-
 		return this;
 
 	},
@@ -114,17 +110,16 @@ Object.assign( V2.prototype, {
 
 	},
 
-	randomise: function ( min, max ) {
+	/*randomise: function ( min, max ) {
 
 	    this.x = _Math.rand( min, max );
 	    this.y = _Math.rand( min, max );
 	    return this;
 
-	},
+	},*/
 
 	dot: function ( a, b ) {
 
-		//if( b !== undefined ) return a.x * b.x + a.y * b.y;
 		return this.x * a.x + this.y * a.y;
 
 	},
@@ -163,13 +158,10 @@ Object.assign( V2.prototype, {
 
 	},
 
-	sign: function( v ) { //  Method to determine the sign of the angle between two V2 objects.
+	sign: function( v ) {
 
 		var s = this.cross( v );
 		return s >= 0 ? 1 : -1;
-		/*if ( s > 0 ) return 1; 
-		else if ( s < 0 ) return -1;
-		return 0;*/
 
 	},
 
@@ -188,16 +180,6 @@ Object.assign( V2.prototype, {
 		var sin = Math.sin( angle );
 		var x = this.x * cos - this.y * sin;
 		var y = this.x * sin + this.y * cos;
-		return new V2( x, y );
-
-	},
-
-	rotateSelf: function( angle ) {
-
-		var cos = Math.cos( angle );
-		var sin = Math.sin( angle );
-		var x = this.x * cos - this.y * sin;
-		var y = this.x * sin + this.y * cos;
 		this.x = x;
 		this.y = y;
 		return this;
@@ -207,7 +189,6 @@ Object.assign( V2.prototype, {
 	angleTo: function ( v ) {
 
 		var a = this.dot(v) / (Math.sqrt( this.lengthSq() * v.lengthSq() ));
-		//return Math.acos( _Math.clamp( a, - 1, 1 ) );
 		if(a <= -1) return Math.PI;
 		if(a >= 1) return 0;
 		return Math.acos( a );
@@ -222,31 +203,11 @@ Object.assign( V2.prototype, {
 		
 	},
 
-	/*getSignedAngleDegsTo: function ( v ) { 
-
-		var angle = _Math.getAngleBetweenDegs( this, v );
-
-	    // Normalise the vectors that we're going to use
-		//var thisVectorUV  = this.normalised();
-		//var otherVectorUV = otherVector.normalised();
-		// Calculate the unsigned angle between the vectors as the arc-cosine of their dot product
-		//var unsignedAngleDegs = Math.acos( thisVectorUV.dot(otherVectorUV) ) * _Math.toDeg;
-		// Calculate and return the signed angle between the two vectors using the cross method
-		if ( this.sign( v ) === 1 ) return angle;
-		else return -angle;
-		
-	},*/
-
-	constrainedUV: function( baselineUV, min, max ) {
+	constrainedUV: function ( baselineUV, min, max ) {
 
         var angle = baselineUV.getSignedAngle( this );
-        //_Math.clamp( angle, min, max );
-        //if( angle > max ) this.copy( baselineUV ).rotateSelf( max );
-        //if( angle < min ) this.copy( baselineUV ).rotateSelf( min );
-        if( angle > max ) this.copy( baselineUV.rotate(max) )
-        if( angle < min ) this.copy( baselineUV.rotate(min) )
-        //if( angle > max ) return baselineUV.rotate( max );
-        //if( angle < min ) return baselineUV.rotate( min );
+        if( angle > max ) this.copy( baselineUV ).rotate(max);
+        if( angle < min ) this.copy( baselineUV ).rotate(min);
         return this;
 
     },

@@ -27,7 +27,7 @@ function Bone2D ( Start, End, directionUV, length, clockwiseDegs, anticlockwiseD
 
     } else if ( directionUV ) {
 
-        this.setEndLocation( this.start.plus( directionUV.normalised().times( this.length ) ) );
+        this.setEndLocation( this.start.plus( directionUV.normalised().multiplyScalar( this.length ) ) );
         
     }
 
@@ -145,18 +145,6 @@ Object.assign( Bone2D.prototype, {
     getLength: function () {
 
         return this.start.distanceTo( this.end );
-
-    },
-
-    getStartLocation : function () {
-
-        return this.start;
-
-    },
-
-    getEndLocation : function () {
-
-        return this.end;
 
     },
     

@@ -41,7 +41,7 @@ Object.assign( Structure3D.prototype, {
 
                 hostBone  = this.chains[ hostChainNumber ].bones[ chain.getConnectedBoneNumber() ];
 
-                chain.setBaseLocation( chain.getBoneConnectionPoint() === START ? hostBone.getStartLocation() : hostBone.getEndLocation() );
+                chain.setBaseLocation( chain.getBoneConnectionPoint() === START ? hostBone.start : hostBone.end );
 
                 // Now that we've clamped the base location of this chain to the start or end point of the bone in the chain we are connected to, it's
                 // time to deal with any base bone constraints...
@@ -99,8 +99,8 @@ Object.assign( Structure3D.prototype, {
 
                 for ( var j = 0; j < chain.numBones; j++ ) {
                     bone = chain.bones[j];
-                    mesh[j].position.copy( bone.getStartLocation() );
-                    mesh[j].lookAt( bone.getEndLocation() );
+                    mesh[j].position.copy( bone.start );
+                    mesh[j].lookAt( bone.end );
                 }
 
             }

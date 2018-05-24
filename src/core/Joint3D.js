@@ -1,11 +1,11 @@
 import { V3 } from '../math/V3.js';
-import { J_BALL, J_GLOBAL, J_LOCAL, MAX_RAD, TORAD } from '../constants.js';
+import { J_BALL, J_GLOBAL, J_LOCAL, PI, TORAD } from '../constants.js';
 
 function Joint3D(){
 
-    this.rotor = MAX_RAD;
-    this.min = -MAX_RAD;
-    this.max = MAX_RAD;
+    this.rotor = PI;
+    this.min = -PI;
+    this.max = PI;
 
     this.freeHinge = true;
 
@@ -36,7 +36,7 @@ Object.assign( Joint3D.prototype, {
 
     testAngle: function () {
 
-        if( this.max === MAX_RAD && this.min === -MAX_RAD ) this.freeHinge = true;
+        if( this.max === PI && this.min === -PI ) this.freeHinge = true;
         else this.freeHinge = false;
 
     },

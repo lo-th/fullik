@@ -48,7 +48,7 @@ Object.assign( Structure2D.prototype, {
                 // Get the bone which this chain is connected to in the 'host' chain
                 var hostBone = this.chains[ hostChainNumber ].bones[ chain.getConnectedBoneNumber() ];
 
-                chain.setBaseLocation( chain.getBoneConnectionPoint() === START ? hostBone.getStartLocation() : hostBone.getEndLocation() );
+                chain.setBaseLocation( chain.getBoneConnectionPoint() === START ? hostBone.start : hostBone.end );
                
                 
                 // If the basebone is constrained to the direction of the bone it's connected to...
@@ -69,7 +69,7 @@ Object.assign( Structure2D.prototype, {
                     var angle = UP.getSignedAngle( hostBoneUV );
 
                     // ...then apply that same rotation to this chain's basebone constraint UV to get the relative constraint UV... 
-                    var relativeConstraintUV = chain.getBaseboneConstraintUV().rotate( angle );
+                    var relativeConstraintUV = chain.getBaseboneConstraintUV().clone().rotate( angle );
                     
                     // ...which we then update.
                     chain.setBaseboneRelativeConstraintUV( relativeConstraintUV );      
@@ -198,8 +198,8 @@ Object.assign( Structure2D.prototype, {
 
         var position = point === 'end' ? this.chains[ c ].bones[ n ].end : this.chains[ c ].bones[ n ].start;
 
-        //if ( connectionPoint === 'start' ) connectionLocation = this.chains[chainNumber].getBone(boneNumber).getStartLocation();
-        //else connectionLocation = this.chains[chainNumber].getBone(boneNumber).getEndLocation();
+        //if ( connectionPoint === 'start' ) connectionLocation = this.chains[chainNumber].getBone(boneNumber).start;
+        //else connectionLocation = this.chains[chainNumber].getBone(boneNumber).end;
          
 
         chain.setBaseLocation( position );

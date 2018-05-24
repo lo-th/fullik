@@ -1,4 +1,4 @@
-import { NONE, GLOBAL_ABSOLUTE, LOCAL_RELATIVE, LOCAL_ABSOLUTE, END, START, J_LOCAL, J_GLOBAL, MIN_DEGS, MAX_DEGS, MAX_VALUE } from '../constants.js';
+import { NONE, GLOBAL_ABSOLUTE, LOCAL_RELATIVE, LOCAL_ABSOLUTE, END, START, J_LOCAL, J_GLOBAL, MAX_VALUE } from '../constants.js';
 import { _Math } from '../math/Math.js';
 import { V2 } from '../math/V2.js';
 import { Bone2D } from './Bone2D.js';
@@ -110,7 +110,7 @@ Object.assign( Chain2D.prototype, {
         // If this is the basebone...
         if ( this.numBones === 0 ){
             // ...then keep a copy of the fixed start location...
-            this.baseLocation.copy( bone.getStartLocation() );
+            this.baseLocation.copy( bone.start );
             
             // ...and set the basebone constraint UV to be around the initial bone direction
             this.baseboneConstraintUV.copy( bone.getDirectionUV() );
@@ -152,10 +152,10 @@ Object.assign( Chain2D.prototype, {
             var len = bone.length;
             _Math.validateLength( len );
 
-            var prevBoneEnd = this.bones[ this.numBones-1 ].getEndLocation();
+            var prevBoneEnd = this.bones[ this.numBones-1 ].end;
 
             bone.setStartLocation( prevBoneEnd );
-            bone.setEndLocation( prevBoneEnd.plus(dir.times(len)) );
+            bone.setEndLocation( prevBoneEnd.plus( dir.multiplyScalar( len ) ) );
             
             // Add a bone to the end of this IK chain
             this.addBone( bone );
@@ -171,7 +171,7 @@ Object.assign( Chain2D.prototype, {
             _Math.validateLength( length );
                     
             // Get the end location of the last bone, which will be used as the start location of the new bone
-            var prevBoneEnd = this.bones[ this.numBones-1 ].getEndLocation();
+            var prevBoneEnd = this.bones[ this.numBones-1 ].end;
                     
             // Add a bone to the end of this IK chain
             this.addBone( new Bone2D( prevBoneEnd, null, directionUV.normalised(), length, clockwiseDegs, anticlockwiseDegs, color ) );
@@ -224,13 +224,13 @@ Object.assign( Chain2D.prototype, {
 
     getBaseLocation:function(){
 
-        return this.bones[0].getStartLocation();
+        return this.bones[0].start;
 
     },
 
     getEffectorLocation: function () {
 
-        return this.bones[this.numBones-1].getEndLocation();
+        return this.bones[this.numBones-1].end;
 
     },
 
@@ -369,8 +369,10 @@ Object.assign( Chain2D.prototype, {
         this.tmpTarget.set( t.x, t.y );
         var p = this.precision;
 
+        var isSameBaseLocation = this.lastBaseLocation.approximatelyEquals( this.baseLocation, p );
+
         // If we have both the same target and base location as the last run then do not solve
-        if ( this.lastTargetLocation.approximatelyEquals( this.tmpTarget, p ) && this.lastBaseLocation.approximatelyEquals( this.baseLocation, p ) ) return this.currentSolveDistance;
+        if ( this.lastTargetLocation.approximatelyEquals( this.tmpTarget, p ) && isSameBaseLocation ) return this.currentSolveDistance;
         
         // Keep starting solutions and distance
         var startingDistance;
@@ -378,7 +380,7 @@ Object.assign( Chain2D.prototype, {
 
         // If the base location of a chain hasn't moved then we may opt to keep the current solution if our 
         // best new solution is worse...
-        if ( this.lastBaseLocation.approximatelyEquals( this.baseLocation, p ) ) {
+        if ( isSameBaseLocation ) {
             startingDistance = this.bones[ this.numBones-1 ].end.distanceTo( this.tmpTarget );
             startingSolution = this.cloneBones();
         } else {
@@ -460,7 +462,7 @@ Object.assign( Chain2D.prototype, {
 
         if ( this.numBones === 0 ) return;
 
-        var bone, boneLength, angle, nextBone, startPosition, endPosition, directionUV, baselineUV;//, prevBone, min, max;//;//,  outerToInnerUV, innerToOuterUV;
+        var bone, boneLength, angle, nextBone, startPosition, endPosition, directionUV, baselineUV;
         
         // ---------- Forward pass from end effector to base -----------
 
@@ -481,6 +483,7 @@ Object.assign( Chain2D.prototype, {
 
                 // Get the outer-to-inner unit vector of this bone
                 directionUV = bone.getDirectionUV().negate();
+                
                 // Get the outer-to-inner unit vector of the bone further out
                 baselineUV = bone.joint.coordinateSystem === J_LOCAL ? nextBone.getDirectionUV().negate() : bone.getGlobalConstraintUV().negated();
                 directionUV.constrainedUV( baselineUV, nextBone.joint.min, nextBone.joint.max );
@@ -488,7 +491,7 @@ Object.assign( Chain2D.prototype, {
                 // At this stage we have a outer-to-inner unit vector for this bone which is within our constraints,
                 // so we can set the new inner joint location to be the end joint location of this bone plus the
                 // outer-to-inner direction unit vector multiplied by the length of the bone.
-                startPosition = bone.getEndLocation().plus( directionUV.times( boneLength ) );
+                startPosition = bone.end.plus( directionUV.multiplyScalar( boneLength ) );
 
                 // Set the new start joint location for this bone
                 bone.setStartLocation( startPosition );
@@ -527,7 +530,7 @@ Object.assign( Chain2D.prototype, {
       
                 // Calculate the new start joint location as the end joint location plus the outer-to-inner direction UV
                 // multiplied by the length of the bone.
-                startPosition = bone.getEndLocation().plus( directionUV.times( boneLength ) );
+                startPosition = bone.end.plus( directionUV.multiplyScalar( boneLength ) );
                 
                 // Set the new start joint location for this bone to be new start location...
                 bone.setStartLocation( startPosition );
@@ -558,7 +561,7 @@ Object.assign( Chain2D.prototype, {
                 // At this stage we have an inner-to-outer unit vector for this bone which is within our constraints,
                 // so we can set the new end location to be the start location of this bone plus the constrained
                 // inner-to-outer direction unit vector multiplied by the length of this bone.
-                endPosition = bone.getStartLocation().plus( directionUV.times(boneLength) );
+                endPosition = bone.start.plus( directionUV.multiplyScalar(boneLength) );
 
                 // Set the new end joint location for this bone
                 bone.setEndLocation( endPosition );
@@ -579,8 +582,7 @@ Object.assign( Chain2D.prototype, {
                 
                     // ...then set the new base bone start location to be its the end location minus the
                     // bone direction multiplied by the length of the bone (i.e. projected backwards).
-                    startPosition = bone.getEndLocation().minus( bone.getDirectionUV().times( boneLength ) );
-                    //var startPosition = this.bones[0].getEndLocation().minus( this.bones[0].getDirectionUV().times( boneLength ) );
+                    startPosition = bone.end.minus( bone.getDirectionUV().multiplyScalar( boneLength ) );
                     bone.setStartLocation( startPosition );
 
                 }
@@ -591,8 +593,8 @@ Object.assign( Chain2D.prototype, {
                 // If the base bone is unconstrained then process it as usual...
                 if ( this.baseboneConstraintType === NONE ){
     
-                    // Calculate the new end location as the start location plus the direction times the length of the bone
-                    endPosition = bone.getStartLocation().plus( directionUV.times(boneLength) );
+                    // Calculate the new end location as the start location plus the direction multiplyScalar by the length of the bone
+                    endPosition = bone.start.plus( directionUV.multiplyScalar( boneLength ) );
     
                     // Set the new end joint location
                     bone.setEndLocation( endPosition );
@@ -607,11 +609,13 @@ Object.assign( Chain2D.prototype, {
                     // LOCAL_ABSOLUTE? (i.e. local-space directional constraint) - then we must constraint about the relative basebone constraint UV...
                     baselineUV = this.baseboneConstraintType === LOCAL_ABSOLUTE ? this.baseboneRelativeConstraintUV : this.baseboneConstraintUV;
                     directionUV.constrainedUV( baselineUV, bone.joint.min, bone.joint.max );
+
+                    //directionUV = bone.getDirectionUV();
                     
                     // At this stage we have an inner-to-outer unit vector for this bone which is within our constraints,
                     // so we can set the new end location to be the start location of this bone plus the constrained
                     // inner-to-outer direction unit vector multiplied by the length of the bone.
-                    endPosition = bone.getStartLocation().plus( directionUV.times( boneLength ) );
+                    endPosition = bone.start.plus( directionUV.multiplyScalar( boneLength ) );
 
                     // Set the new end joint location for this bone
                     bone.setEndLocation( endPosition );

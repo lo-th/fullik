@@ -1,6 +1,3 @@
-import { _Math } from './Math.js';
-import { Tools } from '../core/Tools.js';
-
 function V3( x, y, z ){
 
     this.x = x || 0;
@@ -46,24 +43,9 @@ Object.assign( V3.prototype, {
 
 	},
 
-	multiplyScalar: function ( scalar ) {
-
-		this.x *= scalar;
-		this.y *= scalar;
-		this.z *= scalar;
-		return this;
-
-	},
-
 	dot: function ( v ) {
 
 		return this.x * v.x + this.y * v.y + this.z * v.z;
-
-	},
-
-	divideScalar: function ( scalar ) {
-
-		return this.multiplyScalar( 1 / scalar );
 
 	},
 
@@ -87,7 +69,7 @@ Object.assign( V3.prototype, {
 
 	normalised: function () {
 
-	    return new V3( this.x, this.y, this.z ).normalize();//this.clone().normalize();
+	    return new V3( this.x, this.y, this.z ).normalize();
 	
 	},
 
@@ -100,12 +82,6 @@ Object.assign( V3.prototype, {
 
 	},
 
-	plus: function ( v ) {
-
-	    return new V3(this.x + v.x, this.y + v.y, this.z + v.z);
-
-	},
-
 	min: function ( v ) {
 
 		this.x -= v.x;
@@ -115,31 +91,43 @@ Object.assign( V3.prototype, {
 
 	},
 
+	plus: function ( v ) {
+
+	    return new V3( this.x + v.x, this.y + v.y, this.z + v.z );
+
+	},
+
 	minus: function ( v ) {
 
 	    return new V3( this.x - v.x, this.y - v.y, this.z - v.z );
 
 	},
 
-	divideBy: function ( value ) {
+	divideBy: function ( s ) {
 
-	    return new V3( this.x / value, this.y / value, this.z / value );
+	    return new V3( this.x / s, this.y / s, this.z / s );
 	
 	},
 
-	times: function ( s ) {
+	multiply: function ( s ) {
 
-		if( s.isVector3 ) return new V3( this.x * s.x, this.y * s.y, this.z * s.z );
-	    else return new V3( this.x * s, this.y * s, this.z * s );
+	    return new V3( this.x * s, this.y * s, this.z * s );
+	
+	},
+	
+
+	multiplyScalar: function ( scalar ) {
+
+		this.x *= scalar;
+		this.y *= scalar;
+		this.z *= scalar;
+		return this;
 
 	},
 
-	randomise: function ( min, max ) {
+	divideScalar: function ( scalar ) {
 
-	    this.x = _Math.rand( min, max );
-	    this.y = _Math.rand( min, max );
-	    this.z = _Math.rand( min, max );
-	    return this;
+		return this.multiplyScalar( 1 / scalar );
 
 	},
 
@@ -210,6 +198,37 @@ Object.assign( V3.prototype, {
         return b.min( n.times( _Math.dotProduct( b, planeNormal ) ) ).normalize();
 
 	},*/
+
+	rotate: function( angle, axe ) {
+
+		var cos = Math.cos( angle );
+		var sin = Math.sin( angle );
+		var x, y, z;
+
+		switch ( axe ){
+			case 'X':
+			x = this.x;
+			y = this.y * cos - this.z * sin;
+			z = this.y * sin + this.z * cos;
+			break
+			case 'Y':
+			x = this.z * sin + this.x * cos;
+			y = this.y;
+			z = this.z * cos - this.x * sin;
+			break
+			case 'Z':
+			x = this.x * cos - this.y * sin;
+			y = this.x * sin + this.y * cos;
+			z = this.z;
+			break
+		}
+
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		return this;
+
+	},
 
 	// added
 
@@ -284,20 +303,16 @@ Object.assign( V3.prototype, {
 
 	/////
 
-	sign: function( v, normal ) { //  Method to determine the sign of the angle between two V2 objects.
+	sign: function( v, normal ) {
 
-		var s = this.cross( v ).dot( normal );//_Math.dotProduct( this.cross( v ), normal );
+		var s = this.cross( v ).dot( normal );
 		return s >= 0 ? 1 : -1;
-		/*if ( s > 0 ) return 1; 
-		else if ( s < 0 ) return -1;
-		return 0;*/
 
 	},
 
 	angleTo: function ( v ) {
 
-		var a = this.dot(v) / (Math.sqrt( this.lengthSq() * v.lengthSq() ));
-		//return Math.acos( _Math.clamp( a, - 1, 1 ) );
+		var a = this.dot(v) / Math.sqrt( this.lengthSq() * v.lengthSq() );
 		if(a <= -1) return Math.PI;
 		if(a >= 1) return 0;
 		return Math.acos( a );

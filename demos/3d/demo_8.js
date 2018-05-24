@@ -3,7 +3,7 @@ tell("Demo 8 - Connected Chains");
 var chain = new FIK.Chain3D( 0x999999 );
 
 var startLoc = new FIK.V3( 0, 0, 40 );
-var endLoc = startLoc.plus( defaultBoneDirection.times(defaultBoneLength) );
+var endLoc = startLoc.plus( defaultBoneDirection.multiply(defaultBoneLength) );
 
 var basebone = new FIK.Bone3D( startLoc, endLoc );
 chain.addBone( basebone );

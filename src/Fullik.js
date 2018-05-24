@@ -16,6 +16,7 @@ export { Chain2D } from './core/Chain2D.js';
 export { Structure2D } from './core/Structure2D.js';
 
 export { IKSolver } from './core/IKSolver.js';
+export { HISolver } from './core/HISolver.js';
 
 export * from './constants.js';
 

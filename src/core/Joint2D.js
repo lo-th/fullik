@@ -1,11 +1,11 @@
-import { J_LOCAL, J_GLOBAL, MAX_RAD, TORAD } from '../constants.js';
+import { J_LOCAL, J_GLOBAL, PI, TORAD } from '../constants.js';
 
 function Joint2D( clockwise, antiClockwise, coordSystem ){
 
     this.coordinateSystem = coordSystem || J_LOCAL;
 
-    this.min = clockwise !== undefined ? -clockwise * TORAD : -MAX_RAD;
-    this.max = antiClockwise !== undefined ? antiClockwise * TORAD : MAX_RAD;
+    this.min = clockwise !== undefined ? -clockwise * TORAD : -PI;
+    this.max = antiClockwise !== undefined ? antiClockwise * TORAD : PI;
     
 }
 
