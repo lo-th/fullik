@@ -4,6 +4,7 @@ export { _Math } from './math/Math.js';
 export { V2 } from './math/V2.js';
 export { V3 } from './math/V3.js';
 export { M3 } from './math/M3.js';
+export { Q } from './math/Q.js';
 
 export { Joint3D } from './core/Joint3D.js';
 export { Bone3D } from './core/Bone3D.js';

@@ -8,10 +8,10 @@
 			body {
 				margin:0;
 				font-family:"Lucida Console", Monaco, monospace;
-				font-size: 11px; 
-                color:#fff;
+				font-size: 14px; 
+                color:#464746;
 				overflow: hidden;
-				background: #333333;
+				background: #222322;
 			}
 
             #debug { position:absolute; top:10px; left:10px; width:100%; text-align:left; pointer-events:none;}
@@ -90,7 +90,7 @@
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         renderer.gammaInput = true;
         renderer.gammaOutput = true;
-        renderer.setClearColor( 0x333333, 1 );
+        renderer.setClearColor( 0x222322, 1 );
 		document.body.appendChild( renderer.domElement );
 
         scene = new THREE.Scene();
@@ -100,8 +100,8 @@
 
         //
 
-		ambientLight = new THREE.AmbientLight( 0x101010 );
-		scene.add( ambientLight );
+		//ambientLight = new THREE.AmbientLight( 0x101010 );
+		//scene.add( ambientLight );
 
 		lights = [];
 		lights[ 0 ] = new THREE.SpotLight( 0xffffff, 1, 0, Math.PI / 2 );
@@ -166,7 +166,7 @@
             ground.position.y = -5;
             scene.add( ground );
 
-            grid = new THREE.PolarGridHelper( 100, 16, 8, 64, 0x202020, 0x404040 );
+            grid = new THREE.PolarGridHelper( 100, 16, 8, 64, 0x0A0B0A, 0x070807 );
             grid.position.y = -5.01;
             scene.add( grid );
 
@@ -183,7 +183,7 @@
             ground.position.z = -5.01;
             scene.add( ground );
 
-            grid = new THREE.GridHelper( 200, 16, 0x111111, 0x050505 );
+            grid = new THREE.GridHelper( 200, 16, 0x0A0B0A, 0x070807 );
             grid.position.z = -5;
             grid.rotation.x = -Math.PI*0.5;
             scene.add( grid );

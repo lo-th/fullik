@@ -1,5 +1,6 @@
 import { NONE, GLOBAL_ROTOR, GLOBAL_HINGE, LOCAL_ROTOR, LOCAL_HINGE, J_BALL, J_GLOBAL, J_LOCAL, END, START } from '../constants.js';
 import { _Math } from '../math/Math.js';
+import { Q } from '../math/Q.js';
 
 function Structure3D ( scene ) {
 

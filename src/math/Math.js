@@ -6,6 +6,28 @@ var _Math = {
 	toDeg: 180 / Math.PI,
 	pi90: Math.PI * 0.5,
 
+	// Center point is p1; angle returned in Radians
+    //findAngle: function ( p0, p1, p2 ) {
+    findAngle: function ( b0, b1 ) {
+
+    	/*var a = p1.minus(p2).lengthSq(), 
+	    	b = p1.minus(p0).lengthSq(), 
+	    	c = p2.minus(p0).lengthSq(),*/
+	    var a = b0.end.minus(b1.end).lengthSq(), 
+	    	b = b0.end.minus(b0.start).lengthSq(), 
+	    	c = b1.end.minus(b0.start).lengthSq(),  
+	    	angle, r, sign;
+
+	    r = ( a + b - c ) / Math.sqrt( 4 * a * b );
+        if( r <= -1 ) angle = Math.PI;
+		else if( r >= 1 ) angle = 0;
+		else angle = Math.acos( r );
+		// sign
+		sign = b0.end.x * b1.end.y - b0.end.y * b1.end.x;
+		return sign >= 0 ? angle : -angle;
+
+	},
+
 	clamp: function ( v, min, max ) {
 
 	    v = v < min ? min : v;

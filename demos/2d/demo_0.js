@@ -24,7 +24,7 @@ for( var j=0; j < n; j++ ){
 
 	for(var i=0; i<numBones; i++){
 
-	    chain.addConsecutiveBone( uv, boneLength);
+	    chain.addConsecutiveBone( uv, boneLength, 60, 60 );
 
 	}
 

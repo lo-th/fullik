@@ -27,6 +27,7 @@ Object.assign( Joint3D.prototype, {
         j.rotor = this.rotor;
         j.max = this.max;
         j.min = this.min;
+        j.freeHinge = this.freeHinge;
         j.rotationAxisUV.copy( this.rotationAxisUV );
         j.referenceAxisUV.copy( this.referenceAxisUV );
 
@@ -109,7 +110,7 @@ Object.assign( Joint3D.prototype, {
 
     },
 
-    setHingeRotationAxis: function ( axis ) {
+    /*setHingeRotationAxis: function ( axis ) {
 
         this.rotationAxisUV.copy( axis ).normalize();
 
@@ -119,7 +120,7 @@ Object.assign( Joint3D.prototype, {
 
         this.referenceAxisUV.copy( referenceAxis ).normalize(); 
 
-    },
+    },*/
 
     
     

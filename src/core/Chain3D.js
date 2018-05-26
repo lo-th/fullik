@@ -555,63 +555,97 @@ Object.assign( Chain3D.prototype, {
 
                 // Get the outer-to-inner unit vector of this bone
                 var boneOuterToInnerUV = bone.getDirectionUV().negate();
-                
+
                 // Get the joint type for this bone and handle constraints on boneInnerToOuterUV
 
-                switch ( jointType ) {
-                    case J_BALL:
-                        // Constrain to relative angle between this bone and the next bone if required
-                        boneOuterToInnerUV.limitAngle( outerBoneOuterToInnerUV, tmpMtx, joint.rotor );
-                    break;                      
-                    case J_GLOBAL:
+                /*if( this.isFullForward ){
 
-                        hingeRotationAxis = joint.getHingeRotationAxis();
-                        hingeReferenceAxis = joint.getHingeReferenceAxis();
-                        // Project this bone outer-to-inner direction onto the hinge rotation axis
-                        boneOuterToInnerUV.projectOnPlane( hingeRotationAxis ); 
+                    switch ( jointType ) {
+                        case J_BALL:
+                            // Constrain to relative angle between this bone and the next bone if required
+                            boneOuterToInnerUV.limitAngle( outerBoneOuterToInnerUV, tmpMtx, nextBone.joint.rotor );
+                        break;                      
+                        case J_GLOBAL:
 
-                        // NOTE: Constraining about the hinge reference axis on this forward pass leads to poor solutions... so we won't.
-                        if( this.isFullForward ){
+                            hingeRotationAxis = nextBone.joint.getHingeRotationAxis().negated();
+                            hingeReferenceAxis = nextBone.joint.getHingeReferenceAxis().negated();
+                            
+                            // Project this bone outer-to-inner direction onto the hinge rotation axis
+                            boneOuterToInnerUV.projectOnPlane( hingeRotationAxis ); 
 
-                            if( !joint.freeHinge ) boneOuterToInnerUV.constrainedUV( hingeReferenceAxis, hingeRotationAxis, tmpMtx, joint.min, joint.max );
+                            // NOTE: Constraining about the hinge reference axis on this forward pass leads to poor solutions... so we won't.
+                            if( !nextBone.joint.freeHinge ) boneOuterToInnerUV.constrainedUV( hingeReferenceAxis, hingeRotationAxis, tmpMtx,  nextBone.joint.min,  nextBone.joint.max );
 
-                        }
-                    break;
-                    case J_LOCAL:
-                        
+                            
+                        break;
+                        case J_LOCAL:
+                            
 
-                        if ( i > 0 ) {// Not a basebone? Then construct a rotation matrix based on the previous bones inner-to-to-inner direction...
+                            if ( i > 0 ) {// Not a basebone? Then construct a rotation matrix based on the previous bones inner-to-to-inner direction...
+                                // ...and transform the hinge rotation axis into the previous bones frame of reference.
 
-                            tmpMtx.createRotationMatrix( this.bones[i-1].getDirectionUV() );
-                            hingeRotationAxis = joint.getHingeRotationAxis().clone().applyM3( tmpMtx );//.normalize();
+                                tmpMtx.createRotationMatrix( outerBoneOuterToInnerUV );
+                                hingeRotationAxis = nextBone.joint.getHingeRotationAxis().clone().negate().applyM3( tmpMtx );
+                                hingeReferenceAxis = nextBone.joint.getHingeReferenceAxis().clone().negate().applyM3( tmpMtx );
 
-                            if( this.isFullForward ){ 
-                                tmpMtx.createRotationMatrix( this.bones[i-1].getDirectionUV().negate() );
-                                hingeRotationAxis = joint.getHingeRotationAxis().clone().applyM3( tmpMtx );
-                                hingeReferenceAxis = joint.getHingeReferenceAxis().clone().applyM3( tmpMtx );
+
+
+                            } else {// ...basebone? Need to construct matrix from the relative constraint UV.
+
+                                hingeRotationAxis = this.baseboneRelativeConstraintUV.negated();
+                                hingeReferenceAxis = this.baseboneRelativeReferenceConstraintUV.negated();
+
                             }
 
-                        } else {// ...basebone? Need to construct matrix from the relative constraint UV.
+                            // Project this bone's outer-to-inner direction onto the plane described by the relative hinge rotation axis
+                            boneOuterToInnerUV.projectOnPlane( hingeRotationAxis );
 
-                            if( this.isFullForward ) hingeReferenceAxis = this.baseboneRelativeReferenceConstraintUV;
-                            hingeRotationAxis = this.baseboneRelativeConstraintUV.clone();
+                            // NOTE: Constraining about the hinge reference axis on this forward pass leads to poor solutions... so we won't.  
+                            if( !nextBone.joint.freeHinge ){
 
-                        }
-                        
-                        // ...and transform the hinge rotation axis into the previous bones frame of reference.
+                                boneOuterToInnerUV.constrainedUV( hingeReferenceAxis, hingeRotationAxis, tmpMtx, nextBone.joint.min, nextBone.joint.max );
 
-                        // Project this bone's outer-to-inner direction onto the plane described by the relative hinge rotation axis
-                        // Note: The returned vector is normalised.                 
-                        boneOuterToInnerUV.projectOnPlane( hingeRotationAxis );//.normalize();
+                            }
+                        break;
+                    }
+                } else {*/
 
-                        // NOTE: Constraining about the hinge reference axis on this forward pass leads to poor solutions... so we won't.  
-                        if( this.isFullForward ){
+                    switch ( jointType ) {
+                        case J_BALL:
+                            // Constrain to relative angle between this bone and the next bone if required
+                            boneOuterToInnerUV.limitAngle( outerBoneOuterToInnerUV, tmpMtx, joint.rotor );
+                        break;                      
+                        case J_GLOBAL:
 
-                            if( !joint.freeHinge ) boneOuterToInnerUV.constrainedUV( hingeReferenceAxis, hingeRotationAxis, tmpMtx, joint.min, joint.max );
+                            hingeRotationAxis = joint.getHingeRotationAxis();
+                            
+                            // Project this bone outer-to-inner direction onto the hinge rotation axis
+                            boneOuterToInnerUV.projectOnPlane( hingeRotationAxis ); 
 
-                        }
-                    break;
-                }
+                            // NOTE: Constraining about the hinge reference axis on this forward pass leads to poor solutions... so we won't.
+                        break;
+                        case J_LOCAL:
+                            
+
+                            if ( i > 0 ) {// Not a basebone? Then construct a rotation matrix based on the previous bones inner-to-to-inner direction...
+                                // ...and transform the hinge rotation axis into the previous bones frame of reference.
+
+                                tmpMtx.createRotationMatrix( this.bones[i-1].getDirectionUV() );
+                                hingeRotationAxis = joint.getHingeRotationAxis().clone().applyM3( tmpMtx );
+
+                            } else {// ...basebone? Need to construct matrix from the relative constraint UV.
+
+                                hingeRotationAxis = this.baseboneRelativeConstraintUV;
+
+                            }
+
+                            // Project this bone's outer-to-inner direction onto the plane described by the relative hinge rotation axis
+                            boneOuterToInnerUV.projectOnPlane( hingeRotationAxis );
+
+                            // NOTE: Constraining about the hinge reference axis on this forward pass leads to poor solutions... so we won't.
+                        break;
+                    }
+                //}
                     
                 // At this stage we have a outer-to-inner unit vector for this bone which is within our constraints,
                 // so we can set the new inner joint location to be the end joint location of this bone plus the
@@ -643,7 +677,7 @@ Object.assign( Chain3D.prototype, {
                     case J_GLOBAL:
                         hingeRotationAxis = joint.getHingeRotationAxis();
                         // Global hinges get constrained to the hinge rotation axis, but not the reference axis within the hinge plane
-                        boneOuterToInnerUV.projectOnPlane( hingeRotationAxis )//.normalize();
+                        boneOuterToInnerUV.projectOnPlane( hingeRotationAxis );
                     break;
                     case J_LOCAL:
                         // Local hinges get constrained to the hinge rotation axis, but not the reference axis within the hinge plane

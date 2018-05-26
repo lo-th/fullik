@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Three.js Bones Browser</title>
+		<style>
+
+			body {
+				margin:0;
+				font-family: "Lucida Console", Monaco, monospace;
+				font-size: 14px;
+				line-height: 18px;
+				color:#464746;
+				background: #222322;
+				overflow: hidden;
+			}
+
+			canvas { width: 100%; height: 100% }
+
+		</style>
+	</head>
+	<body>
+
+		<script src="../js/libs/three.min.js"></script>
+		<script src='../js/libs/uil.min.js'></script>
+		<script src="../js/controls/OrbitControls.js"></script>
+		<script src="../build/fik.js"></script>
+
+		<script>
+
+			var gui, scene, camera, renderer, orbit, lights, mesh, bones, skeletonHelper;
+
+			var state = {
+
+				animateBones : false
+
+			};
+
+			function initScene () {
+
+				scene = new THREE.Scene();
+				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 200 );
+				camera.position.z = 30;
+				camera.position.y = 0;
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.setClearColor( 0x222322, 1 );
+				document.body.appendChild( renderer.domElement );
+
+				orbit = new THREE.OrbitControls( camera, renderer.domElement );
+				orbit.enableZoom = false;
+
+				lights = [];
+				lights[ 0 ] = new THREE.PointLight( 0xffffff, 1, 0 );
+				lights[ 1 ] = new THREE.PointLight( 0xffffff, 1, 0 );
+				lights[ 2 ] = new THREE.PointLight( 0xffffff, 1, 0 );
+
+				lights[ 0 ].position.set( 0, 200, 0 );
+				lights[ 1 ].position.set( 100, 200, 100 );
+				lights[ 2 ].position.set( - 100, - 200, - 100 );
+
+				scene.add( lights[ 0 ] );
+				scene.add( lights[ 1 ] );
+				scene.add( lights[ 2 ] );
+
+				window.addEventListener( 'resize', function () {
+
+					camera.aspect = window.innerWidth / window.innerHeight;
+					camera.updateProjectionMatrix();
+
+					renderer.setSize( window.innerWidth, window.innerHeight );
+
+				}, false );
+
+				initBones();
+				initGui();
+
+			}
+
+			function createGeometry ( sizing ) {
+
+				var geometry = new THREE.CylinderGeometry(
+					5,                       // radiusTop
+					5,                       // radiusBottom
+					sizing.height,           // height
+					28,                       // radiusSegments
+					sizing.segmentCount * 6, // heightSegments
+					true                     // openEnded
+				);
+
+				for ( var i = 0; i < geometry.vertices.length; i ++ ) {
+
+					var vertex = geometry.vertices[ i ];
+					var y = ( vertex.y + sizing.halfHeight );
+
+					var skinIndex = Math.floor( y / sizing.segmentHeight );
+					var skinWeight = ( y % sizing.segmentHeight ) / sizing.segmentHeight;
+
+					geometry.skinIndices.push( new THREE.Vector4( skinIndex, skinIndex + 1, 0, 0 ) );
+					geometry.skinWeights.push( new THREE.Vector4( 1 - skinWeight, skinWeight, 0, 0 ) );
+
+				}
+
+				return geometry;
+
+			}
+
+			function createBones ( sizing ) {
+
+				bones = [];
+
+				var prevBone = new THREE.Bone();
+				bones.push( prevBone );
+				prevBone.position.y = - sizing.halfHeight;
+
+				for ( var i = 0; i < sizing.segmentCount; i ++ ) {
+
+					var bone = new THREE.Bone();
+					bone.position.y = sizing.segmentHeight;
+					bones.push( bone );
+					prevBone.add( bone );
+					prevBone = bone;
+
+				}
+
+				return bones;
+
+			}
+
+			function createMesh ( geometry, bones ) {
+
+				var material = new THREE.MeshPhongMaterial( {
+					skinning : true,
+					color: 0x156289,
+					emissive: 0x072534,
+					side: THREE.DoubleSide,
+					flatShading: true
+				} );
+
+				var mesh = new THREE.SkinnedMesh( geometry,	material );
+				var skeleton = new THREE.Skeleton( bones );
+
+				mesh.add( bones[ 0 ] );
+
+				mesh.bind( skeleton );
+
+				skeletonHelper = new THREE.SkeletonHelper( mesh );
+				skeletonHelper.material.linewidth = 2;
+				scene.add( skeletonHelper );
+
+				return mesh;
+
+			}
+
+			function initGui () {
+
+				gui = new UIL.Gui({ w:200 });
+
+				gui.add( state, 'animateBones', { type:'bool', h:20, r:10, p:70 } );
+				gui.add('button', { name:'', p:0, value:['reset'] } ).onChange( function(){mesh.pose()} );
+
+				var bones = mesh.skeleton.bones, bone, g
+
+				for ( var i = 0; i < bones.length; i ++ ) {
+
+					bone = bones[ i ];
+
+					g = gui.add('group', { name:"Bone " + i, fontColor:'#D4B87B' });
+
+					g.add( bone.position, 'x', { min:- 10 + bone.position.x, max:10 + bone.position.x, rename:'pos X', fontColor:'#5060CC' } ).listen();
+					g.add( bone.position, 'y', { min:- 10 + bone.position.y, max:10 + bone.position.y, rename:'pos Y', fontColor:'#5060CC' } ).listen();
+					g.add( bone.position, 'z', { min:- 10 + bone.position.z, max:10 + bone.position.z, rename:'pos Z', fontColor:'#5060CC' } ).listen();
+
+					g.add( bone.rotation, 'x', { min:- Math.PI * 0.5, max:Math.PI * 0.5, rename:'rot X' } ).listen();
+					g.add( bone.rotation, 'y', { min:- Math.PI * 0.5, max:Math.PI * 0.5, rename:'rot Y' } ).listen();
+					g.add( bone.rotation, 'z', { min:- Math.PI * 0.5, max:Math.PI * 0.5, rename:'rot Z' } ).listen();
+
+					g.add( bone.scale, 'x', { min:0, max:2, rename:'scl X', fontColor:'#D4B87B' } ).listen();
+					g.add( bone.scale, 'y', { min:0, max:2, rename:'scl Y', fontColor:'#D4B87B' } ).listen();
+					g.add( bone.scale, 'z', { min:0, max:2, rename:'scl Z', fontColor:'#D4B87B' } ).listen();
+
+				}
+
+			}
+
+			function initBones () {
+
+				var segmentHeight = 8;
+				var segmentCount = 4;
+				var height = segmentHeight * segmentCount;
+				var halfHeight = height * 0.5;
+
+				var sizing = {
+					segmentHeight : segmentHeight,
+					segmentCount : segmentCount,
+					height : height,
+					halfHeight : halfHeight
+				};
+
+				var geometry = createGeometry( sizing );
+				var bones = createBones( sizing );
+				mesh = createMesh( geometry, bones );
+
+				mesh.scale.multiplyScalar( 1 );
+				scene.add( mesh );
+
+			}
+
+			function render () {
+
+				requestAnimationFrame( render );
+
+				var time = Date.now() * 0.001;
+
+				//Wiggle the bones
+				if ( state.animateBones ) {
+
+					for ( var i = 0; i < mesh.skeleton.bones.length; i ++ ) {
+
+						mesh.skeleton.bones[ i ].rotation.z = Math.sin( time ) * 2 / mesh.skeleton.bones.length;
+
+					}
+
+				}
+
+				renderer.render( scene, camera );
+
+			}
+
+			initScene();
+			render();
+
+		</script>
+	</body>
+</html>

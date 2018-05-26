@@ -105,6 +105,28 @@
 		toDeg: 180 / Math.PI,
 		pi90: Math.PI * 0.5,
 
+		// Center point is p1; angle returned in Radians
+	    //findAngle: function ( p0, p1, p2 ) {
+	    findAngle: function ( b0, b1 ) {
+
+	    	/*var a = p1.minus(p2).lengthSq(), 
+		    	b = p1.minus(p0).lengthSq(), 
+		    	c = p2.minus(p0).lengthSq(),*/
+		    var a = b0.end.minus(b1.end).lengthSq(), 
+		    	b = b0.end.minus(b0.start).lengthSq(), 
+		    	c = b1.end.minus(b0.start).lengthSq(),  
+		    	angle, r, sign;
+
+		    r = ( a + b - c ) / Math.sqrt( 4 * a * b );
+	        if( r <= -1 ) angle = Math.PI;
+			else if( r >= 1 ) angle = 0;
+			else angle = Math.acos( r );
+			// sign
+			sign = b0.end.x * b1.end.y - b0.end.y * b1.end.x;
+			return sign >= 0 ? angle : -angle;
+
+		},
+
 		clamp: function ( v, min, max ) {
 
 		    v = v < min ? min : v;
@@ -586,6 +608,19 @@
 
 		},
 
+		crossVectors: function ( a, b ) {
+
+			var ax = a.x, ay = a.y, az = a.z;
+			var bx = b.x, by = b.y, bz = b.z;
+
+			this.x = ay * bz - az * by;
+			this.y = az * bx - ax * bz;
+			this.z = ax * by - ay * bx;
+
+			return this;
+
+		},
+
 		negate: function() { 
 
 		    this.x = -this.x;
@@ -867,6 +902,18 @@
 
 		},
 
+		transpose: function () {
+
+			var tmp, m = this.elements;
+
+			tmp = m[ 1 ]; m[ 1 ] = m[ 3 ]; m[ 3 ] = tmp;
+			tmp = m[ 2 ]; m[ 2 ] = m[ 6 ]; m[ 6 ] = tmp;
+			tmp = m[ 5 ]; m[ 5 ] = m[ 7 ]; m[ 7 ] = tmp;
+
+			return this;
+
+		},
+
 		createRotationMatrix: function ( referenceDirection ) {
 	  
 		    var zAxis = referenceDirection;//normalised();
@@ -920,6 +967,365 @@
 		    return v.clone().applyM3( this );
 
 		},
+
+	} );
+
+	function Q( x, y, z, w ) {
+
+		this._x = x || 0;
+		this._y = y || 0;
+		this._z = z || 0;
+		this._w = ( w !== undefined ) ? w : 1;
+
+	}
+
+	Object.assign( Q, {
+
+		slerp: function ( qa, qb, qm, t ) {
+
+			return qm.copy( qa ).slerp( qb, t );
+
+		},
+
+	} );
+
+	Object.defineProperties( Q.prototype, {
+
+		x: {
+
+			get: function () {
+
+				return this._x;
+
+			},
+
+			set: function ( value ) {
+
+				this._x = value;
+				this.onChangeCallback();
+
+			}
+
+		},
+
+		y: {
+
+			get: function () {
+
+				return this._y;
+
+			},
+
+			set: function ( value ) {
+
+				this._y = value;
+				this.onChangeCallback();
+
+			}
+
+		},
+
+		z: {
+
+			get: function () {
+
+				return this._z;
+
+			},
+
+			set: function ( value ) {
+
+				this._z = value;
+				this.onChangeCallback();
+
+			}
+
+		},
+
+		w: {
+
+			get: function () {
+
+				return this._w;
+
+			},
+
+			set: function ( value ) {
+
+				this._w = value;
+				this.onChangeCallback();
+
+			}
+
+		}
+
+	} );
+
+
+	Object.assign( Q.prototype, {
+
+		set: function ( x, y, z, w ) {
+
+			this._x = x;
+			this._y = y;
+			this._z = z;
+			this._w = w;
+
+			this.onChangeCallback();
+
+			return this;
+
+		},
+
+		clone: function () {
+
+			return new this.constructor( this._x, this._y, this._z, this._w );
+
+		},
+
+		setFromAxisAngle: function ( axis, angle ) {
+
+			// http://www.euclideanspace.com/maths/geometry/rotations/conversions/angleToQuaternion/index.htm
+
+			// assumes axis is normalized
+
+			var halfAngle = angle / 2, s = Math.sin( halfAngle );
+
+			this._x = axis.x * s;
+			this._y = axis.y * s;
+			this._z = axis.z * s;
+			this._w = Math.cos( halfAngle );
+
+			this.onChangeCallback();
+
+			return this;
+
+		},
+
+		copy: function ( quaternion ) {
+
+			this._x = quaternion.x;
+			this._y = quaternion.y;
+			this._z = quaternion.z;
+			this._w = quaternion.w;
+
+			this.onChangeCallback();
+
+			return this;
+
+		},
+
+		
+
+		setFromRotationMatrix: function ( m ) {
+
+			// http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
+
+			// assumes the upper 3x3 of m is a pure rotation matrix (i.e, unscaled)
+
+			var te = m.elements,
+
+				m11 = te[ 0 ], m12 = te[ 4 ], m13 = te[ 8 ],
+				m21 = te[ 1 ], m22 = te[ 5 ], m23 = te[ 9 ],
+				m31 = te[ 2 ], m32 = te[ 6 ], m33 = te[ 10 ],
+
+				trace = m11 + m22 + m33,
+				s;
+
+			if ( trace > 0 ) {
+
+				s = 0.5 / Math.sqrt( trace + 1.0 );
+
+				this._w = 0.25 / s;
+				this._x = ( m32 - m23 ) * s;
+				this._y = ( m13 - m31 ) * s;
+				this._z = ( m21 - m12 ) * s;
+
+			} else if ( m11 > m22 && m11 > m33 ) {
+
+				s = 2.0 * Math.sqrt( 1.0 + m11 - m22 - m33 );
+
+				this._w = ( m32 - m23 ) / s;
+				this._x = 0.25 * s;
+				this._y = ( m12 + m21 ) / s;
+				this._z = ( m13 + m31 ) / s;
+
+			} else if ( m22 > m33 ) {
+
+				s = 2.0 * Math.sqrt( 1.0 + m22 - m11 - m33 );
+
+				this._w = ( m13 - m31 ) / s;
+				this._x = ( m12 + m21 ) / s;
+				this._y = 0.25 * s;
+				this._z = ( m23 + m32 ) / s;
+
+			} else {
+
+				s = 2.0 * Math.sqrt( 1.0 + m33 - m11 - m22 );
+
+				this._w = ( m21 - m12 ) / s;
+				this._x = ( m13 + m31 ) / s;
+				this._y = ( m23 + m32 ) / s;
+				this._z = 0.25 * s;
+
+			}
+
+			this.onChangeCallback();
+
+			return this;
+
+		},
+
+		setFromUnitVectors: function () {
+
+			// assumes direction vectors vFrom and vTo are normalized
+
+			var v1 = new V3();
+			var r;
+
+			var EPS = 0.000001;
+
+			return function setFromUnitVectors( vFrom, vTo ) {
+
+				if ( v1 === undefined ) v1 = new V3();
+
+				r = vFrom.dot( vTo ) + 1;
+
+				if ( r < EPS ) {
+
+					r = 0;
+
+					if ( Math.abs( vFrom.x ) > Math.abs( vFrom.z ) ) {
+
+						v1.set( - vFrom.y, vFrom.x, 0 );
+
+					} else {
+
+						v1.set( 0, - vFrom.z, vFrom.y );
+
+					}
+
+				} else {
+
+					v1.crossVectors( vFrom, vTo );
+
+				}
+
+				this._x = v1.x;
+				this._y = v1.y;
+				this._z = v1.z;
+				this._w = r;
+
+				return this.normalize();
+
+			};
+
+		}(),
+
+		inverse: function () {
+
+			// quaternion is assumed to have unit length
+
+			return this.conjugate();
+
+		},
+
+		conjugate: function () {
+
+			this._x *= - 1;
+			this._y *= - 1;
+			this._z *= - 1;
+
+			this.onChangeCallback();
+
+			return this;
+
+		},
+
+		dot: function ( v ) {
+
+			return this._x * v._x + this._y * v._y + this._z * v._z + this._w * v._w;
+
+		},
+
+		lengthSq: function () {
+
+			return this._x * this._x + this._y * this._y + this._z * this._z + this._w * this._w;
+
+		},
+
+		length: function () {
+
+			return Math.sqrt( this._x * this._x + this._y * this._y + this._z * this._z + this._w * this._w );
+
+		},
+
+		normalize: function () {
+
+			var l = this.length();
+
+			if ( l === 0 ) {
+
+				this._x = 0;
+				this._y = 0;
+				this._z = 0;
+				this._w = 1;
+
+			} else {
+
+				l = 1 / l;
+
+				this._x = this._x * l;
+				this._y = this._y * l;
+				this._z = this._z * l;
+				this._w = this._w * l;
+
+			}
+
+			this.onChangeCallback();
+
+			return this;
+
+		},
+
+		multiply: function ( q, p ) {
+
+			if ( p !== undefined ) {
+
+				console.warn( 'THREE.Quaternion: .multiply() now only accepts one argument. Use .multiplyQuaternions( a, b ) instead.' );
+				return this.multiplyQuaternions( q, p );
+
+			}
+
+			return this.multiplyQuaternions( this, q );
+
+		},
+
+		premultiply: function ( q ) {
+
+			return this.multiplyQuaternions( q, this );
+
+		},
+
+		multiplyQuaternions: function ( a, b ) {
+
+			// from http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/code/index.htm
+
+			var qax = a._x, qay = a._y, qaz = a._z, qaw = a._w;
+			var qbx = b._x, qby = b._y, qbz = b._z, qbw = b._w;
+
+			this._x = qax * qbw + qaw * qbx + qay * qbz - qaz * qby;
+			this._y = qay * qbw + qaw * qby + qaz * qbx - qax * qbz;
+			this._z = qaz * qbw + qaw * qbz + qax * qby - qay * qbx;
+			this._w = qaw * qbw - qax * qbx - qay * qby - qaz * qbz;
+
+			this.onChangeCallback();
+
+			return this;
+
+		},
+
+		onChangeCallback: function () {}
 
 	} );
 
@@ -1003,6 +1409,7 @@
 	        j.rotor = this.rotor;
 	        j.max = this.max;
 	        j.min = this.min;
+	        j.freeHinge = this.freeHinge;
 	        j.rotationAxisUV.copy( this.rotationAxisUV );
 	        j.referenceAxisUV.copy( this.referenceAxisUV );
 
@@ -1085,7 +1492,7 @@
 
 	    },
 
-	    setHingeRotationAxis: function ( axis ) {
+	    /*setHingeRotationAxis: function ( axis ) {
 
 	        this.rotationAxisUV.copy( axis ).normalize();
 
@@ -1095,7 +1502,7 @@
 
 	        this.referenceAxisUV.copy( referenceAxis ).normalize(); 
 
-	    },
+	    },*/
 
 	    
 	    
@@ -1772,63 +2179,97 @@
 
 	                // Get the outer-to-inner unit vector of this bone
 	                var boneOuterToInnerUV = bone.getDirectionUV().negate();
-	                
+
 	                // Get the joint type for this bone and handle constraints on boneInnerToOuterUV
 
-	                switch ( jointType ) {
-	                    case J_BALL:
-	                        // Constrain to relative angle between this bone and the next bone if required
-	                        boneOuterToInnerUV.limitAngle( outerBoneOuterToInnerUV, tmpMtx, joint.rotor );
-	                    break;                      
-	                    case J_GLOBAL:
+	                /*if( this.isFullForward ){
 
-	                        hingeRotationAxis = joint.getHingeRotationAxis();
-	                        hingeReferenceAxis = joint.getHingeReferenceAxis();
-	                        // Project this bone outer-to-inner direction onto the hinge rotation axis
-	                        boneOuterToInnerUV.projectOnPlane( hingeRotationAxis ); 
+	                    switch ( jointType ) {
+	                        case J_BALL:
+	                            // Constrain to relative angle between this bone and the next bone if required
+	                            boneOuterToInnerUV.limitAngle( outerBoneOuterToInnerUV, tmpMtx, nextBone.joint.rotor );
+	                        break;                      
+	                        case J_GLOBAL:
 
-	                        // NOTE: Constraining about the hinge reference axis on this forward pass leads to poor solutions... so we won't.
-	                        if( this.isFullForward ){
+	                            hingeRotationAxis = nextBone.joint.getHingeRotationAxis().negated();
+	                            hingeReferenceAxis = nextBone.joint.getHingeReferenceAxis().negated();
+	                            
+	                            // Project this bone outer-to-inner direction onto the hinge rotation axis
+	                            boneOuterToInnerUV.projectOnPlane( hingeRotationAxis ); 
 
-	                            if( !joint.freeHinge ) boneOuterToInnerUV.constrainedUV( hingeReferenceAxis, hingeRotationAxis, tmpMtx, joint.min, joint.max );
+	                            // NOTE: Constraining about the hinge reference axis on this forward pass leads to poor solutions... so we won't.
+	                            if( !nextBone.joint.freeHinge ) boneOuterToInnerUV.constrainedUV( hingeReferenceAxis, hingeRotationAxis, tmpMtx,  nextBone.joint.min,  nextBone.joint.max );
 
-	                        }
-	                    break;
-	                    case J_LOCAL:
-	                        
+	                            
+	                        break;
+	                        case J_LOCAL:
+	                            
 
-	                        if ( i > 0 ) {// Not a basebone? Then construct a rotation matrix based on the previous bones inner-to-to-inner direction...
+	                            if ( i > 0 ) {// Not a basebone? Then construct a rotation matrix based on the previous bones inner-to-to-inner direction...
+	                                // ...and transform the hinge rotation axis into the previous bones frame of reference.
 
-	                            tmpMtx.createRotationMatrix( this.bones[i-1].getDirectionUV() );
-	                            hingeRotationAxis = joint.getHingeRotationAxis().clone().applyM3( tmpMtx );//.normalize();
+	                                tmpMtx.createRotationMatrix( outerBoneOuterToInnerUV );
+	                                hingeRotationAxis = nextBone.joint.getHingeRotationAxis().clone().negate().applyM3( tmpMtx );
+	                                hingeReferenceAxis = nextBone.joint.getHingeReferenceAxis().clone().negate().applyM3( tmpMtx );
 
-	                            if( this.isFullForward ){ 
-	                                tmpMtx.createRotationMatrix( this.bones[i-1].getDirectionUV().negate() );
-	                                hingeRotationAxis = joint.getHingeRotationAxis().clone().applyM3( tmpMtx );
-	                                hingeReferenceAxis = joint.getHingeReferenceAxis().clone().applyM3( tmpMtx );
+
+
+	                            } else {// ...basebone? Need to construct matrix from the relative constraint UV.
+
+	                                hingeRotationAxis = this.baseboneRelativeConstraintUV.negated();
+	                                hingeReferenceAxis = this.baseboneRelativeReferenceConstraintUV.negated();
+
 	                            }
 
-	                        } else {// ...basebone? Need to construct matrix from the relative constraint UV.
+	                            // Project this bone's outer-to-inner direction onto the plane described by the relative hinge rotation axis
+	                            boneOuterToInnerUV.projectOnPlane( hingeRotationAxis );
 
-	                            if( this.isFullForward ) hingeReferenceAxis = this.baseboneRelativeReferenceConstraintUV;
-	                            hingeRotationAxis = this.baseboneRelativeConstraintUV.clone();
+	                            // NOTE: Constraining about the hinge reference axis on this forward pass leads to poor solutions... so we won't.  
+	                            if( !nextBone.joint.freeHinge ){
 
-	                        }
-	                        
-	                        // ...and transform the hinge rotation axis into the previous bones frame of reference.
+	                                boneOuterToInnerUV.constrainedUV( hingeReferenceAxis, hingeRotationAxis, tmpMtx, nextBone.joint.min, nextBone.joint.max );
 
-	                        // Project this bone's outer-to-inner direction onto the plane described by the relative hinge rotation axis
-	                        // Note: The returned vector is normalised.                 
-	                        boneOuterToInnerUV.projectOnPlane( hingeRotationAxis );//.normalize();
+	                            }
+	                        break;
+	                    }
+	                } else {*/
 
-	                        // NOTE: Constraining about the hinge reference axis on this forward pass leads to poor solutions... so we won't.  
-	                        if( this.isFullForward ){
+	                    switch ( jointType ) {
+	                        case J_BALL:
+	                            // Constrain to relative angle between this bone and the next bone if required
+	                            boneOuterToInnerUV.limitAngle( outerBoneOuterToInnerUV, tmpMtx, joint.rotor );
+	                        break;                      
+	                        case J_GLOBAL:
 
-	                            if( !joint.freeHinge ) boneOuterToInnerUV.constrainedUV( hingeReferenceAxis, hingeRotationAxis, tmpMtx, joint.min, joint.max );
+	                            hingeRotationAxis = joint.getHingeRotationAxis();
+	                            
+	                            // Project this bone outer-to-inner direction onto the hinge rotation axis
+	                            boneOuterToInnerUV.projectOnPlane( hingeRotationAxis ); 
 
-	                        }
-	                    break;
-	                }
+	                            // NOTE: Constraining about the hinge reference axis on this forward pass leads to poor solutions... so we won't.
+	                        break;
+	                        case J_LOCAL:
+	                            
+
+	                            if ( i > 0 ) {// Not a basebone? Then construct a rotation matrix based on the previous bones inner-to-to-inner direction...
+	                                // ...and transform the hinge rotation axis into the previous bones frame of reference.
+
+	                                tmpMtx.createRotationMatrix( this.bones[i-1].getDirectionUV() );
+	                                hingeRotationAxis = joint.getHingeRotationAxis().clone().applyM3( tmpMtx );
+
+	                            } else {// ...basebone? Need to construct matrix from the relative constraint UV.
+
+	                                hingeRotationAxis = this.baseboneRelativeConstraintUV;
+
+	                            }
+
+	                            // Project this bone's outer-to-inner direction onto the plane described by the relative hinge rotation axis
+	                            boneOuterToInnerUV.projectOnPlane( hingeRotationAxis );
+
+	                            // NOTE: Constraining about the hinge reference axis on this forward pass leads to poor solutions... so we won't.
+	                        break;
+	                    }
+	                //}
 	                    
 	                // At this stage we have a outer-to-inner unit vector for this bone which is within our constraints,
 	                // so we can set the new inner joint location to be the end joint location of this bone plus the
@@ -1860,7 +2301,7 @@
 	                    case J_GLOBAL:
 	                        hingeRotationAxis = joint.getHingeRotationAxis();
 	                        // Global hinges get constrained to the hinge rotation axis, but not the reference axis within the hinge plane
-	                        boneOuterToInnerUV.projectOnPlane( hingeRotationAxis );//.normalize();
+	                        boneOuterToInnerUV.projectOnPlane( hingeRotationAxis );
 	                    break;
 	                    case J_LOCAL:
 	                        // Local hinges get constrained to the hinge rotation axis, but not the reference axis within the hinge plane
@@ -3672,6 +4113,7 @@
 	exports.V2 = V2;
 	exports.V3 = V3;
 	exports.M3 = M3;
+	exports.Q = Q;
 	exports.Joint3D = Joint3D;
 	exports.Bone3D = Bone3D;
 	exports.Chain3D = Chain3D;

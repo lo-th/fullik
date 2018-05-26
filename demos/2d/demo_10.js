@@ -1,17 +1,16 @@
-tell("Demo 9 - Chain with fixed base and world space (GLOBAL) bone constaints.");
+tell("Demo 10 - leg test.");
 
 var chain = new FIK.Chain2D();
-var boneLength = 40;
-var basebone = new FIK.Bone2D( new FIK.V2(0, 0), new FIK.V2(0, 20) );
-basebone.setClockwiseConstraintDegs(180);
-basebone.setAnticlockwiseConstraintDegs(180); 
+var basebone = new FIK.Bone2D( new FIK.V2(0, 0), new FIK.V2(0, -20) );
+//basebone.setClockwiseConstraintDegs(180);
+//basebone.setAnticlockwiseConstraintDegs(180); 
 chain.addBone( basebone );
 // Fix the base bone to its current location, and constrain it to the positive Y-axis
 chain.setFixedBaseMode(true);       
-chain.setBaseboneConstraintType(FIK.GLOBAL_ABSOLUTE);
+//chain.setBaseboneConstraintType(FIK.GLOBAL_ABSOLUTE);
 //chain.setBaseboneConstraintUV( new FIK.V2(0, 1) );
 
-chain.addConsecutiveBone(FIK.UP, 20, 180, 0);
+chain.addConsecutiveBone(FIK.DOWN, 20, 170, 0);
 //chain.addConsecutiveBone(FIK.UP, 21, 150, 150);
 //chain.addConsecutiveBone(FIK.UP, 14.2);
 
@@ -24,3 +23,18 @@ chain.addConsecutiveBone( gripper );*/
 
 // Finally, add the chain to the structure
 solver.add( chain, target, true );
+
+extraUpdate = function(){
+
+	var bones = solver.chains[0].bones;
+
+	var r = FIK._Math.findAngle(bones[0], bones[1]);
+	r *= FIK._Math.toDeg;
+
+	tell( "ANGLE:" + r );
+
+
+
+
+
+}
