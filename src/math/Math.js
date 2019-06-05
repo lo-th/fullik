@@ -14,8 +14,8 @@ var _Math = {
 	    	b = p1.minus(p0).lengthSq(), 
 	    	c = p2.minus(p0).lengthSq(),*/
 	    var a = b0.end.minus(b1.end).lengthSq(), 
-	    	b = b0.end.minus(b0.start).lengthSq(), 
-	    	c = b1.end.minus(b0.start).lengthSq(),  
+	    	b = b0.end.minus(b0.start).lengthSq(),
+	    	c = b1.end.minus(b0.start).lengthSq(),
 	    	angle, r, sign;
 
 	    r = ( a + b - c ) / Math.sqrt( 4 * a * b );

@@ -4,6 +4,8 @@ function Joint2D( clockwise, antiClockwise, coordSystem ){
 
     this.coordinateSystem = coordSystem || J_LOCAL;
 
+    if( clockwise < 0 ) clockwise *= -1;
+
     this.min = clockwise !== undefined ? -clockwise * TORAD : -PI;
     this.max = antiClockwise !== undefined ? antiClockwise * TORAD : PI;
     
@@ -46,6 +48,7 @@ Object.assign( Joint2D.prototype, {
     setClockwiseConstraintDegs: function ( angle ) {
 
         // 0 to -180 degrees represents clockwise rotation
+        if( angle < 0 ) angle *= -1;
         this.min = - (this.validateAngle( angle ) * TORAD);
         
     },

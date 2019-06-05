@@ -12,7 +12,7 @@ function Structure2D ( scene ) {
     this.targets = [];
     this.numChains = 0;
 
-    this.scene = scene;
+    this.scene = scene || null;
 
     this.isWithMesh = false;
 
@@ -34,7 +34,7 @@ Object.assign( Structure2D.prototype, {
 
             chain = this.chains[i];
             
-            target = this.targets[i];
+            target = this.targets[i] || null;
 
             hostChainNumber = chain.getConnectedChainNumber();
 
@@ -83,7 +83,7 @@ Object.assign( Structure2D.prototype, {
             // Finally, update the target and solve the chain
 
             if ( !chain.useEmbeddedTarget ) chain.solveForTarget( target );
-            else chain.solveForEmbeddedTarget();
+            else console.log('embed', chain.solveForEmbeddedTarget());
 
 
             // update 3d mesh
@@ -138,11 +138,12 @@ Object.assign( Structure2D.prototype, {
     add:function ( chain, target, meshBone ) {
 
         this.chains.push( chain );
+        this.numChains ++;
 
         //if( target.isVector3 ) target = new V2(target.x, target.y);
          
-        this.targets.push( target ); 
-        this.numChains ++;
+        if(target) this.targets.push( target ); 
+        
 
         if( meshBone ) this.addChainMeshs( chain );
 

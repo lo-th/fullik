@@ -103,21 +103,6 @@ Object.assign( V2.prototype, {
 	
 	},
 
-	times: function ( s ) {
-
-	    if( s.isVector2 ) return new V2( this.x * s.x, this.y * s.y );
-	    else return new V2( this.x * s, this.y * s, this.z * s );
-
-	},
-
-	/*randomise: function ( min, max ) {
-
-	    this.x = _Math.rand( min, max );
-	    this.y = _Math.rand( min, max );
-	    return this;
-
-	},*/
-
 	dot: function ( a, b ) {
 
 		return this.x * a.x + this.y * a.y;

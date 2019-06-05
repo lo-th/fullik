@@ -28,7 +28,7 @@
 
 		<script>
 
-			var gui, scene, camera, renderer, orbit, lights, mesh, bones, skeletonHelper;
+			var gui, scene, camera, renderer, orbit, lights, mesh, bones, skeletonHelper, solver;
 
 			var state = {
 
@@ -77,6 +77,8 @@
 				initBones();
 				initGui();
 
+				initHISolver();
+
 			}
 
 			function createGeometry ( sizing ) {
@@ -112,12 +114,14 @@
 				bones = [];
 
 				var prevBone = new THREE.Bone();
+				prevBone.name = 'bone_' + 0;
 				bones.push( prevBone );
 				prevBone.position.y = - sizing.halfHeight;
 
 				for ( var i = 0; i < sizing.segmentCount; i ++ ) {
 
 					var bone = new THREE.Bone();
+					bone.name = 'bone_' + (i+1);
 					bone.position.y = sizing.segmentHeight;
 					bones.push( bone );
 					prevBone.add( bone );
@@ -161,7 +165,7 @@
 				gui.add( state, 'animateBones', { type:'bool', h:20, r:10, p:70 } );
 				gui.add('button', { name:'', p:0, value:['reset'] } ).onChange( function(){mesh.pose()} );
 
-				var bones = mesh.skeleton.bones, bone, g
+				var bone, g
 
 				for ( var i = 0; i < bones.length; i ++ ) {
 
@@ -205,6 +209,16 @@
 
 				mesh.scale.multiplyScalar( 1 );
 				scene.add( mesh );
+
+			}
+
+			function initHISolver(){
+
+				solver = new FIK.HISolver( { start:bones[0], end:bones[4], angles:[[0,0], [180,0], [180,0], [180,0]], scene:scene } );
+
+				solver.update();
+
+				solver.update();
 
 			}
 
