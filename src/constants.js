@@ -6,7 +6,7 @@ import { V3 } from './math/V3.js';
 import { V2 } from './math/V2.js';
 import { M3 } from './math/M3.js';
 
-export const REVISION = '1.3.3';
+export const REVISION = '1.4.0';
 
 export const PRECISION = 0.001;
 export const PRECISION_DEG = 0.01;

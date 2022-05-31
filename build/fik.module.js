@@ -928,7 +928,7 @@ class M3 {
  * the Fik engine.
  */
 
-const REVISION = '1.3.3';
+const REVISION = '1.4.0';
 
 const PRECISION = 0.001;
 const PRECISION_DEG = 0.01;
@@ -2397,7 +2397,7 @@ class Structure3D {
             extraGeo.rotateX( -Math.PI * 0.5 );
 
            // extraGeo.applyMatrix4( new this.THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
-            if( axe.z === 1 ) { eextraGeo.rotateY( -Math.PI * 0.5 ); extraGeo.rotateX( Math.PI * 0.5 ); }
+            if( axe.z === 1 ) { extraGeo.rotateY( -Math.PI * 0.5 ); extraGeo.rotateX( Math.PI * 0.5 ); }
             if( axe.x === 1 ) extraGeo.rotateZ( -Math.PI * 0.5 );
             if( axe.y === 1 ) { extraGeo.rotateX( Math.PI * 0.5 ); extraGeo.rotateY( Math.PI * 0.5 ); }
 

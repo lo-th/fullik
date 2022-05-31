@@ -701,7 +701,7 @@
 	 * A list of constants built-in for
 	 * the Fik engine.
 	 */
-	const REVISION = '1.3.3';
+	const REVISION = '1.4.0';
 	const PRECISION = 0.001;
 	const PRECISION_DEG = 0.01;
 	const MAX_VALUE = Infinity; // chain Basebone Constraint Type
@@ -1850,7 +1850,7 @@
 					extraGeo.rotateX(-Math.PI * 0.5); // extraGeo.applyMatrix4( new this.THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
 
 					if (axe.z === 1) {
-						eextraGeo.rotateY(-Math.PI * 0.5);
+						extraGeo.rotateY(-Math.PI * 0.5);
 						extraGeo.rotateX(Math.PI * 0.5);
 					}
 

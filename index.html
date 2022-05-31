@@ -42,43 +42,44 @@
     import { FIK } from './src/FIK_dev.js'
 
 
-    var demos = {
+    let demos = {
        '2D': 10,
        '3D': 13,
     }
 
-    var current = '3D';
+    let current = '3D';
+    let demone = ''
 
-    var extraUpdate = function(){};
+    let extraUpdate = function(){};
 
-    var debug = document.getElementById('debug');
+    let debug = document.getElementById('debug');
 
-    var link = document.getElementById('link');
+    let link = document.getElementById('link');
     link.addEventListener('click', function(){window.location.assign('https://github.com/lo-th/fullik');}, false );
 
-    var fileName = '';
+    let fileName = '';
 
-    var targetTween = null; 
+    let targetTween = null; 
 
-	var gui, demoGroup, scene, camera, renderer, controler, ambientLight, lights, mesh, bones, skeletonHelper, control, ground, grid;
+	let gui, demoGroup, scene, camera, renderer, controler, ambientLight, lights, mesh, bones, skeletonHelper, control, ground, grid;
 
-	var target, effector;
+	let target, effector;
 
-	var boxTarget , boxEffector;
+	let boxTarget , boxEffector;
 
-	var box = [];
+	let box = [];
 
-    var targets = [];
+    let targets = [];
 
-    var goal = { x:0, y:30, z:0 };
+    let goal = { x:0, y:30, z:0 };
 
-    var setting = {
+    let setting = {
         fixed:true,
         auto:false
     }
 
-	var solver;
-	var defaultBoneDirection, defaultBoneLength;
+	let solver;
+	let defaultBoneDirection, defaultBoneLength;
 
     window.tell = tell
     window.FIK = FIK
@@ -91,8 +92,8 @@
         // set the mode
         current = location.hash.substr( 1, 2 ) || '3D';
 
-        var w = window.innerWidth;
-        var h = window.innerHeight;
+        let w = window.innerWidth;
+        let h = window.innerHeight;
 
 		renderer = new THREE.WebGLRenderer( { antialias: true } );
 		renderer.setPixelRatio( window.devicePixelRatio );
@@ -136,8 +137,12 @@
 
 		window.addEventListener( 'resize', resize, false );
 
+
+        let l = location.hash.substr( 4 );
+        demone = l || 'demo_1'
+
 	    addGround()
-		initGui();
+		initGui()
 
         // FIK
 
@@ -151,15 +156,15 @@
 
         window.solver = solver
 
-        var l = location.hash.substr( 4 ); 
-        load( l || 'demo_1' );
+         
+        load( demone )
 
 	}
 
     function resize(){
 
-        var w = window.innerWidth;
-        var h = window.innerHeight;
+        let w = window.innerWidth;
+        let h = window.innerHeight;
 
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
@@ -228,7 +233,7 @@
 
         if(!targets[id]) return;
 
-        var n = targets[id];
+        let n = targets[id];
 
         n.mesh.position.copy( v );
         n.control.position.copy( v );
@@ -240,7 +245,7 @@
 
         //https://threejs.org/examples/?q=Transform#misc_controls_transform
 
-        var n = {
+        let n = {
             mesh : new THREE.Mesh( new THREE.SphereBufferGeometry( 0.1, 6, 4 ),  new THREE.MeshStandardMaterial({color:0xFFFF00, wireframe:true }) ),
             control : new TransformControls( camera, renderer.domElement ),
         }
@@ -269,8 +274,8 @@
 
     function clearAllTargets(){
 
-        var n;
-        for(var i = 0; i < targets.length; i++ ){
+        let n;
+        for(let i = 0; i < targets.length; i++ ){
 
             n = targets[i];
             n.control.detach( n.mesh );
@@ -287,7 +292,7 @@
 
     function mode ( str ) {
 
-        if(str === current) return;
+        if( str === current ) return;
 
         current = str;
         fileName = '';
@@ -319,7 +324,7 @@
 
         gui = new UIL.Gui({ w:200 });
 
-        gui.add('title', { name:'FULLIK', prefix:FIK.REVISION, h:30, r:10 } );
+        gui.add('title', { name:'FIK '+ FIK.REVISION, h:30, r:10 } );
 
         gui.add('button', { name:'', p:0, value:['2D', '3D'] } ).onChange( mode );
 
@@ -338,9 +343,11 @@
 
         demoGroup.clear();
 
-        for(var i=0; i<=n; i++) {
-            demoGroup.add('button', { name:'demo_'+i, p:0 } ).onChange( load );
-        }
+        let demos = []
+
+        for(let i=0; i<=n; i++) demos.push('demo_'+i)
+
+        demoGroup.add( 'grid', { values:demos, selectable:true, h:24, value:demone } ).onChange( load )
 
         demoGroup.open();
 
@@ -385,9 +392,9 @@
         if( name === fileName ) return;
 
         fileName = name;
-        var url = './demos/' + current.toLowerCase() + '/' + name +'.js';
+        let url = './demos/' + current.toLowerCase() + '/' + name +'.js';
 
-        var xhr = new XMLHttpRequest();
+        let xhr = new XMLHttpRequest();
         xhr.overrideMimeType('text/plain; charset=x-user-defined'); 
         xhr.open('GET', url, true);
         xhr.onload = function(){ startDemo( xhr.responseText ); }
@@ -416,7 +423,7 @@
 
         location.hash = current + '_' + fileName;
 
-        var oScript = document.createElement("script");
+        let oScript = document.createElement("script");
         oScript.language = "javascript";
         oScript.type = "text/javascript";
         oScript.text = code;
