@@ -1,8 +1,7 @@
 import { Tools } from '../core/Tools.js';
 
-export const math = {
+export const _Math = {
 
-	PI:Math.PI,
 	toRad: Math.PI / 180,
 	toDeg: 180 / Math.PI,
 	pi90: Math.PI * 0.5,
@@ -11,8 +10,6 @@ export const math = {
 	// Center point is p1; angle returned in Radians
     //findAngle: function ( p0, p1, p2 ) {
     findAngle: function ( b0, b1 ) {
-
-    	//return Math.atan2( b1.end - b0.end, b1.start - b0.start )
 
     	/*let a = p1.minus(p2).lengthSq(), 
 	    	b = p1.minus(p0).lengthSq(), 
@@ -72,15 +69,15 @@ export const math = {
 
 	perpendicular: function ( a, b ) {
 
-		return math.nearEquals( a.dot(b), 0.0, 0.01 ) ? true : false;
+		return _Math.nearEquals( a.dot(b), 0.0, 0.01 ) ? true : false;
 
-	    //return math.nearEquals( math.dotProduct(a, b), 0.0, 0.01 ) ? true : false;
+	    //return _Math.nearEquals( _Math.dotProduct(a, b), 0.0, 0.01 ) ? true : false;
 
 	},
 
 	genPerpendicularVectorQuick: function ( v ) {
 
-		//return math.genPerpendicularVectorFrisvad( v );
+		//return _Math.genPerpendicularVectorFrisvad( v );
 
 	    let p = v.clone();
 	    // cross(v, UP) : cross(v, RIGHT)
@@ -109,9 +106,9 @@ export const math = {
 
 	// rotation
 
-	rotateXDegs: function ( v, angle ) { return v.clone().rotate( angle * math.toRad, 'X' ); },
-	rotateYDegs: function ( v, angle ) { return v.clone().rotate( angle * math.toRad, 'Y' ) },
-	rotateZDegs: function ( v, angle ) { return v.clone().rotate( angle * math.toRad, 'Z' ) },
+	rotateXDegs: function ( v, angle ) { return v.clone().rotate( angle * _Math.toRad, 'X' ); },
+	rotateYDegs: function ( v, angle ) { return v.clone().rotate( angle * _Math.toRad, 'Y' ) },
+	rotateZDegs: function ( v, angle ) { return v.clone().rotate( angle * _Math.toRad, 'Z' ) },
 
 	// distance
 
@@ -154,9 +151,9 @@ export const math = {
 
 	unwrapRad: function( r ){
 
-	    r = r % math.twoPI;
-	    if (r > Math.Pi ) r -= math.twoPI;
-	    if (r < - Math.Pi ) r += math.twoPI;
+	    r = r % _Math.twoPI;
+	    if (r > Math.Pi ) r -= _Math.twoPI;
+	    if (r < - Math.Pi ) r += _Math.twoPI;
 	    return r;
 
 	},*/
@@ -166,7 +163,7 @@ export const math = {
 
 	rotateDegs: function( v, angle ) {
 
-		return v.clone().rotate( angle * math.toRad )
+		return v.clone().rotate( angle * _Math.toRad )
  
 	},
 

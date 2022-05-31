@@ -1,146 +1,145 @@
-function V3( x, y, z ){
+export class V3 {
 
-    this.x = x || 0;
-    this.y = y || 0;
-    this.z = z || 0;
+    constructor( x = 0, y = 0, z = 0 ) {
 
-}
+    	this.isVector3 = true;
+	    this.x = x;
+	    this.y = y;
+	    this.z = z;
 
-Object.assign( V3.prototype, {
+	}
 
-	isVector3: true,
-
-	set: function( x, y, z ){
+	set( x, y, z ) {
 
 	    this.x = x || 0;
 	    this.y = y || 0;
 	    this.z = z || 0;
 	    return this;
 
-	},
+	}
 
-	distanceTo: function ( v ) {
+	distanceTo( v ) {
 
 		return Math.sqrt( this.distanceToSquared( v ) );
 
-	},
+	}
 
-	distanceToSquared: function ( v ) {
+	distanceToSquared( v ) {
 
-		var dx = this.x - v.x, dy = this.y - v.y, dz = this.z - v.z;
+		let dx = this.x - v.x, dy = this.y - v.y, dz = this.z - v.z;
 
 		return dx * dx + dy * dy + dz * dz;
 
-	},
+	}
 
-	abs: function () {
+	abs() {
 
-		return new V3( 
+		return new this.constructor( 
 			this.x < 0 ? -this.x : this.x, 
 			this.y < 0 ? -this.y : this.y, 
 			this.z < 0 ? -this.z : this.z
 		);
 
-	},
+	}
 
-	dot: function ( v ) {
+	dot( v ) {
 
 		return this.x * v.x + this.y * v.y + this.z * v.z;
 
-	},
+	}
 
-	length: function () {
+	length() {
 
 		return Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z );
 
-	},
+	}
 
-	lengthSq: function () {
+	lengthSq() {
 
 		return this.x * this.x + this.y * this.y + this.z * this.z;
 
-	},
+	}
 
-	normalize: function () {
+	normalize() {
 
 		return this.divideScalar( this.length() || 1 );
 
-	},
+	}
 
-	normalised: function () {
+	normalised() {
 
-	    return new V3( this.x, this.y, this.z ).normalize();
+	    return new this.constructor( this.x, this.y, this.z ).normalize();
 	
-	},
+	}
 
-	add: function ( v ) {
+	add( v ) {
 
 		this.x += v.x;
 		this.y += v.y;
 		this.z += v.z;
 	    return this;
 
-	},
+	}
 
-	min: function ( v ) {
+	min( v ) {
 
 		this.x -= v.x;
 		this.y -= v.y;
 		this.z -= v.z;
 	    return this;
 
-	},
+	}
 
-	plus: function ( v ) {
+	plus( v ) {
 
-	    return new V3( this.x + v.x, this.y + v.y, this.z + v.z );
+	    return new this.constructor( this.x + v.x, this.y + v.y, this.z + v.z );
 
-	},
+	}
 
-	minus: function ( v ) {
+	minus( v ) {
 
-	    return new V3( this.x - v.x, this.y - v.y, this.z - v.z );
+	    return new this.constructor( this.x - v.x, this.y - v.y, this.z - v.z );
 
-	},
+	}
 
-	divideBy: function ( s ) {
+	divideBy( s ) {
 
-	    return new V3( this.x / s, this.y / s, this.z / s );
+	    return new this.constructor ( this.x / s, this.y / s, this.z / s );
 	
-	},
+	}
 
-	multiply: function ( s ) {
+	multiply( s ) {
 
-	    return new V3( this.x * s, this.y * s, this.z * s );
+	    return new this.constructor( this.x * s, this.y * s, this.z * s );
+
+	}
 	
-	},
-	
 
-	multiplyScalar: function ( scalar ) {
+	multiplyScalar( scalar ) {
 
 		this.x *= scalar;
 		this.y *= scalar;
 		this.z *= scalar;
 		return this;
 
-	},
+	}
 
-	divideScalar: function ( scalar ) {
+	divideScalar( scalar ) {
 
 		return this.multiplyScalar( 1 / scalar );
 
-	},
+	}
 
-	cross: function( v ) { 
+	cross( v ) { 
 
-	    return new V3( this.y * v.z - this.z * v.y, this.z * v.x - this.x * v.z, this.x * v.y - this.y * v.x );
+	    return new this.constructor( this.y * v.z - this.z * v.y, this.z * v.x - this.x * v.z, this.x * v.y - this.y * v.x );
 
-	},
+	}
 
-	crossVectors: function ( a, b ) {
+	crossVectors( a, b ) {
 
-		var ax = a.x, ay = a.y, az = a.z;
-		var bx = b.x, by = b.y, bz = b.z;
+		let ax = a.x, ay = a.y, az = a.z;
+		let bx = b.x, by = b.y, bz = b.z;
 
 		this.x = ay * bz - az * by;
 		this.y = az * bx - ax * bz;
@@ -148,56 +147,56 @@ Object.assign( V3.prototype, {
 
 		return this;
 
-	},
+	}
 
-	negate: function() { 
+	negate() { 
 
 	    this.x = -this.x;
 	    this.y = -this.y;
 	    this.z = -this.z;
 	    return this;
 
-	},
+	}
 
-	negated: function () { 
+	negated() { 
 
 	    return new V3( -this.x, -this.y, -this.z );
 
-	},
+	}
 
-	clone: function () {
+	clone() {
 
 	    return new V3( this.x, this.y, this.z );
 
-	},
+	}
 
-	copy: function ( v ) {
+	copy( v ) {
 
 	    this.x = v.x;
 	    this.y = v.y;
 	    this.z = v.z;
 	    return this;
 
-	},
+	}
 
-	approximatelyEquals: function ( v, t ) {
+	approximatelyEquals( v, t ) {
 
 	    if ( t < 0 ) return false;
-	    var xDiff = Math.abs(this.x - v.x);
-	    var yDiff = Math.abs(this.y - v.y);
-	    var zDiff = Math.abs(this.z - v.z);
+	    let xDiff = Math.abs(this.x - v.x);
+	    let yDiff = Math.abs(this.y - v.y);
+	    let zDiff = Math.abs(this.z - v.z);
 	    return ( xDiff < t && yDiff < t && zDiff < t );
 
-	},
+	}
 
-	zero: function () {
+	zero() {
 
 	    this.x = 0;
 	    this.y = 0;
 	    this.z = 0;
 	    return this;
 
-	},
+	}
 
 	/*projectOnPlane_old: function ( planeNormal ) {
 
@@ -205,18 +204,18 @@ Object.assign( V3.prototype, {
 	        
         // Projection of vector b onto plane with normal n is defined as: b - ( b.n / ( |n| squared )) * n
         // Note: |n| is length or magnitude of the vector n, NOT its (component-wise) absolute value        
-        var b = this.normalised();
-        var n = planeNormal.normalised();   
+        let b = this.normalised();
+        let n = planeNormal.normalised();   
 
         return b.min( n.times( _Math.dotProduct( b, planeNormal ) ) ).normalize();
 
 	},*/
 
-	rotate: function( angle, axe ) {
+	rotate( angle, axe ) {
 
-		var cos = Math.cos( angle );
-		var sin = Math.sin( angle );
-		var x, y, z;
+		let cos = Math.cos( angle );
+		let sin = Math.sin( angle );
+		let x, y, z;
 
 		switch ( axe ){
 			case 'X':
@@ -241,20 +240,20 @@ Object.assign( V3.prototype, {
 		this.z = z;
 		return this;
 
-	},
+	}
 
 	// added
 
-	projectOnVector: function ( vector ) {
+	projectOnVector( vector ) {
 
-		var scalar = vector.dot( this ) / vector.lengthSq();
+		let scalar = vector.dot( this ) / vector.lengthSq();
 		return this.copy( vector ).multiplyScalar( scalar );
 
-	},
+	}
 
-	projectOnPlane: function () {
+	projectOnPlane() {
 
-		var v1 = new V3();
+		let v1 = new this.constructor();
 
 		return function projectOnPlane( planeNormal ) {
 
@@ -262,14 +261,14 @@ Object.assign( V3.prototype, {
 
 			return this.min( v1 ).normalize();
 
-		};
+		}
 
-	}(),
+	}
 
-	applyM3: function ( m ) {
+	applyM3( m ) {
 
-		var x = this.x, y = this.y, z = this.z;
-		var e = m.elements;
+		let x = this.x, y = this.y, z = this.z;
+		let e = m.elements;
 
 		this.x = e[ 0 ] * x + e[ 1 ] * y + e[ 2 ] * z;
 		this.y = e[ 3 ] * x + e[ 4 ] * y + e[ 5 ] * z;
@@ -277,12 +276,12 @@ Object.assign( V3.prototype, {
 
 		return this.normalize();
 
-	},
+	}
 
-	applyMatrix3: function ( m ) {
+	applyMatrix3( m ) {
 
-		var x = this.x, y = this.y, z = this.z;
-		var e = m.elements;
+		let x = this.x, y = this.y, z = this.z;
+		let e = m.elements;
 
 		this.x = e[ 0 ] * x + e[ 3 ] * y + e[ 6 ] * z;
 		this.y = e[ 1 ] * x + e[ 4 ] * y + e[ 7 ] * z;
@@ -290,19 +289,19 @@ Object.assign( V3.prototype, {
 
 		return this;
 
-	},
+	}
 
-	applyQuaternion: function ( q ) {
+	applyQuaternion( q ) {
 
-		var x = this.x, y = this.y, z = this.z;
-		var qx = q.x, qy = q.y, qz = q.z, qw = q.w;
+		let x = this.x, y = this.y, z = this.z;
+		let qx = q.x, qy = q.y, qz = q.z, qw = q.w;
 
 		// calculate quat * vector
 
-		var ix = qw * x + qy * z - qz * y;
-		var iy = qw * y + qz * x - qx * z;
-		var iz = qw * z + qx * y - qy * x;
-		var iw = - qx * x - qy * y - qz * z;
+		let ix = qw * x + qy * z - qz * y;
+		let iy = qw * y + qz * x - qx * z;
+		let iz = qw * z + qx * y - qy * x;
+		let iw = - qx * x - qy * y - qz * z;
 
 		// calculate result * inverse quat
 
@@ -312,56 +311,53 @@ Object.assign( V3.prototype, {
 
 		return this;
 
-	},
+	}
 
 	/////
 
-	sign: function( v, normal ) {
+	sign( v, normal ) {
 
-		var s = this.cross( v ).dot( normal );
+		let s = this.cross( v ).dot( normal );
 		return s >= 0 ? 1 : -1;
 
-	},
+	}
 
-	angleTo: function ( v ) {
+	angleTo( v ) {
 
-		var a = this.dot(v) / Math.sqrt( this.lengthSq() * v.lengthSq() );
+		let a = this.dot(v) / Math.sqrt( this.lengthSq() * v.lengthSq() );
 		if(a <= -1) return Math.PI;
 		if(a >= 1) return 0;
 		return Math.acos( a );
 
-	},
+	}
 
-	getSignedAngle: function ( v, normal ) {
+	getSignedAngle( v, normal ) {
 
-		var a = this.angleTo( v );
-		var s = this.sign( v, normal );
+		let a = this.angleTo( v );
+		let s = this.sign( v, normal );
 		return s === 1 ? a : -a;
 		
-	},
+	}
 
-	constrainedUV: function( referenceAxis, rotationAxis, mtx, min, max ) {
+	constrainedUV( referenceAxis, rotationAxis, mtx, min, max ) {
 
-        var angle = referenceAxis.getSignedAngle( this, rotationAxis );
+        let angle = referenceAxis.getSignedAngle( this, rotationAxis );
         if( angle > max ) this.copy( mtx.rotateAboutAxis( referenceAxis, max, rotationAxis ) );
         if( angle < min ) this.copy( mtx.rotateAboutAxis( referenceAxis, min, rotationAxis ) );
         return this;
 
-    },
+    }
 
-    limitAngle: function( base, mtx, max ) {
+    limitAngle( base, mtx, max ) {
 
-        var angle = base.angleTo( this );
+        let angle = base.angleTo( this );
         if( angle > max ){ 
-        	var correctionAxis = base.normalised().cross(this).normalize();
+        	let correctionAxis = base.normalised().cross(this).normalize();
         	this.copy( mtx.rotateAboutAxis( base, max, correctionAxis ) );
         }
         return this;
 
-    },
+    }
 
 
-} );
-
-export { V3 };
-
+}

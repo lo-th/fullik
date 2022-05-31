@@ -1,4 +1,4 @@
-var Tools = {
+export const Tools = {
 
 	error: function (str) {
 
@@ -8,6 +8,3 @@ var Tools = {
 
 
 }
-
-
-export { Tools };

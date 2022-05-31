@@ -2,44 +2,45 @@ import { END, START } from '../constants.js';
 import { Joint2D } from './Joint2D.js';
 import { V2 } from '../math/V2.js';
 
-function Bone2D ( Start, End, directionUV, length, clockwiseDegs, anticlockwiseDegs, color ) {
 
-    this.start = new V2();
-    this.end = new V2();
-    this.length = length || 0;
+export class Bone2D {
 
-    this.joint = new Joint2D( clockwiseDegs, anticlockwiseDegs );
+    constructor( Start, End, directionUV, length, clockwiseDegs, anticlockwiseDegs, color ) {
 
-    this.globalConstraintUV = new V2(1, 0);
-    this.boneConnectionPoint = END;
+        this.isBone2D = true
 
-    this.color = color || null;
-    this.name = '';
+        this.start = new V2();
+        this.end = new V2();
+        this.length = length || 0;
 
-    // init
+        this.joint = new Joint2D( clockwiseDegs, anticlockwiseDegs );
 
-    this.setStartLocation( Start );
+        this.globalConstraintUV = new V2(1, 0);
+        this.boneConnectionPoint = END;
 
-    if( End ){ 
+        this.color = color || null;
+        this.name = '';
 
-        this.setEndLocation( End );
-        if( this.length === 0 ) this.length = this.getLength();
+        // init
 
-    } else if ( directionUV ) {
+        this.setStartLocation( Start );
 
-        this.setEndLocation( this.start.plus( directionUV.normalised().multiplyScalar( this.length ) ) );
-        
+        if( End ){ 
+
+            this.setEndLocation( End );
+            if( this.length === 0 ) this.length = this.getLength();
+
+        } else if ( directionUV ) {
+
+            this.setEndLocation( this.start.plus( directionUV.normalised().multiplyScalar( this.length ) ) );
+            
+        }
+
     }
 
-};
+    clone() {
 
-Object.assign( Bone2D.prototype, {
-
-    isBone2D: true,
-
-    clone: function () {
-
-        var b = new Bone2D( this.start, this.end );
+        let b = new Bone2D( this.start, this.end );
         b.length = this.length;
         b.globalConstraintUV = this.globalConstraintUV;
         b.boneConnectionPoint = this.boneConnectionPoint;
@@ -48,107 +49,104 @@ Object.assign( Bone2D.prototype, {
         b.name = this.name;
         return b;
 
-    },
-    
+    }
 
     // SET
 
-    setName: function ( name ) {
+    setName( name ) {
 
         this.name = name;
 
-    },
+    }
 
-    setColor: function ( c ) {
+    setColor( c ) {
 
         this.color = c;
 
-    },
+    }
 
-    setBoneConnectionPoint: function ( bcp ) {
+    setBoneConnectionPoint( bcp ) {
 
         this.boneConnectionPoint = bcp;
 
-    },
+    }
 
-    setStartLocation: function ( v ) {
+    setStartLocation( v ) {
 
         this.start.copy( v );
 
-    },
+    }
 
-    setEndLocation: function ( v ) {
+    setEndLocation( v ) {
 
         this.end.copy( v );
 
-    },
+    }
 
-    setLength:function ( length ) {
+    setLengt( length ) {
 
         if ( length > 0 ) this.length = length;
 
-    },
+    }
 
-    setGlobalConstraintUV: function ( v ) {
+    setGlobalConstraintUV( v ) {
 
         this.globalConstraintUV = v;
 
-    },
+    }
 
     // SET JOINT
 
-    setJoint: function ( joint ) {
+    setJoint( joint ) {
 
         this.joint = joint;
 
-    },
+    }
 
-    setClockwiseConstraintDegs: function ( angleDegs ) {
+    setClockwiseConstraintDegs( angleDegs ) {
 
         this.joint.setClockwiseConstraintDegs( angleDegs );
 
-    },
+    }
 
-    setAnticlockwiseConstraintDegs: function ( angleDegs ) {
+    setAnticlockwiseConstraintDegs( angleDegs ) {
 
         this.joint.setAnticlockwiseConstraintDegs( angleDegs );
 
-    },
+    }
 
-    setJointConstraintCoordinateSystem: function ( coordSystem ) {
+    setJointConstraintCoordinateSystem ( coordSystem ) {
 
         this.joint.setConstraintCoordinateSystem( coordSystem );
 
-    },
+    }
 
 
     // GET
 
-    getGlobalConstraintUV: function () {
+    getGlobalConstraintUV() {
 
         return this.globalConstraintUV;
 
-    },
+    }
     
-    getBoneConnectionPoint: function () {
+    getBoneConnectionPoint() {
 
         return this.boneConnectionPoint;
 
-    },
+    }
 
-    getDirectionUV: function () {
+    getDirectionUV() {
 
         return this.end.minus( this.start ).normalize();
 
-    },
+    }
 
-    getLength: function () {
+    getLength() {
 
         return this.start.distanceTo( this.end );
 
-    },
+    }
     
 
-} );
-
-export { Bone2D };
+}

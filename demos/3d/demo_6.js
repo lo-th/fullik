@@ -17,7 +17,7 @@ for (var i = 0; i < numChains; i++ ){
     var chain = new FIK.Chain3D( color );
 
     var startLoc = new FIK.V3(0, 0, -40);
-    startLoc = FIK._Math.rotateYDegs( startLoc, rotStep * i );
+    startLoc = FIK.math.rotateYDegs( startLoc, rotStep * i );
     var endLoc = startLoc.plus( defaultBoneDirection.multiply(defaultBoneLength));
 
     var basebone = new FIK.Bone3D( startLoc, endLoc );

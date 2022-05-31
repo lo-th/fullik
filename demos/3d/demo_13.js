@@ -56,7 +56,7 @@ chain.addConsecutiveRotorConstrainedBone( y, 27.275, 180 );
 
 //chain.addConsecutiveFreelyRotatingHingedBone(FIK.Y_AXE, 9.48, 'local', FIK.Y_NEG)
 
-//var p = FIK._Math.genPerpendicularVectorQuick( FIK.Y_NEG )
+//var p = FIK.math.genPerpendicularVectorQuick( FIK.Y_NEG )
 
 
 //chain.addConsecutiveHingedBone( FIK.Y_AXE, 14.2, 'global', FIK.Y_NEG, 150, 150, perp(FIK.Y_NEG) );
@@ -75,5 +75,5 @@ solver.add( chain, target, true );
 
 
 function perp( v ){
-	return FIK._Math.genPerpendicularVectorQuick( v )
+	return FIK.math.genPerpendicularVectorQuick( v )
 }

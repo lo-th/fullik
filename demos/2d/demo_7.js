@@ -74,13 +74,13 @@ extraUpdate = function(){
 
     //if(!mSmallRotatingOffsetLeft && !mSmallRotatingOffsetRight && !mRotatingOffset) return
 
-    mRotatingOffset = FIK._Math.rotateDegs(mRotatingOffset, 1.0);
+    mRotatingOffset = FIK.math.rotateDegs(mRotatingOffset, 1.0);
     var mOrigBaseLocation = solver.chains[0].getBaseLocation()
     solver.chains[0].setBaseLocation( mOrigBaseLocation.plus(mRotatingOffset) );
 
     // Rotate offsets for left and right chains
-    mSmallRotatingOffsetLeft  = FIK._Math.rotateDegs(mSmallRotatingOffsetLeft, -1.0);
-    mSmallRotatingOffsetRight = FIK._Math.rotateDegs(mSmallRotatingOffsetRight, 2.0);
+    mSmallRotatingOffsetLeft  = FIK.math.rotateDegs(mSmallRotatingOffsetLeft, -1.0);
+    mSmallRotatingOffsetRight = FIK.math.rotateDegs(mSmallRotatingOffsetRight, 2.0);
 
     var t1 = mSmallRotatingTargetLeft.plus(mSmallRotatingOffsetLeft);
     var t2 = mSmallRotatingTargetRight.plus(mSmallRotatingOffsetRight);

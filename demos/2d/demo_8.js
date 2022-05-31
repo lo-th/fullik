@@ -10,7 +10,7 @@ for ( var i = 0; i < maxChains; i++)
     tempChain.setBaseboneConstraintType(FIK.BB_LOCAL_RELATIVE);
     tempChain.setBaseboneConstraintUV(FIK.UP);*/
     
-    solver.connectChain( createRandomChain(), FIK._Math.randInt(0, chainsInStructure), FIK._Math.randInt(0, 4), 'start', target, true );
+    solver.connectChain( createRandomChain(), FIK.math.randInt(0, chainsInStructure), FIK.math.randInt(0, 4), 'start', target, true );
     chainsInStructure++
 }
 
@@ -22,7 +22,7 @@ function createRandomChain(){
     var constraintAngleRatio = 1.4; 
                 
     // ----- Vertical chain -----
-    var chain = new FIK.Chain2D( FIK._Math.rand(0x999999, 0xFFFFFF) );
+    var chain = new FIK.Chain2D( FIK.math.rand(0x999999, 0xFFFFFF) );
     chain.setFixedBaseMode( true );   
     
     var basebone = new FIK.Bone2D( new FIK.V2(), null, FIK.UP, boneLength);
@@ -37,7 +37,7 @@ function createRandomChain(){
 
         boneLength          *= boneLengthRatio;
         constraintAngleDegs *= constraintAngleRatio;
-        var perturbVector  = new FIK.V2( FIK._Math.rand(-perturbLimit, perturbLimit), FIK._Math.rand(-perturbLimit, perturbLimit) );
+        var perturbVector  = new FIK.V2( FIK.math.rand(-perturbLimit, perturbLimit), FIK.math.rand(-perturbLimit, perturbLimit) );
         
         chain.addConsecutiveBone( FIK.UP.plus(perturbVector), boneLength, constraintAngleDegs, constraintAngleDegs );
 

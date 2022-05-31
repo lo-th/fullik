@@ -1,88 +1,9 @@
-// Polyfills
-
-if ( Number.EPSILON === undefined ) {
-
-	Number.EPSILON = Math.pow( 2, - 52 );
-
-}
-
-//
-
-if ( Math.sign === undefined ) {
-
-	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sign
-
-	Math.sign = function ( x ) {
-
-		return ( x < 0 ) ? - 1 : ( x > 0 ) ? 1 : + x;
-
-	};
-
-}
-
-if ( Function.prototype.name === undefined ) {
-
-	// Missing in IE9-11.
-	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/name
-
-	Object.defineProperty( Function.prototype, 'name', {
-
-		get: function () {
-
-			return this.toString().match( /^\s*function\s*([^\(\s]*)/ )[ 1 ];
-
-		}
-
-	} );
-
-}
-
-if ( Object.assign === undefined ) {
-
-	// Missing in IE.
-	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign
-
-	( function () {
-
-		Object.assign = function ( target ) {
-
-			if ( target === undefined || target === null ) {
-
-				throw new TypeError( 'Cannot convert undefined or null to object' );
-
-			}
-
-			var output = Object( target );
-
-			for ( var index = 1; index < arguments.length; index ++ ) {
-
-				var source = arguments[ index ];
-
-				if ( source !== undefined && source !== null ) {
-
-					for ( var nextKey in source ) {
-
-						if ( Object.prototype.hasOwnProperty.call( source, nextKey ) ) {
-
-							output[ nextKey ] = source[ nextKey ];
-
-						}
-
-					}
-
-				}
-
-			}
-
-			return output;
-
-		};
-
-	} )();
-
-}
-
-var Tools = {
+/**
+ * @license
+ * Copyright 2010-2022 fik.js Authors
+ * SPDX-License-Identifier: MIT
+ */
+const Tools = {
 
 	error: function (str) {
 
@@ -93,20 +14,24 @@ var Tools = {
 
 };
 
-var _Math = {
+const math = {
 
+	PI:Math.PI,
 	toRad: Math.PI / 180,
 	toDeg: 180 / Math.PI,
 	pi90: Math.PI * 0.5,
+	twoPI: Math.PI * 2,
 
 	// Center point is p1; angle returned in Radians
     //findAngle: function ( p0, p1, p2 ) {
     findAngle: function ( b0, b1 ) {
 
-    	/*var a = p1.minus(p2).lengthSq(), 
+    	//return Math.atan2( b1.end - b0.end, b1.start - b0.start )
+
+    	/*let a = p1.minus(p2).lengthSq(), 
 	    	b = p1.minus(p0).lengthSq(), 
 	    	c = p2.minus(p0).lengthSq(),*/
-	    var a = b0.end.minus(b1.end).lengthSq(), 
+	    let a = b0.end.minus(b1.end).lengthSq(), 
 	    	b = b0.end.minus(b0.start).lengthSq(),
 	    	c = b1.end.minus(b0.start).lengthSq(),
 	    	angle, r, sign;
@@ -128,6 +53,12 @@ var _Math = {
 	    return v;
 
 	},
+
+	/*clamp: function ( value, min, max ) {
+
+		return Math.max( min, Math.min( max, value ) );
+
+	},*/
 
 	lerp: function ( x, y, t ) { 
 
@@ -155,17 +86,17 @@ var _Math = {
 
 	perpendicular: function ( a, b ) {
 
-		return _Math.nearEquals( a.dot(b), 0.0, 0.01 ) ? true : false;
+		return math.nearEquals( a.dot(b), 0.0, 0.01 ) ? true : false;
 
-	    //return _Math.nearEquals( _Math.dotProduct(a, b), 0.0, 0.01 ) ? true : false;
+	    //return math.nearEquals( math.dotProduct(a, b), 0.0, 0.01 ) ? true : false;
 
 	},
 
 	genPerpendicularVectorQuick: function ( v ) {
 
-		//return _Math.genPerpendicularVectorFrisvad( v );
+		//return math.genPerpendicularVectorFrisvad( v );
 
-	    var p = v.clone();
+	    let p = v.clone();
 	    // cross(v, UP) : cross(v, RIGHT)
 	    return Math.abs( v.y ) < 0.99 ? p.set( -v.z, 0, v.x ).normalize() : p.set( 0, v.z, -v.y ).normalize();
 
@@ -173,8 +104,8 @@ var _Math = {
 
 	/*genPerpendicularVectorHM: function ( v ) { 
 
-	    var a = v.abs();
-	    var b = v.clone();
+	    let a = v.abs();
+	    let b = v.clone();
 	    if (a.x <= a.y && a.x <= a.z) return b.set(0, -v.z, v.y).normalize();
 	    else if (a.y <= a.x && a.y <= a.z) return b.set(-v.z, 0, v.x).normalize();
 	    else return b.set(-v.y, v.x, 0).normalize();
@@ -183,18 +114,18 @@ var _Math = {
 
 	genPerpendicularVectorFrisvad: function ( v ) { 
 
-		var nv = v.clone();
+		let nv = v.clone();
 	    if ( v.z < -0.9999999 ) return nv.set(0, -1, 0);// Handle the singularity
-	    var a = 1/(1 + v.z);
+	    let a = 1/(1 + v.z);
 	    return nv.set( 1 - v.x * v.x * a, - v.x * v.y * a, -v.x ).normalize();
 
 	},
 
 	// rotation
 
-	rotateXDegs: function ( v, angle ) { return v.clone().rotate( angle * _Math.toRad, 'X' ); },
-	rotateYDegs: function ( v, angle ) { return v.clone().rotate( angle * _Math.toRad, 'Y' ) },
-	rotateZDegs: function ( v, angle ) { return v.clone().rotate( angle * _Math.toRad, 'Z' ) },
+	rotateXDegs: function ( v, angle ) { return v.clone().rotate( angle * math.toRad, 'X' ); },
+	rotateYDegs: function ( v, angle ) { return v.clone().rotate( angle * math.toRad, 'Y' ) },
+	rotateZDegs: function ( v, angle ) { return v.clone().rotate( angle * math.toRad, 'Z' ) },
 
 	// distance
 
@@ -215,18 +146,41 @@ var _Math = {
 
 	distanceBetween: function ( v1, v2 ) {
 
-	    var dx = v2.x - v1.x;
-	    var dy = v2.y - v1.y;
-	    var dz = v1.z !== undefined ? v2.z - v1.z : 0;
+	    let dx = v2.x - v1.x;
+	    let dy = v2.y - v1.y;
+	    let dz = v1.z !== undefined ? v2.z - v1.z : 0;
 	    return Math.sqrt( dx * dx + dy * dy + dz * dz );
 
 	},
+
+	unwrapDeg: ( r ) => (r - (Math.floor((r + 180)/360))*360), 
+	unwrapRad: ( r ) => (r - (Math.floor((r + Math.PI)/(2*Math.PI)))*2*Math.PI),
+
+
+	/*unwrapDeg: function ( r ) {
+
+	    r = r % 360;
+	    if (r > 180) r -= 360;
+	    if (r < -180) r += 360;
+	    return r;
+
+	},
+
+	unwrapRad: function( r ){
+
+	    r = r % math.twoPI;
+	    if (r > Math.Pi ) r -= math.twoPI;
+	    if (r < - Math.Pi ) r += math.twoPI;
+	    return r;
+
+	},*/
+
 
 	// ______________________________ 2D _____________________________
 
 	rotateDegs: function( v, angle ) {
 
-		return v.clone().rotate( angle * _Math.toRad )
+		return v.clone().rotate( angle * math.toRad )
  
 	},
 
@@ -247,350 +201,347 @@ var _Math = {
 
 };
 
-function V2( x, y ){
+class V2 {
 
-    this.x = x || 0;
-    this.y = y || 0;
-    
-}
+    constructor( x = 0, y = 0 ) {
 
-Object.assign( V2.prototype, {
+    	this.isVector2 = true;
+	    this.x = x;
+	    this.y = y;
+	    
+	}
 
-	isVector2: true,
-
-	set: function( x, y ){
+	set( x, y ){
 
 	    this.x = x || 0;
 	    this.y = y || 0;
 	    return this;
 
-	},
+	}
 
-	distanceTo: function ( v ) {
+	distanceTo( v ) {
 
 		return Math.sqrt( this.distanceToSquared( v ) );
 
-	},
+	}
 
-	distanceToSquared: function ( v ) {
+	distanceToSquared( v ) {
 
-		var dx = this.x - v.x, dy = this.y - v.y;
+		let dx = this.x - v.x, dy = this.y - v.y;
 		return dx * dx + dy * dy;
 
-	},
+	}
 
-	multiplyScalar: function ( scalar ) {
+	multiplyScalar( scalar ) {
 
 		this.x *= scalar;
 		this.y *= scalar;
 		return this;
 
-	},
+	}
 
-	divideScalar: function ( scalar ) {
+	divideScalar( scalar ) {
 
 		return this.multiplyScalar( 1 / scalar );
 
-	},
+	}
 
-	length: function () {
+	length() {
 
 		return Math.sqrt( this.x * this.x + this.y * this.y );
 
-	},
+	}
 
-	normalize: function () {
+	normalize() {
 
 		return this.divideScalar( this.length() || 1 );
 
-	},
+	}
 
-	normalised: function () {
+	normalised() {
 
-	    return new V2( this.x, this.y ).normalize();
+	    return new this.constructor( this.x, this.y ).normalize();
 	
-	},
+	}
 
-	lengthSq: function () {
+	lengthSq() {
 
 		return this.x * this.x + this.y * this.y;
 
-	},
+	}
 
-	add: function ( v ) {
+	add( v ) {
 
 		this.x += v.x;
 		this.y += v.y;
 	    return this;
 
-	},
+	}
 
-	plus: function ( v ) {
+	plus( v ) {
 
-	    return new V2( this.x + v.x, this.y + v.y );
+	    return new this.constructor( this.x + v.x, this.y + v.y );
 
-	},
+	}
 
-	min: function ( v ) {
+	min( v ) {
 
 		this.x -= v.x;
 		this.y -= v.y;
-
 	    return this;
 
-	},
+	}
 
-	minus: function ( v ) {
+	minus( v ) {
 
 	    return new V2( this.x - v.x, this.y - v.y );
 
-	},
+	}
 
-	divideBy: function ( value ) {
+	divideBy( value ) {
 
-	    return new V2( this.x, this.y ).divideScalar( value );
+	    return new this.constructor( this.x, this.y ).divideScalar( value );
 	
-	},
+	}
 
-	dot: function ( a, b ) {
+	dot( a, b ) {
 
 		return this.x * a.x + this.y * a.y;
 
-	},
+	}
 
-	negate: function() { 
+	negate() { 
 
 	    this.x = -this.x;
 	    this.y = -this.y;
 	    return this;
 
-	},
+	}
 
-	negated: function () { 
+	negated() { 
 
-	    return new V2( -this.x, -this.y );
+	    return new this.constructor( -this.x, -this.y );
 
-	},
+	}
 
-	clone: function () {
+	clone (){
 
-	    return new V2( this.x, this.y );
+	    return new this.constructor( this.x, this.y );
 
-	},
+	}
 
-	copy: function ( v ) {
+	copy( v ) {
 
 	    this.x = v.x;
 	    this.y = v.y;
 	    return this;
 
-	},
+	}
 
-	cross: function( v ) {
+	cross( v ) {
 
 	    return this.x * v.y - this.y * v.x;
 
-	},
+	}
 
-	sign: function( v ) {
+	sign( v ) {
 
-		var s = this.cross( v );
+		let s = this.cross( v );
 		return s >= 0 ? 1 : -1;
 
-	},
+	}
 
-	approximatelyEquals: function ( v, t ) {
+	approximatelyEquals( v, t ) {
 
 	    if ( t < 0 ) return false;
-	    var xDiff = Math.abs(this.x - v.x);
-	    var yDiff = Math.abs(this.y - v.y);
+	    let xDiff = Math.abs(this.x - v.x);
+	    let yDiff = Math.abs(this.y - v.y);
 	    return ( xDiff < t && yDiff < t );
 
-	},
+	}
 
-	rotate: function( angle ) {
+	rotate( angle ) {
 
-		var cos = Math.cos( angle );
-		var sin = Math.sin( angle );
-		var x = this.x * cos - this.y * sin;
-		var y = this.x * sin + this.y * cos;
+		let cos = Math.cos( angle );
+		let sin = Math.sin( angle );
+		let x = this.x * cos - this.y * sin;
+		let y = this.x * sin + this.y * cos;
 		this.x = x;
 		this.y = y;
 		return this;
 
-	},
+	}
 
-	angleTo: function ( v ) {
+	angleTo( v ) {
 
-		var a = this.dot(v) / (Math.sqrt( this.lengthSq() * v.lengthSq() ));
+		let a = this.dot(v) / (Math.sqrt( this.lengthSq() * v.lengthSq() ));
 		if(a <= -1) return Math.PI;
 		if(a >= 1) return 0;
 		return Math.acos( a );
 
-	},
+	}
 
-	getSignedAngle: function ( v ) {
+	getSignedAngle( v ) {
 
-		var a = this.angleTo( v );
-		var s = this.sign( v );
+		let a = this.angleTo( v );
+		let s = this.sign( v );
 		return s === 1 ? a : -a;
 		
-	},
+	}
 
-	constrainedUV: function ( baselineUV, min, max ) {
+	constrainedUV( baselineUV, min, max ) {
 
-        var angle = baselineUV.getSignedAngle( this );
+        let angle = baselineUV.getSignedAngle( this );
         if( angle > max ) this.copy( baselineUV ).rotate(max);
         if( angle < min ) this.copy( baselineUV ).rotate(min);
         return this;
 
-    },
-
-} );
-
-function V3( x, y, z ){
-
-    this.x = x || 0;
-    this.y = y || 0;
-    this.z = z || 0;
+    }
 
 }
 
-Object.assign( V3.prototype, {
+class V3 {
 
-	isVector3: true,
+    constructor( x = 0, y = 0, z = 0 ) {
 
-	set: function( x, y, z ){
+    	this.isVector3 = true;
+	    this.x = x;
+	    this.y = y;
+	    this.z = z;
+
+	}
+
+	set( x, y, z ) {
 
 	    this.x = x || 0;
 	    this.y = y || 0;
 	    this.z = z || 0;
 	    return this;
 
-	},
+	}
 
-	distanceTo: function ( v ) {
+	distanceTo( v ) {
 
 		return Math.sqrt( this.distanceToSquared( v ) );
 
-	},
+	}
 
-	distanceToSquared: function ( v ) {
+	distanceToSquared( v ) {
 
-		var dx = this.x - v.x, dy = this.y - v.y, dz = this.z - v.z;
+		let dx = this.x - v.x, dy = this.y - v.y, dz = this.z - v.z;
 
 		return dx * dx + dy * dy + dz * dz;
 
-	},
+	}
 
-	abs: function () {
+	abs() {
 
-		return new V3( 
+		return new this.constructor( 
 			this.x < 0 ? -this.x : this.x, 
 			this.y < 0 ? -this.y : this.y, 
 			this.z < 0 ? -this.z : this.z
 		);
 
-	},
+	}
 
-	dot: function ( v ) {
+	dot( v ) {
 
 		return this.x * v.x + this.y * v.y + this.z * v.z;
 
-	},
+	}
 
-	length: function () {
+	length() {
 
 		return Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z );
 
-	},
+	}
 
-	lengthSq: function () {
+	lengthSq() {
 
 		return this.x * this.x + this.y * this.y + this.z * this.z;
 
-	},
+	}
 
-	normalize: function () {
+	normalize() {
 
 		return this.divideScalar( this.length() || 1 );
 
-	},
+	}
 
-	normalised: function () {
+	normalised() {
 
-	    return new V3( this.x, this.y, this.z ).normalize();
+	    return new this.constructor( this.x, this.y, this.z ).normalize();
 	
-	},
+	}
 
-	add: function ( v ) {
+	add( v ) {
 
 		this.x += v.x;
 		this.y += v.y;
 		this.z += v.z;
 	    return this;
 
-	},
+	}
 
-	min: function ( v ) {
+	min( v ) {
 
 		this.x -= v.x;
 		this.y -= v.y;
 		this.z -= v.z;
 	    return this;
 
-	},
+	}
 
-	plus: function ( v ) {
+	plus( v ) {
 
-	    return new V3( this.x + v.x, this.y + v.y, this.z + v.z );
+	    return new this.constructor( this.x + v.x, this.y + v.y, this.z + v.z );
 
-	},
+	}
 
-	minus: function ( v ) {
+	minus( v ) {
 
-	    return new V3( this.x - v.x, this.y - v.y, this.z - v.z );
+	    return new this.constructor( this.x - v.x, this.y - v.y, this.z - v.z );
 
-	},
+	}
 
-	divideBy: function ( s ) {
+	divideBy( s ) {
 
-	    return new V3( this.x / s, this.y / s, this.z / s );
+	    return new this.constructor ( this.x / s, this.y / s, this.z / s );
 	
-	},
+	}
 
-	multiply: function ( s ) {
+	multiply( s ) {
 
-	    return new V3( this.x * s, this.y * s, this.z * s );
+	    return new this.constructor( this.x * s, this.y * s, this.z * s );
+
+	}
 	
-	},
-	
 
-	multiplyScalar: function ( scalar ) {
+	multiplyScalar( scalar ) {
 
 		this.x *= scalar;
 		this.y *= scalar;
 		this.z *= scalar;
 		return this;
 
-	},
+	}
 
-	divideScalar: function ( scalar ) {
+	divideScalar( scalar ) {
 
 		return this.multiplyScalar( 1 / scalar );
 
-	},
+	}
 
-	cross: function( v ) { 
+	cross( v ) { 
 
-	    return new V3( this.y * v.z - this.z * v.y, this.z * v.x - this.x * v.z, this.x * v.y - this.y * v.x );
+	    return new this.constructor( this.y * v.z - this.z * v.y, this.z * v.x - this.x * v.z, this.x * v.y - this.y * v.x );
 
-	},
+	}
 
-	crossVectors: function ( a, b ) {
+	crossVectors( a, b ) {
 
-		var ax = a.x, ay = a.y, az = a.z;
-		var bx = b.x, by = b.y, bz = b.z;
+		let ax = a.x, ay = a.y, az = a.z;
+		let bx = b.x, by = b.y, bz = b.z;
 
 		this.x = ay * bz - az * by;
 		this.y = az * bx - ax * bz;
@@ -598,56 +549,56 @@ Object.assign( V3.prototype, {
 
 		return this;
 
-	},
+	}
 
-	negate: function() { 
+	negate() { 
 
 	    this.x = -this.x;
 	    this.y = -this.y;
 	    this.z = -this.z;
 	    return this;
 
-	},
+	}
 
-	negated: function () { 
+	negated() { 
 
 	    return new V3( -this.x, -this.y, -this.z );
 
-	},
+	}
 
-	clone: function () {
+	clone() {
 
 	    return new V3( this.x, this.y, this.z );
 
-	},
+	}
 
-	copy: function ( v ) {
+	copy( v ) {
 
 	    this.x = v.x;
 	    this.y = v.y;
 	    this.z = v.z;
 	    return this;
 
-	},
+	}
 
-	approximatelyEquals: function ( v, t ) {
+	approximatelyEquals( v, t ) {
 
 	    if ( t < 0 ) return false;
-	    var xDiff = Math.abs(this.x - v.x);
-	    var yDiff = Math.abs(this.y - v.y);
-	    var zDiff = Math.abs(this.z - v.z);
+	    let xDiff = Math.abs(this.x - v.x);
+	    let yDiff = Math.abs(this.y - v.y);
+	    let zDiff = Math.abs(this.z - v.z);
 	    return ( xDiff < t && yDiff < t && zDiff < t );
 
-	},
+	}
 
-	zero: function () {
+	zero() {
 
 	    this.x = 0;
 	    this.y = 0;
 	    this.z = 0;
 	    return this;
 
-	},
+	}
 
 	/*projectOnPlane_old: function ( planeNormal ) {
 
@@ -655,18 +606,18 @@ Object.assign( V3.prototype, {
 	        
         // Projection of vector b onto plane with normal n is defined as: b - ( b.n / ( |n| squared )) * n
         // Note: |n| is length or magnitude of the vector n, NOT its (component-wise) absolute value        
-        var b = this.normalised();
-        var n = planeNormal.normalised();   
+        let b = this.normalised();
+        let n = planeNormal.normalised();   
 
         return b.min( n.times( _Math.dotProduct( b, planeNormal ) ) ).normalize();
 
 	},*/
 
-	rotate: function( angle, axe ) {
+	rotate( angle, axe ) {
 
-		var cos = Math.cos( angle );
-		var sin = Math.sin( angle );
-		var x, y, z;
+		let cos = Math.cos( angle );
+		let sin = Math.sin( angle );
+		let x, y, z;
 
 		switch ( axe ){
 			case 'X':
@@ -691,20 +642,20 @@ Object.assign( V3.prototype, {
 		this.z = z;
 		return this;
 
-	},
+	}
 
 	// added
 
-	projectOnVector: function ( vector ) {
+	projectOnVector( vector ) {
 
-		var scalar = vector.dot( this ) / vector.lengthSq();
+		let scalar = vector.dot( this ) / vector.lengthSq();
 		return this.copy( vector ).multiplyScalar( scalar );
 
-	},
+	}
 
-	projectOnPlane: function () {
+	projectOnPlane() {
 
-		var v1 = new V3();
+		let v1 = new this.constructor();
 
 		return function projectOnPlane( planeNormal ) {
 
@@ -712,14 +663,14 @@ Object.assign( V3.prototype, {
 
 			return this.min( v1 ).normalize();
 
-		};
+		}
 
-	}(),
+	}
 
-	applyM3: function ( m ) {
+	applyM3( m ) {
 
-		var x = this.x, y = this.y, z = this.z;
-		var e = m.elements;
+		let x = this.x, y = this.y, z = this.z;
+		let e = m.elements;
 
 		this.x = e[ 0 ] * x + e[ 1 ] * y + e[ 2 ] * z;
 		this.y = e[ 3 ] * x + e[ 4 ] * y + e[ 5 ] * z;
@@ -727,12 +678,12 @@ Object.assign( V3.prototype, {
 
 		return this.normalize();
 
-	},
+	}
 
-	applyMatrix3: function ( m ) {
+	applyMatrix3( m ) {
 
-		var x = this.x, y = this.y, z = this.z;
-		var e = m.elements;
+		let x = this.x, y = this.y, z = this.z;
+		let e = m.elements;
 
 		this.x = e[ 0 ] * x + e[ 3 ] * y + e[ 6 ] * z;
 		this.y = e[ 1 ] * x + e[ 4 ] * y + e[ 7 ] * z;
@@ -740,19 +691,19 @@ Object.assign( V3.prototype, {
 
 		return this;
 
-	},
+	}
 
-	applyQuaternion: function ( q ) {
+	applyQuaternion( q ) {
 
-		var x = this.x, y = this.y, z = this.z;
-		var qx = q.x, qy = q.y, qz = q.z, qw = q.w;
+		let x = this.x, y = this.y, z = this.z;
+		let qx = q.x, qy = q.y, qz = q.z, qw = q.w;
 
 		// calculate quat * vector
 
-		var ix = qw * x + qy * z - qz * y;
-		var iy = qw * y + qz * x - qx * z;
-		var iz = qw * z + qx * y - qy * x;
-		var iw = - qx * x - qy * y - qz * z;
+		let ix = qw * x + qy * z - qz * y;
+		let iy = qw * y + qz * x - qx * z;
+		let iz = qw * z + qx * y - qy * x;
+		let iw = - qx * x - qy * y - qz * z;
 
 		// calculate result * inverse quat
 
@@ -762,82 +713,82 @@ Object.assign( V3.prototype, {
 
 		return this;
 
-	},
+	}
 
 	/////
 
-	sign: function( v, normal ) {
+	sign( v, normal ) {
 
-		var s = this.cross( v ).dot( normal );
+		let s = this.cross( v ).dot( normal );
 		return s >= 0 ? 1 : -1;
 
-	},
+	}
 
-	angleTo: function ( v ) {
+	angleTo( v ) {
 
-		var a = this.dot(v) / Math.sqrt( this.lengthSq() * v.lengthSq() );
+		let a = this.dot(v) / Math.sqrt( this.lengthSq() * v.lengthSq() );
 		if(a <= -1) return Math.PI;
 		if(a >= 1) return 0;
 		return Math.acos( a );
 
-	},
+	}
 
-	getSignedAngle: function ( v, normal ) {
+	getSignedAngle( v, normal ) {
 
-		var a = this.angleTo( v );
-		var s = this.sign( v, normal );
+		let a = this.angleTo( v );
+		let s = this.sign( v, normal );
 		return s === 1 ? a : -a;
 		
-	},
+	}
 
-	constrainedUV: function( referenceAxis, rotationAxis, mtx, min, max ) {
+	constrainedUV( referenceAxis, rotationAxis, mtx, min, max ) {
 
-        var angle = referenceAxis.getSignedAngle( this, rotationAxis );
+        let angle = referenceAxis.getSignedAngle( this, rotationAxis );
         if( angle > max ) this.copy( mtx.rotateAboutAxis( referenceAxis, max, rotationAxis ) );
         if( angle < min ) this.copy( mtx.rotateAboutAxis( referenceAxis, min, rotationAxis ) );
         return this;
 
-    },
+    }
 
-    limitAngle: function( base, mtx, max ) {
+    limitAngle( base, mtx, max ) {
 
-        var angle = base.angleTo( this );
+        let angle = base.angleTo( this );
         if( angle > max ){ 
-        	var correctionAxis = base.normalised().cross(this).normalize();
+        	let correctionAxis = base.normalised().cross(this).normalize();
         	this.copy( mtx.rotateAboutAxis( base, max, correctionAxis ) );
         }
         return this;
 
-    },
+    }
 
-
-} );
-
-function M3 () {
-
-	this.elements = [
-
-		1, 0, 0,
-		0, 1, 0,
-		0, 0, 1
-
-	];
-
-	if ( arguments.length > 0 ) {
-
-		console.error( 'M3: the constructor no longer reads arguments. use .set() instead.' );
-
-	}
 
 }
 
-Object.assign( M3.prototype, {
+class M3 {
 
-	isMatrix3: true,
+    constructor() {
 
-	set: function ( n11, n12, n13, n21, n22, n23, n31, n32, n33 ) {
+		this.isMatrix3 = true;
 
-		var te = this.elements;
+		this.elements = [
+
+			1, 0, 0,
+			0, 1, 0,
+			0, 0, 1
+
+		];
+
+		if ( arguments.length > 0 ) {
+
+			console.error( 'M3: the constructor no longer reads arguments. use .set() instead.' );
+
+		}
+
+	}
+
+	set( n11, n12, n13, n21, n22, n23, n31, n32, n33 ) {
+
+		let te = this.elements;
 
 		te[ 0 ] = n11; te[ 1 ] = n21; te[ 2 ] = n31;
 		te[ 3 ] = n12; te[ 4 ] = n22; te[ 5 ] = n32;
@@ -845,9 +796,9 @@ Object.assign( M3.prototype, {
 
 		return this;
 
-	},
+	}
 
-	identity: function () {
+	identity() {
 
 		this.set(
 
@@ -859,11 +810,11 @@ Object.assign( M3.prototype, {
 
 		return this;
 
-	},
+	}
 
-	setV3: function ( xAxis, yAxis, zAxis ) {
+	setV3( xAxis, yAxis, zAxis ) {
 
-		var te = this.elements;
+		const te = this.elements;
 
 	    te[ 0 ] = xAxis.x;
 	    te[ 3 ] = xAxis.y; 
@@ -879,11 +830,11 @@ Object.assign( M3.prototype, {
 
 	    return this;
 
-	},
+	}
 
-	transpose: function () {
+	transpose() {
 
-		var tmp, m = this.elements;
+		let tmp, m = this.elements;
 
 		tmp = m[ 1 ]; m[ 1 ] = m[ 3 ]; m[ 3 ] = tmp;
 		tmp = m[ 2 ]; m[ 2 ] = m[ 6 ]; m[ 6 ] = tmp;
@@ -891,41 +842,64 @@ Object.assign( M3.prototype, {
 
 		return this;
 
-	},
+	}
 
-	createRotationMatrix: function ( referenceDirection ) {
+	createRotationMatrix( referenceDirection ) {
   
-	    var zAxis = referenceDirection;//normalised();
-	    var xAxis = new V3(1, 0, 0);
-	    var yAxis = new V3(0, 1, 0);
+	    /*let zAxis = referenceDirection;//normalised();
+	    let xAxis = new V3(1, 0, 0);
+	    let yAxis = new V3(0, 1, 0);
 	            
 	    // Handle the singularity (i.e. bone pointing along negative Z-Axis)...
 	    if( referenceDirection.z < -0.9999999 ){
 	        xAxis.set(1, 0, 0); // ...in which case positive X runs directly to the right...
 	        yAxis.set(0, 1, 0); // ...and positive Y runs directly upwards.
 	    } else {
-	        var a = 1/(1 + zAxis.z);
-	        var b = -zAxis.x * zAxis.y * a;           
+	        let a = 1/(1 + zAxis.z);
+	        let b = -zAxis.x * zAxis.y * a;           
 	        xAxis.set( 1 - zAxis.x * zAxis.x * a, b, -zAxis.x ).normalize();
 	        yAxis.set( b, 1 - zAxis.y * zAxis.y * a, -zAxis.y ).normalize();
 	    }
 
 	    return this.setV3( xAxis, yAxis, zAxis );
 
-	},
+	    */
 
-	rotateAboutAxis: function ( v, angle, rotationAxis ){
+	    // NEW VERSION - 1.3.8
 
-	    var sinTheta = Math.sin( angle );
-	    var cosTheta = Math.cos( angle );
-	    var oneMinusCosTheta = 1.0 - cosTheta;
+		let zAxis = referenceDirection;
+	    let xAxis = new V3(1, 0, 0);
+	    let yAxis = new V3(0, 1, 0);
+		
+		// Singularity fix
+		if ( Math.abs( referenceDirection.y ) > 0.9999 ){
+
+			
+			yAxis.copy( xAxis ).cross( zAxis ).normalize();
+
+		} else {
+
+			xAxis.copy( zAxis ).cross( yAxis ).normalize();
+			yAxis.copy( xAxis ).cross( zAxis ).normalize();
+
+		}
+
+	    return this.setV3( xAxis, yAxis, zAxis );
+
+	}
+
+	rotateAboutAxis( v, angle, rotationAxis ){
+
+	    let sinTheta = Math.sin( angle );
+	    let cosTheta = Math.cos( angle );
+	    let oneMinusCosTheta = 1.0 - cosTheta;
 	    
 	    // It's quicker to pre-calc these and reuse than calculate x * y, then y * x later (same thing).
-	    var xyOne = rotationAxis.x * rotationAxis.y * oneMinusCosTheta;
-	    var xzOne = rotationAxis.x * rotationAxis.z * oneMinusCosTheta;
-	    var yzOne = rotationAxis.y * rotationAxis.z * oneMinusCosTheta;
+	    let xyOne = rotationAxis.x * rotationAxis.y * oneMinusCosTheta;
+	    let xzOne = rotationAxis.x * rotationAxis.z * oneMinusCosTheta;
+	    let yzOne = rotationAxis.y * rotationAxis.z * oneMinusCosTheta;
 
-	    var te = this.elements;
+	    let te = this.elements;
 
 	    // Calculate rotated x-axis
 	    te[ 0 ] = rotationAxis.x * rotationAxis.x * oneMinusCosTheta + cosTheta;
@@ -945,86 +919,81 @@ Object.assign( M3.prototype, {
 	    // Multiply the source by the rotation matrix we just created to perform the rotation
 	    return v.clone().applyM3( this );
 
-	},
+	}
 
-} );
+}
 
 /*
  * A list of constants built-in for
  * the Fik engine.
  */
 
-var REVISION = '1.3.3';
+const REVISION = '1.3.3';
 
-var PRECISION = 0.001;
-var PRECISION_DEG = 0.01;
-var MAX_VALUE = Infinity;
-
-var PI = Math.PI;
-var TORAD = Math.PI / 180;
-var TODEG = 180 / Math.PI;
+const PRECISION = 0.001;
+const PRECISION_DEG = 0.01;
+const MAX_VALUE = Infinity;
 
 // chain Basebone Constraint Type
 
-var NONE = 1; // No constraint
+const NONE = 1; // No constraint
 // 3D
-var GLOBAL_ROTOR = 2;// World-space rotor constraint
-var GLOBAL_HINGE = 3;// World-space hinge constraint
-var LOCAL_ROTOR = 4;// Rotor constraint in the coordinate space of (i.e. relative to) the direction of the connected bone
-var LOCAL_HINGE = 5;// Hinge constraint in the coordinate space of (i.e. relative to) the direction of the connected bone
+const GLOBAL_ROTOR = 2;// World-space rotor constraint
+const GLOBAL_HINGE = 3;// World-space hinge constraint
+const LOCAL_ROTOR = 4;// Rotor constraint in the coordinate space of (i.e. relative to) the direction of the connected bone
+const LOCAL_HINGE = 5;// Hinge constraint in the coordinate space of (i.e. relative to) the direction of the connected bone
 
 // 2D
-var GLOBAL_ABSOLUTE = 6; // Constrained about a world-space direction
-var LOCAL_RELATIVE = 7; // Constrained about the direction of the connected bone
-var LOCAL_ABSOLUTE = 8; // Constrained about a direction with relative to the direction of the connected bone
+const GLOBAL_ABSOLUTE = 6; // Constrained about a world-space direction
+const LOCAL_RELATIVE = 7; // Constrained about the direction of the connected bone
+const LOCAL_ABSOLUTE = 8; // Constrained about a direction with relative to the direction of the connected bone
 
 // joint Type
-var J_BALL = 10;
-var J_LOCAL = 11;
-var J_GLOBAL = 12;
+const J_BALL = 10;
+const J_LOCAL = 11;
+const J_GLOBAL = 12;
 
-var START = 20;
-var END = 21;
+const START = 20;
+const END = 21;
 
 // Define world-space axis
 
-var X_AXE = new V3( 1, 0, 0 );
-var Y_AXE = new V3( 0, 1, 0 );
-var Z_AXE = new V3( 0, 0, 1 );
+const X_AXE = new V3( 1, 0, 0 );
+const Y_AXE = new V3( 0, 1, 0 );
+const Z_AXE = new V3( 0, 0, 1 );
 
-var X_NEG = new V3( -1, 0, 0 );
-var Y_NEG = new V3( 0, -1, 0 );
-var Z_NEG = new V3( 0, 0, -1 );
+const X_NEG = new V3( -1, 0, 0 );
+const Y_NEG = new V3( 0, -1, 0 );
+const Z_NEG = new V3( 0, 0, -1 );
 
 // Define world-space 2D cardinal axes
 
-var UP = new V2( 0, 1 );
-var DOWN = new V2( 0, -1 );
-var LEFT = new V2( -1, 0 );
-var RIGHT = new V2( 1, 0 );
+const UP = new V2( 0, 1 );
+const DOWN = new V2( 0, -1 );
+const LEFT = new V2( -1, 0 );
+const RIGHT = new V2( 1, 0 );
 
-function Joint3D(){
+class Joint3D {
 
-    this.rotor = PI;
-    this.min = -PI;
-    this.max = PI;
+    constructor() {
 
-    this.freeHinge = true;
+        this.isJoint3D = true;
 
-    this.rotationAxisUV = new V3();
-    this.referenceAxisUV = new V3();
-    this.type = J_BALL;
+        this.rotor = math.PI;
+        this.min = -math.PI;
+        this.max = math.PI;
 
-}
+        this.freeHinge = true;
 
-Object.assign( Joint3D.prototype, {
+        this.rotationAxisUV = new V3();
+        this.referenceAxisUV = new V3();
+        this.type = J_BALL;
 
-	isJoint3D: true,
+    }
 
-    clone:function(){
+    clone() {
 
-        var j = new Joint3D();
-
+        let j = new this.constructor();
         j.type = this.type;
         j.rotor = this.rotor;
         j.max = this.max;
@@ -1033,84 +1002,84 @@ Object.assign( Joint3D.prototype, {
         j.rotationAxisUV.copy( this.rotationAxisUV );
         j.referenceAxisUV.copy( this.referenceAxisUV );
 
-        return j;
+        return j
 
-    },
+    }
 
-    testAngle: function () {
+    testAngle() {
 
-        if( this.max === PI && this.min === -PI ) this.freeHinge = true;
+        if( this.max === math.PI && this.min === -math.PI ) this.freeHinge = true;
         else this.freeHinge = false;
 
-    },
+    }
 
-    validateAngle: function ( a ) {
+    validateAngle( a ) {
 
         a = a < 0 ? 0 : a;
         a = a > 180 ? 180 : a;
         return a;
 
-    },
+    }
 
-    setAsBallJoint:function( angle ){
+    setAsBallJoint( angle ) {
 
-        this.rotor = this.validateAngle( angle ) * TORAD;
+        this.rotor = this.validateAngle( angle ) * math.toRad;
         this.type = J_BALL;
         
-    },
+    }
 
     // Specify this joint to be a hinge with the provided settings
 
-    setHinge: function( type, rotationAxis, clockwise, anticlockwise, referenceAxis ){
+    setHinge( type, rotationAxis, clockwise, anticlockwise, referenceAxis ) {
 
         this.type = type;
         if( clockwise < 0 ) clockwise *= -1;
-        this.min = -this.validateAngle( clockwise ) * TORAD;
-        this.max = this.validateAngle( anticlockwise ) * TORAD;
+        this.min = -this.validateAngle( clockwise ) * math.toRad;
+        this.max = this.validateAngle( anticlockwise ) * math.toRad;
 
         this.testAngle();
 
         this.rotationAxisUV.copy( rotationAxis ).normalize();
         this.referenceAxisUV.copy( referenceAxis ).normalize();
 
-    },
+    }
 
     // GET
 
-    getHingeReferenceAxis:function () {
+    getHingeReferenceAxis() {
 
         return this.referenceAxisUV; 
 
-    },
+    }
 
-    getHingeRotationAxis:function () {
+    getHingeRotationAxis() {
 
         return this.rotationAxisUV; 
 
-    },
+    }
 
     // SET
 
-    setBallJointConstraintDegs: function ( angle ) {
+    setBallJointConstraintDegs( angle ) {
 
-        this.rotor = this.validateAngle( angle ) * TORAD;
+        this.rotor = this.validateAngle( angle ) * math.toRad;
 
-    },
+    }
 
-    setHingeClockwise: function ( angle ) {
+    setHingeClockwise( angle ) {
 
         if( angle < 0 ) angle *= -1;
-        this.min = -this.validateAngle( angle ) * TORAD;
+        this.min = -this.validateAngle( angle ) * math.toRad;
         this.testAngle();
 
-    },
+    }
 
-    setHingeAnticlockwise: function ( angle ) {
+    setHingeAnticlockwise( angle ) {
 
-        this.max = this.validateAngle( angle ) * TORAD;
+        this.max = this.validateAngle( angle ) * math.toRad;
         this.testAngle();
 
-    },
+    }
 
     /*setHingeRotationAxis: function ( axis ) {
 
@@ -1126,28 +1095,29 @@ Object.assign( Joint3D.prototype, {
 
     
     
-} );
-
-function Bone3D ( startLocation, endLocation, directionUV, length, color ){
-
-    this.joint = new Joint3D();
-    this.start = new V3();
-    this.end = new V3();
-    
-    this.boneConnectionPoint = END;
-    this.length = 0;
-
-    this.color = color || 0xFFFFFF;
-    this.name = '';
-
-    this.init( startLocation, endLocation, directionUV, length );
-
 }
-Object.assign( Bone3D.prototype, {
 
-    isBone3D: true,
+class Bone3D {
 
-    init:function( startLocation, endLocation, directionUV, length ){
+    constructor( startLocation, endLocation, directionUV, length, color ) {
+
+        this.isBone3D = true;
+
+        this.joint = new Joint3D();
+        this.start = new V3();
+        this.end = new V3();
+        
+        this.boneConnectionPoint = END;
+        this.length = 0;
+
+        this.color = color || 0xFFFFFF;
+        this.name = '';
+
+        this.init( startLocation, endLocation, directionUV, length );
+
+    }
+
+    init( startLocation, endLocation, directionUV, length ){
 
         this.setStartLocation( startLocation );
         if( endLocation ){ 
@@ -1159,147 +1129,147 @@ Object.assign( Bone3D.prototype, {
             this.setEndLocation( this.start.plus( directionUV.normalised().multiplyScalar( length ) ) );
         }
 
-    },
+    }
 
-    clone:function () {
+    clone() {
 
-        var b = new Bone3D( this.start, this.end );
+        let b = new this.constructor( this.start, this.end );
         b.joint = this.joint.clone();
         return b;
 
-    },
+    }
 
     // SET
 
-    setColor: function ( c ) {
+    setColor( c ) {
 
         this.color = c;
 
-    },
+    }
 
-    setBoneConnectionPoint: function ( bcp ) {
+    setBoneConnectionPoint( bcp ) {
 
         this.boneConnectionPoint = bcp;
 
-    },
+    }
 
-    setHingeClockwise: function ( angle ) {
+    setHingeClockwise( angle ) {
 
 
         this.joint.setHingeClockwise( angle );
 
-    },
+    }
 
-    setHingeAnticlockwise: function ( angle ) {
+    setHingeAnticlockwise( angle ) {
 
         this.joint.setHingeAnticlockwise( angle );
 
-    },
+    }
 
-    setBallJointConstraintDegs: function ( angle ) {
+    setBallJointConstraintDegs( angle ) {
 
         this.joint.setBallJointConstraintDegs( angle );
 
-    },
+    }
 
-    setStartLocation: function ( location ) {
+    setStartLocation( location ) {
 
         this.start.copy ( location );
 
-    },
+    }
 
-    setEndLocation: function ( location ) {
+    setEndLocation( location ) {
 
         this.end.copy ( location );
 
-    },
+    }
 
-    setLength: function ( lng ) {
+    setLength( lng ) {
 
         if ( lng > 0 ) this.length = lng;
 
-    },
+    }
 
-    setJoint: function ( joint ) {
+    setJoint( joint ) {
 
         this.joint = joint;
 
-    },
+    }
 
 
     // GET
 
-    getBoneConnectionPoint: function () {
+    getBoneConnectionPoint() {
 
         return this.boneConnectionPoint;
 
-    },
+    }
 
-    getDirectionUV: function () {
+    getDirectionUV () {
 
         return this.end.minus( this.start ).normalize();
 
-    },
+    }
 
-    getLength: function(){
+    getLength(){
 
         return this.start.distanceTo( this.end );
 
-    },
-
-} );
-
-function Chain3D ( color ){
-
-    this.tmpTarget = new V3();
-    this.tmpMtx = new M3();
-
-    this.bones = [];
-    this.name = '';
-    this.color = color || 0xFFFFFF;
-
-    this.solveDistanceThreshold = 1.0;
-    this.minIterationChange = 0.01;
-    this.maxIteration = 20;
-    this.precision = 0.001;
-
-    this.chainLength = 0;
-    this.numBones = 0;
-
-    this.baseLocation = new V3();
-    this.fixedBaseMode = true;
-
-    this.baseboneConstraintType = NONE;
-
-    this.baseboneConstraintUV = new V3();
-    this.baseboneRelativeConstraintUV = new V3();
-    this.baseboneRelativeReferenceConstraintUV = new V3();
-    this.lastTargetLocation = new V3( MAX_VALUE, MAX_VALUE, MAX_VALUE );
-
-    this.lastBaseLocation =  new V3( MAX_VALUE, MAX_VALUE, MAX_VALUE );
-    this.currentSolveDistance = MAX_VALUE;
-
-    this.connectedChainNumber = -1;
-    this.connectedBoneNumber = -1;
-    this.boneConnectionPoint = END;
-
-    // test full restrict angle 
-    this.isFullForward = false;
-
-    
-
-    this.embeddedTarget = new V3();
-    this.useEmbeddedTarget = false;
+    }
 
 }
 
-Object.assign( Chain3D.prototype, {
+class Chain3D {
 
-    isChain3D: true,
+    constructor( color ) {
 
-    clone: function () {
+        this.isChain3D = true;
 
-        var c = new Chain3D();
+        this.tmpTarget = new V3();
+        this.tmpMtx = new M3();
+
+        this.bones = [];
+        this.name = '';
+        this.color = color || 0xFFFFFF;
+
+        this.solveDistanceThreshold = 1.0;
+        this.minIterationChange = 0.01;
+        this.maxIteration = 20;
+        this.precision = 0.001;
+
+        this.chainLength = 0;
+        this.numBones = 0;
+
+        this.baseLocation = new V3();
+        this.fixedBaseMode = true;
+
+        this.baseboneConstraintType = NONE;
+
+        this.baseboneConstraintUV = new V3();
+        this.baseboneRelativeConstraintUV = new V3();
+        this.baseboneRelativeReferenceConstraintUV = new V3();
+        this.lastTargetLocation = new V3( MAX_VALUE, MAX_VALUE, MAX_VALUE );
+
+        this.lastBaseLocation =  new V3( MAX_VALUE, MAX_VALUE, MAX_VALUE );
+        this.currentSolveDistance = MAX_VALUE;
+
+        this.connectedChainNumber = -1;
+        this.connectedBoneNumber = -1;
+        this.boneConnectionPoint = END;
+
+        // test full restrict angle 
+        this.isFullForward = false;
+
+        
+
+        this.embeddedTarget = new V3();
+        this.useEmbeddedTarget = false;
+
+    }
+
+    clone() {
+
+        let c = new this.constructor();
 
         c.solveDistanceThreshold = this.solveDistanceThreshold;
         c.minIterationChange = this.minIterationChange;
@@ -1336,17 +1306,17 @@ Object.assign( Chain3D.prototype, {
 
         return c;
 
-    },
+    }
 
-    clear: function () {
+    clear() {
 
-        var i = this.numBones;
+        let i = this.numBones;
         while(i--) this.removeBone(i);
         this.numBones = 0;
 
-    },
+    }
 
-    addBone: function ( bone ) {
+    addBone( bone ) {
 
         bone.setColor( this.color );
 
@@ -1367,9 +1337,9 @@ Object.assign( Chain3D.prototype, {
         // Increment the number of bones in the chain and update the chain length
         this.updateChainLength();
 
-    },
+    }
 
-    removeBone: function ( id ) {
+    removeBone( id ) {
 
         if ( id < this.numBones ){   
             // ...then remove the bone, decrease the bone count and update the chain length.
@@ -1379,9 +1349,9 @@ Object.assign( Chain3D.prototype, {
 
         }
 
-    },
+    }
 
-    addConsecutiveBone: function ( directionUV, length ) {
+    addConsecutiveBone( directionUV, length ) {
 
          if (this.numBones > 0) {               
             // Get the end location of the last bone, which will be used as the start location of the new bone
@@ -1390,25 +1360,25 @@ Object.assign( Chain3D.prototype, {
             this.addBone( new Bone3D(  this.bones[ this.numBones-1 ].end, undefined, directionUV.normalised(), length ) );
         }
 
-    },
+    }
 
-    addConsecutiveFreelyRotatingHingedBone: function ( directionUV, length, type, hingeRotationAxis ) {
+    addConsecutiveFreelyRotatingHingedBone( directionUV, length, type, hingeRotationAxis ) {
 
-        this.addConsecutiveHingedBone( directionUV, length, type, hingeRotationAxis, 180, 180, _Math.genPerpendicularVectorQuick( hingeRotationAxis ) );
+        this.addConsecutiveHingedBone( directionUV, length, type, hingeRotationAxis, 180, 180, math.genPerpendicularVectorQuick( hingeRotationAxis ) );
 
-    },
+    }
 
-    addConsecutiveHingedBone: function ( DirectionUV, length, type, HingeRotationAxis, clockwiseDegs, anticlockwiseDegs, hingeReferenceAxis ) {
+    addConsecutiveHingedBone( DirectionUV, length, type, HingeRotationAxis, clockwiseDegs, anticlockwiseDegs, hingeReferenceAxis ) {
 
         // Cannot add a consectuive bone of any kind if the there is no basebone
         if ( this.numBones === 0 ) return;
 
         // Normalise the direction and hinge rotation axis 
-        var directionUV = DirectionUV.normalised();
-        var hingeRotationAxis = HingeRotationAxis.normalised();
+        let directionUV = DirectionUV.normalised();
+        let hingeRotationAxis = HingeRotationAxis.normalised();
             
         // Create a bone, get the end location of the last bone, which will be used as the start location of the new bone
-        var bone = new Bone3D( this.bones[ this.numBones-1 ].end, undefined, directionUV, length, this.color );
+        let bone = new Bone3D( this.bones[ this.numBones-1 ].end, undefined, directionUV, length, this.color );
 
         type = type || 'global';
 
@@ -1418,138 +1388,138 @@ Object.assign( Chain3D.prototype, {
         // Finally, add the bone to this chain
         this.addBone( bone );
 
-    },
+    }
 
-    addConsecutiveRotorConstrainedBone: function ( boneDirectionUV, length, constraintAngleDegs ) {
+    addConsecutiveRotorConstrainedBone( boneDirectionUV, length, constraintAngleDegs ) {
 
         if (this.numBones === 0) return;
 
         // Create the bone starting at the end of the previous bone, set its direction, constraint angle and colour
         // then add it to the chain. Note: The default joint type of a new Bone is J_BALL.
         boneDirectionUV = boneDirectionUV.normalised();
-        var bone = new Bone3D( this.bones[ this.numBones-1 ].end, undefined , boneDirectionUV, length );
+        let bone = new Bone3D( this.bones[ this.numBones-1 ].end, undefined , boneDirectionUV, length );
         bone.joint.setAsBallJoint( constraintAngleDegs );
         this.addBone( bone );
 
-    },
+    }
 
     // -------------------------------
     //      GET
     // -------------------------------
 
-    getBoneConnectionPoint: function () {
+    getBoneConnectionPoint() {
 
         return this.boneConnectionPoint;
 
-    },
+    }
 
-    getConnectedBoneNumber:function(){
+    getConnectedBoneNumber(){
 
         return this.connectedBoneNumber;
 
-    },
+    }
 
-    getConnectedChainNumber:function(){
+    getConnectedChainNumber(){
 
         return this.connectedChainNumber;
 
-    },
+    }
 
-    getBaseboneConstraintType:function(){
+    getBaseboneConstraintType(){
 
         return this.baseboneConstraintType;
 
-    },
+    }
 
-    getBaseboneConstraintUV:function(){
+    getBaseboneConstraintUV(){
 
         if ( !(this.baseboneConstraintType === NONE) ) return this.baseboneConstraintUV;
 
-    },
+    }
 
-    getBaseLocation: function () {
+    getBaseLocation() {
 
         return this.bones[0].start;
 
-    },
+    }
 
-    getEffectorLocation: function () {
+    getEffectorLocation() {
 
         return this.bones[this.numBones-1].end;
 
-    },
+    }
 
-    getLastTargetLocation: function () {
+    getLastTargetLocation() {
 
         return this.lastTargetLocation;
 
-    },
+    }
 
-    getLiveChainLength: function () {
+    getLiveChainLength() {
 
-        var lng = 0;
-        var i = this.numBones;
+        let lng = 0;
+        let i = this.numBones;
         while( i-- ) lng += this.bones[i].getLength();
         return lng;
 
-    },
+    }
 
 
-    getBaseboneRelativeReferenceConstraintUV: function () {
+    getBaseboneRelativeReferenceConstraintUV() {
 
         return this.baseboneRelativeReferenceConstraintUV;
 
-    },
+    }
 
     // -------------------------------
     //      SET
     // -------------------------------
 
-    setConnectedBoneNumber: function ( boneNumber ) {
+    setConnectedBoneNumber( boneNumber ) {
 
         this.connectedBoneNumber = boneNumber;
 
-    },
+    }
 
-    setConnectedChainNumber: function ( chainNumber ) {
+    setConnectedChainNumber( chainNumber ) {
 
         this.connectedChainNumber = chainNumber;
 
-    },
+    }
 
-    setBoneConnectionPoint: function ( point ) {
+    setBoneConnectionPoint( point ) {
 
         this.boneConnectionPoint = point;
 
-    },
+    }
 
-    setColor: function ( c ) {
+    setColor( c ) {
 
         this.color = c;
-        var i = this.numBones;
+        let i = this.numBones;
         while( i-- ) this.bones[i].setColor( this.color );
         
-    },
+    }
 
-    setBaseboneRelativeConstraintUV: function( uv ){ 
+    setBaseboneRelativeConstraintUV( uv ) { 
 
         this.baseboneRelativeConstraintUV = uv.normalised(); 
 
-    },
+    }
 
-    setBaseboneRelativeReferenceConstraintUV: function( uv ){ 
+    setBaseboneRelativeReferenceConstraintUV( uv ) { 
 
         this.baseboneRelativeReferenceConstraintUV = uv.normalised(); 
 
-    },
+    }
 
-    setBaseboneConstraintUV : function( uv ){
+    setBaseboneConstraintUV( uv ) {
 
         this.baseboneConstraintUV = uv.normalised(); 
 
-    },
+    }
 
-    setRotorBaseboneConstraint : function( type, constraintAxis, angleDegs ){
+    setRotorBaseboneConstraint( type, constraintAxis, angleDegs ) {
 
         // Sanity checking
         if (this.numBones === 0){ Tools.error("Chain must contain a basebone before we can specify the basebone constraint type."); return; }     
@@ -1562,15 +1532,15 @@ Object.assign( Chain3D.prototype, {
         this.baseboneRelativeConstraintUV.copy( this.baseboneConstraintUV );
         this.bones[0].joint.setAsBallJoint( angleDegs );
 
-    },
+    }
 
-    setHingeBaseboneConstraint : function( type, hingeRotationAxis, cwDegs, acwDegs, hingeReferenceAxis ){
+    setHingeBaseboneConstraint( type, hingeRotationAxis, cwDegs, acwDegs, hingeReferenceAxis ) {
 
         // Sanity checking
         if ( this.numBones === 0){ Tools.error("Chain must contain a basebone before we can specify the basebone constraint type."); return; }   
         if ( hingeRotationAxis.length() <= 0 ){ Tools.error("Hinge rotation axis cannot be zero."); return;  }          
         if ( hingeReferenceAxis.length() <= 0 ){ Tools.error("Hinge reference axis cannot be zero."); return; }     
-        if ( !( _Math.perpendicular( hingeRotationAxis, hingeReferenceAxis ) ) ){ Tools.error("The hinge reference axis must be in the plane of the hinge rotation axis, that is, they must be perpendicular."); return; }
+        if ( !( math.perpendicular( hingeRotationAxis, hingeReferenceAxis ) ) ){ Tools.error("The hinge reference axis must be in the plane of the hinge rotation axis, that is, they must be perpendicular."); return; }
         
         type = type || 'global';
 
@@ -1579,38 +1549,38 @@ Object.assign( Chain3D.prototype, {
         this.baseboneConstraintUV = hingeRotationAxis.normalised();
         this.bones[0].joint.setHinge( type === 'global' ? J_GLOBAL : J_LOCAL, hingeRotationAxis, cwDegs, acwDegs, hingeReferenceAxis );
 
-    },
+    }
 
-    setFreelyRotatingGlobalHingedBasebone : function( hingeRotationAxis ){
+    setFreelyRotatingGlobalHingedBasebone( hingeRotationAxis ) {
 
-        this.setHingeBaseboneConstraint( 'global', hingeRotationAxis, 180, 180, _Math.genPerpendicularVectorQuick( hingeRotationAxis ) );
-    },
+        this.setHingeBaseboneConstraint( 'global', hingeRotationAxis, 180, 180, math.genPerpendicularVectorQuick( hingeRotationAxis ) );
+    }
 
-    setGlobalHingedBasebone: function ( hingeRotationAxis, cwDegs, acwDegs, hingeReferenceAxis ) {
+    setGlobalHingedBasebone( hingeRotationAxis, cwDegs, acwDegs, hingeReferenceAxis ) {
 
         this.setHingeBaseboneConstraint( 'global', hingeRotationAxis, cwDegs, acwDegs, hingeReferenceAxis );
 
-    },
+    }
 
-    setFreelyRotatingLocalHingedBasebone: function ( hingeRotationAxis ) {
+    setFreelyRotatingLocalHingedBasebone( hingeRotationAxis ) {
 
-        this.setHingeBaseboneConstraint( 'local', hingeRotationAxis, 180, 180, _Math.genPerpendicularVectorQuick( hingeRotationAxis ) );
+        this.setHingeBaseboneConstraint( 'local', hingeRotationAxis, 180, 180, math.genPerpendicularVectorQuick( hingeRotationAxis ) );
 
-    },
+    }
 
-    setLocalHingedBasebone: function ( hingeRotationAxis, cwDegs, acwDegs, hingeReferenceAxis ) {
+    setLocalHingedBasebone( hingeRotationAxis, cwDegs, acwDegs, hingeReferenceAxis ) {
 
         this.setHingeBaseboneConstraint( 'local', hingeRotationAxis, cwDegs, acwDegs, hingeReferenceAxis );
 
-    },
+    }
 
-    setBaseLocation: function ( baseLocation ) {
+    setBaseLocation( baseLocation ) {
 
         this.baseLocation.copy( baseLocation );
 
-    },
+    }
     
-    setFixedBaseMode: function( value ){
+    setFixedBaseMode( value ){
 
         // Enforce that a chain connected to another chain stays in fixed base mode (i.e. it moves with the chain it's connected to instead of independently)
         if ( !value && this.connectedChainNumber !== -1) return;
@@ -1618,28 +1588,28 @@ Object.assign( Chain3D.prototype, {
         // Above conditions met? Set the fixedBaseMode
         this.fixedBaseMode = value;
 
-    },
+    }
 
-    setMaxIterationAttempts: function ( maxIterations ) {
+    setMaxIterationAttempts( maxIterations ) {
 
         if (maxIterations < 1) return;
         this.maxIteration = maxIterations;
 
-    },
+    }
 
-    setMinIterationChange: function ( minIterationChange ) {
+    setMinIterationChange( minIterationChange ) {
 
         if (minIterationChange < 0) return;
         this.minIterationChange = minIterationChange;
 
-    },
+    }
 
-    setSolveDistanceThreshold: function ( solveDistance ) {
+    setSolveDistanceThreshold( solveDistance ) {
 
         if (solveDistance < 0) return;
         this.solveDistanceThreshold = solveDistance;
 
-    },
+    }
 
     // -------------------------------
     //
@@ -1647,18 +1617,18 @@ Object.assign( Chain3D.prototype, {
     //
     // -------------------------------
 
-    solveForEmbeddedTarget: function () {
+    solveForEmbeddedTarget() {
 
         if ( this.useEmbeddedTarget ) return this.solveForTarget( this.embeddedTarget );
 
-    },
+    }
 
-    resetTarget: function () {
+    resetTarget() {
 
         this.lastBaseLocation = new V3( MAX_VALUE, MAX_VALUE, MAX_VALUE );
         this.currentSolveDistance = MAX_VALUE;
 
-    },
+    }
 
 
     // Method to solve this IK chain for the given target location.
@@ -1669,19 +1639,19 @@ Object.assign( Chain3D.prototype, {
     // - A solution incrementally improves on the previous solution by less than the minIterationChange, or
     // - The number of attempts to solve the IK chain exceeds the maxIteration.
 
-    solveForTarget : function( t ){
+    solveForTarget( t ) {
 
         this.tmpTarget.set( t.x, t.y, t.z );
-        var p = this.precision;
+        let p = this.precision;
 
-        var isSameBaseLocation = this.lastBaseLocation.approximatelyEquals( this.baseLocation, p );
+        let isSameBaseLocation = this.lastBaseLocation.approximatelyEquals( this.baseLocation, p );
 
         // If we have both the same target and base location as the last run then do not solve
         if ( this.lastTargetLocation.approximatelyEquals( this.tmpTarget, p ) && isSameBaseLocation ) return this.currentSolveDistance;
 
         // Keep starting solutions and distance
-        var startingDistance;
-        var startingSolution = null;
+        let startingDistance;
+        let startingSolution = null;
 
         // If the base location of a chain hasn't moved then we may opt to keep the current solution if our 
         // best new solution is worse...
@@ -1701,16 +1671,16 @@ Object.assign( Chain3D.prototype, {
                         
         // Not the same target? Then we must solve the chain for the new target.
         // We'll start by creating a list of bones to store our best solution
-        var bestSolution = [];
+        let bestSolution = [];
         
         // We'll keep track of our best solve distance, starting it at a huge value which will be beaten on first attempt
-        var bestSolveDistance = MAX_VALUE;
-        var lastPassSolveDistance = MAX_VALUE;
+        let bestSolveDistance = MAX_VALUE;
+        let lastPassSolveDistance = MAX_VALUE;
         
         // Allow up to our iteration limit attempts at solving the chain
-        var solveDistance;
+        let solveDistance;
 
-        var i = this.maxIteration;
+        let i = this.maxIteration;
 
         while( i-- ){   
 
@@ -1756,7 +1726,7 @@ Object.assign( Chain3D.prototype, {
         
         return this.currentSolveDistance;
         
-    },
+    }
 
     // -------------------------------
     //
@@ -1767,18 +1737,18 @@ Object.assign( Chain3D.prototype, {
     // Solve the IK chain for the given target using the FABRIK algorithm.
     // retun the best solve distance found between the end-effector of this chain and the provided target.
 
-    solveIK : function( target ){
+    solveIK( target ) {
 
         if ( this.numBones === 0 ) return;
 
-        var bone, boneLength, joint, jointType, nextBone;
-        var hingeRotationAxis, hingeReferenceAxis;
-        var tmpMtx = this.tmpMtx;
+        let bone, boneLength, joint, jointType, nextBone;
+        let hingeRotationAxis, hingeReferenceAxis;
+        let tmpMtx = this.tmpMtx;
         
         // ---------- Forward pass from end effector to base -----------
 
         // Loop over all bones in the chain, from the end effector (numBones-1) back to the basebone (0) 
-        var i = this.numBones;
+        let i = this.numBones;
 
         while( i-- ){
 
@@ -1795,10 +1765,10 @@ Object.assign( Chain3D.prototype, {
                 nextBone = this.bones[i+1];
 
                 // Get the outer-to-inner unit vector of the bone further out
-                var outerBoneOuterToInnerUV = nextBone.getDirectionUV().negate();
+                let outerBoneOuterToInnerUV = nextBone.getDirectionUV().negate();
 
                 // Get the outer-to-inner unit vector of this bone
-                var boneOuterToInnerUV = bone.getDirectionUV().negate();
+                let boneOuterToInnerUV = bone.getDirectionUV().negate();
 
                 // Get the joint type for this bone and handle constraints on boneInnerToOuterUV
 
@@ -1894,7 +1864,7 @@ Object.assign( Chain3D.prototype, {
                 // At this stage we have a outer-to-inner unit vector for this bone which is within our constraints,
                 // so we can set the new inner joint location to be the end joint location of this bone plus the
                 // outer-to-inner direction unit vector multiplied by the length of the bone.
-                var newStartLocation = bone.end.plus( boneOuterToInnerUV.multiplyScalar( boneLength ) );
+                let newStartLocation = bone.end.plus( boneOuterToInnerUV.multiplyScalar( boneLength ) );
 
                 // Set the new start joint location for this bone
                 bone.setStartLocation( newStartLocation );
@@ -1910,7 +1880,7 @@ Object.assign( Chain3D.prototype, {
                 bone.setEndLocation( target );
                 
                 // Get the UV between the target / end-location (which are now the same) and the start location of this bone
-                var boneOuterToInnerUV = bone.getDirectionUV().negated();
+                let boneOuterToInnerUV = bone.getDirectionUV().negated();
                 
                 // If the end effector is global hinged then we have to snap to it, then keep that
                 // resulting outer-to-inner UV in the plane of the hinge rotation axis
@@ -1939,7 +1909,7 @@ Object.assign( Chain3D.prototype, {
                                                 
                 // Calculate the new start joint location as the end joint location plus the outer-to-inner direction UV
                 // multiplied by the length of the bone.
-                var newStartLocation = target.plus( boneOuterToInnerUV.multiplyScalar( boneLength ) );
+                let newStartLocation = target.plus( boneOuterToInnerUV.multiplyScalar( boneLength ) );
                 
                 // Set the new start joint location for this bone to be new start location...
                 bone.setStartLocation( newStartLocation );
@@ -1965,11 +1935,11 @@ Object.assign( Chain3D.prototype, {
             if ( i !== 0 ){
 
                 // Get the inner-to-outer direction of this bone as well as the previous bone to use as a baseline
-                var boneInnerToOuterUV = bone.getDirectionUV();
+                let boneInnerToOuterUV = bone.getDirectionUV();
 
-                var prevBoneInnerToOuterUV = this.bones[i-1].getDirectionUV();
+                let prevBoneInnerToOuterUV = this.bones[i-1].getDirectionUV();
 
-                //var hingeRotationAxis, hingeReferenceAxis;
+                //let hingeRotationAxis, hingeReferenceAxis;
 
                 switch ( jointType ) {
 
@@ -2016,7 +1986,7 @@ Object.assign( Chain3D.prototype, {
                 // At this stage we have a outer-to-inner unit vector for this bone which is within our constraints,
                 // so we can set the new inner joint location to be the end joint location of this bone plus the
                 // outer-to-inner direction unit vector multiplied by the length of the bone.
-                var newEndLocation = bone.start.plus( boneInnerToOuterUV.multiplyScalar( boneLength ) );
+                let newEndLocation = bone.start.plus( boneInnerToOuterUV.multiplyScalar( boneLength ) );
 
                 // Set the new start joint location for this bone
                 bone.setEndLocation( newEndLocation );
@@ -2039,9 +2009,9 @@ Object.assign( Chain3D.prototype, {
                 }
 
                 // Get the inner-to-outer direction of this bone
-                var boneInnerToOuterUV = bone.getDirectionUV();
+                let boneInnerToOuterUV = bone.getDirectionUV();
 
-                var hingeRotationAxis, hingeReferenceAxis;
+                let hingeRotationAxis, hingeReferenceAxis;
 
                 switch ( this.baseboneConstraintType ){
 
@@ -2075,7 +2045,7 @@ Object.assign( Chain3D.prototype, {
                         hingeReferenceAxis = this.baseboneRelativeReferenceConstraintUV;
 
                         // Get the inner-to-outer direction of this bone and project it onto the global hinge rotation axis
-                        //var boneInnerToOuterUV = bone.getDirectionUV();
+                        //let boneInnerToOuterUV = bone.getDirectionUV();
                         boneInnerToOuterUV.projectOnPlane( hingeRotationAxis );
 
                         // Constrain as necessary
@@ -2088,7 +2058,7 @@ Object.assign( Chain3D.prototype, {
 
                 // Set the new end location of this bone, and if there are more bones,
                 // then set the start location of the next bone to be the end location of this bone
-                var newEndLocation = bone.start.plus( boneInnerToOuterUV.multiplyScalar( boneLength ) );
+                let newEndLocation = bone.start.plus( boneInnerToOuterUV.multiplyScalar( boneLength ) );
                 bone.setEndLocation( newEndLocation );    
                 
                 if ( this.numBones > 1 ) { this.bones[1].setStartLocation( newEndLocation ); }
@@ -2104,61 +2074,67 @@ Object.assign( Chain3D.prototype, {
         // if (Math.abs( this.getLiveChainLength() - chainLength) > 0.01) Tools.error(""Chain length off by > 0.01");
   
         // Finally, calculate and return the distance between the current effector location and the target.
-        //return _Math.distanceBetween( this.bones[this.numBones-1].end, target );
+        //return math.distanceBetween( this.bones[this.numBones-1].end, target );
         return this.bones[this.numBones-1].end.distanceTo( target );
 
-    },
+    }
 
-    updateChainLength: function () {
+    updateChainLength() {
 
         // Loop over all the bones in the chain, adding the length of each bone to the chainLength property
         this.chainLength = 0;
-        var i = this.numBones;
+        let i = this.numBones;
         while(i--) this.chainLength += this.bones[i].length;
 
-    },
+    }
 
-    cloneBones: function () {
+    cloneBones() {
 
         // Use clone to create a new Bone with the values from the source Bone.
-        var chain = [];
-        for ( var i = 0, n = this.bones.length; i < n; i++ ) chain.push( this.bones[i].clone() );
+        let chain = [];
+        for ( let i = 0, n = this.bones.length; i < n; i++ ) chain.push( this.bones[i].clone() );
         return chain;
 
     }
 
-} );
-
-function Structure3D ( scene ) {
-
-    this.fixedBaseMode = true;
-
-    this.chains = [];
-    this.meshChains = [];
-    this.targets = [];
-    this.numChains = 0;
-
-    this.scene = scene || null;
-
-    this.tmpMtx = new FIK.M3();
-
-    this.isWithMesh = false;
-
 }
 
-Object.assign( Structure3D.prototype, {
+//import * as THREE from 'three'
 
-    update:function(){
+class Structure3D {
 
-        var chain, mesh, bone, target;
-        var hostChainNumber;
-        var hostBone, constraintType;
+    constructor( scene, THREE ) {
 
-        //var i =  this.numChains;
+        this.THREE = THREE;
+
+        this.isStructure3D = true;
+
+        this.fixedBaseMode = true;
+
+        this.chains = [];
+        this.meshChains = [];
+        this.targets = [];
+        this.numChains = 0;
+
+        this.scene = scene || null;
+
+        this.tmpMtx = new M3();
+
+        this.isWithMesh = false;
+
+    }
+
+    update() {
+
+        let chain, mesh, bone, target;
+        let hostChainNumber;
+        let hostBone, constraintType;
+
+        //let i =  this.numChains;
 
         //while(i--){
 
-        for( var i = 0; i < this.numChains; i++ ){
+        for( let i = 0; i < this.numChains; i++ ){
 
             chain = this.chains[i];
             target = this.targets[i];
@@ -2191,12 +2167,12 @@ Object.assign( Structure3D.prototype, {
 
                     // Get the direction of the bone this chain is connected to and create a rotation matrix from it.
                     this.tmpMtx.createRotationMatrix( hostBone.getDirectionUV() );
-                    //var connectionBoneMatrix = new FIK.M3().createRotationMatrix( hostBone.getDirectionUV() );
+                    //let connectionBoneMatrix = new FIK.M3().createRotationMatrix( hostBone.getDirectionUV() );
                         
                     // We'll then get the basebone constraint UV and multiply it by the rotation matrix of the connected bone 
                     // to make the basebone constraint UV relative to the direction of bone it's connected to.
-                    //var relativeBaseboneConstraintUV = connectionBoneMatrix.times( c.getBaseboneConstraintUV() ).normalize();
-                    var relativeBaseboneConstraintUV = chain.getBaseboneConstraintUV().clone().applyM3( this.tmpMtx );
+                    //let relativeBaseboneConstraintUV = connectionBoneMatrix.times( c.getBaseboneConstraintUV() ).normalize();
+                    let relativeBaseboneConstraintUV = chain.getBaseboneConstraintUV().clone().applyM3( this.tmpMtx );
                             
                     // Update our basebone relative constraint UV property
                     chain.setBaseboneRelativeConstraintUV( relativeBaseboneConstraintUV );
@@ -2225,7 +2201,7 @@ Object.assign( Structure3D.prototype, {
 
                 mesh = this.meshChains[i];
 
-                for ( var j = 0; j < chain.numBones; j++ ) {
+                for ( let j = 0; j < chain.numBones; j++ ) {
                     bone = chain.bones[j];
                     mesh[j].position.copy( bone.start );
                     mesh[j].lookAt( bone.end );
@@ -2235,13 +2211,13 @@ Object.assign( Structure3D.prototype, {
 
         }
 
-    },
+    }
 
-    clear:function(){
+    clear() {
 
         this.clearAllBoneMesh();
 
-        var i;
+        let i;
 
         i = this.numChains;
         while(i--){
@@ -2252,9 +2228,9 @@ Object.assign( Structure3D.prototype, {
         this.meshChains = [];
         this.targets = [];
 
-    },
+    }
 
-    add:function( chain, target, meshBone ){
+    add( chain, target, meshBone ) {
 
         this.chains.push( chain );
          
@@ -2262,11 +2238,9 @@ Object.assign( Structure3D.prototype, {
         this.numChains ++;
 
         if( meshBone ) this.addChainMeshs( chain );
-    },
+    }
 
-    
-
-    remove:function( id ){
+    remove( id ) {
 
         this.chains[id].clear();
         this.chains.splice(id, 1);
@@ -2274,41 +2248,41 @@ Object.assign( Structure3D.prototype, {
         this.targets.splice(id, 1);
         this.numChains --;
 
-    },
+    }
 
-    setFixedBaseMode:function( value ){
+    setFixedBaseMode( value ) {
 
         this.fixedBaseMode = value; 
-        var i = this.numChains, host;
+        let i = this.numChains, host;
         while(i--){
             host = this.chains[i].getConnectedChainNumber();
             if( host===-1 ) this.chains[i].setFixedBaseMode( this.fixedBaseMode );
         }
 
-    },
+    }
 
-    getNumChains:function(){
+    getNumChains() {
 
         return this.numChains;
 
-    },
+    }
 
-    getChain:function(id){
+    getChain(id) {
 
         return this.chains[id];
 
-    },
+    }
 
-    connectChain : function( Chain, chainNumber, boneNumber, point, target, meshBone, color ){
+    connectChain( Chain, chainNumber, boneNumber, point, target, meshBone, color ) {
 
-        var c = chainNumber;
-        var n = boneNumber;
+        let c = chainNumber;
+        let n = boneNumber;
 
         if ( chainNumber > this.numChains ) return;
         if ( boneNumber > this.chains[chainNumber].numBones ) return;
 
         // Make a copy of the provided chain so any changes made to the original do not affect this chain
-        var chain = Chain.clone();//new Fullik.Chain( newChain );
+        let chain = Chain.clone();//new Fullik.Chain( newChain );
         if( color !== undefined ) chain.setColor( color );
 
         // Connect the copy of the provided chain to the specified chain and bone in this structure
@@ -2321,7 +2295,7 @@ Object.assign( Structure3D.prototype, {
         // The chain as we were provided should be centred on the origin, so we must now make it
         // relative to the start location of the given bone in the given chain.
 
-        var position = point === 'end' ? this.chains[ c ].bones[ n ].end : this.chains[ c ].bones[ n ].start;
+        let position = point === 'end' ? this.chains[ c ].bones[ n ].end : this.chains[ c ].bones[ n ].start;
          
 
         chain.setBaseLocation( position );
@@ -2331,7 +2305,7 @@ Object.assign( Structure3D.prototype, {
         chain.setFixedBaseMode( true );
 
         // Translate the chain we're connecting to the connection point
-        for ( var i = 0; i < chain.numBones; i++ ){
+        for ( let i = 0; i < chain.numBones; i++ ){
 
             chain.bones[i].start.add( position );
             chain.bones[i].end.add( position );
@@ -2340,95 +2314,105 @@ Object.assign( Structure3D.prototype, {
         
         this.add( chain, target, meshBone );
 
-    },
+    }
 
 
     // 3D THREE
 
-    addChainMeshs:function( chain, id ){
+    addChainMeshs( chain, id ) {
 
         this.isWithMesh = true;
 
-        var meshBone = [];
-        var lng  = chain.bones.length;
-        for(var i = 0; i < lng; i++ ){
+        let meshBone = [];
+        let lng  = chain.bones.length;
+        for(let i = 0; i < lng; i++ ){
             meshBone.push( this.addBoneMesh( chain.bones[i], i-1, meshBone, chain ));
         }
 
         this.meshChains.push( meshBone );
 
-    },
+    }
 
-    addBoneMesh:function( bone, prev, ar, chain ){
+    addBoneMesh( bone, prev, ar, chain ) {
 
-        var size = bone.length;
-        var color = bone.color;
-        var g = new THREE.CylinderBufferGeometry ( 1, 0.5, size, 4 );
-        g.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
-        g.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0, size*0.5 ) );
-        var m = new THREE.MeshStandardMaterial({ color:color, wireframe:false, shadowSide:false });
+        let s = 2, r = 2, a1, a2, axe;
+        let size = bone.length;
+        let color = bone.color;
+        let g = new this.THREE.CylinderBufferGeometry ( 1, 0.5, size, 4 );
+        g.rotateX( -Math.PI * 0.5 );
+        g.translate( 0, 0, size*0.5 );
+        //g.applyMatrix4( new this.THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) )
+        //g.applyMatrix4( new this.THREE.Matrix4().makeTranslation( 0, 0, size*0.5 ) );
+        let m = new this.THREE.MeshStandardMaterial({ color:color, wireframe:false, shadowSide:this.THREE.DoubleSide });
 
-        var m2 = new THREE.MeshBasicMaterial({ wireframe : true });
-        //var m4 = new THREE.MeshBasicMaterial({ wireframe : true, color:color, transparent:true, opacity:0.3 });
+        let m2 = new this.THREE.MeshBasicMaterial({ wireframe : true });
+        //let m4 = new this.THREE.MeshBasicMaterial({ wireframe : true, color:color, transparent:true, opacity:0.3 });
 
-        var extraMesh = null;
-        var extraGeo;
+        let extraMesh = null;
+        let extraGeo;
 
-        var type = bone.joint.type;
+        let type = bone.joint.type;
         switch(type){
             case J_BALL :
                 m2.color.setHex(0xFF6600);
-                var angle = bone.joint.rotor;
+                let angle = bone.joint.rotor;
              
                 if(angle === Math.PI) break;
-                var s = 2;//size/4;
-                var r = 2;//
-                extraGeo = new THREE.CylinderBufferGeometry ( 0, r, s, 6,1, true );
-                extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
-                extraGeo.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0, s*0.5 ) );
-                extraMesh = new THREE.Mesh( extraGeo,  m2 );
+                s = 2;//size/4;
+                r = 2;//
+                extraGeo = new this.THREE.CylinderBufferGeometry ( 0, r, s, 6,1, true );
+                extraGeo.rotateX( -Math.PI * 0.5 );
+                extraGeo.translate(  0, 0, s*0.5 );
+                //extraGeo.applyMatrix4( new this.THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) )
+                //extraGeo.applyMatrix4( new this.THREE.Matrix4().makeTranslation( 0, 0, s*0.5 ) );
+                extraMesh = new this.THREE.Mesh( extraGeo,  m2 );
             break;
             case J_GLOBAL :
-            var axe =  bone.joint.getHingeRotationAxis();
-            //console.log( axe );
-            var a1 = bone.joint.min;
-            var a2 = bone.joint.max;
-            var r = 2;
+            axe =  bone.joint.getHingeRotationAxis();
+            a1 = bone.joint.min;
+            a2 = bone.joint.max;
+            r = 2;
             //console.log('global', a1, a2)
             m2.color.setHex(0xFFFF00);
-            extraGeo = new THREE.CircleBufferGeometry( r, 12, a1, -a1+a2 );
-            //extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
-            if( axe.z === 1 ) extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
-            if( axe.y === 1 ) {extraGeo.applyMatrix( new THREE.Matrix4().makeRotationY( -Math.PI*0.5 ) );extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );}
-            if( axe.x === 1 ) {  extraGeo.applyMatrix(new THREE.Matrix4().makeRotationY( Math.PI*0.5 ));}
+            extraGeo = new this.THREE.CircleBufferGeometry( r, 12, a1, -a1+a2 );
 
-            extraMesh = new THREE.Mesh( extraGeo,  m2 );
+            
+            extraGeo.rotateX( -Math.PI * 0.5 );
+            //extraGeo.applyMatrix4( new this.THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
+            if( axe.z === 1 ) extraGeo.rotateX( -Math.PI * 0.5 );//extraGeo.applyMatrix4( new this.THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
+            if( axe.y === 1 ) {extraGeo.rotateY( -Math.PI * 0.5 );  extraGeo.rotateX( -Math.PI * 0.5 ); }//{extraGeo.applyMatrix4( new this.THREE.Matrix4().makeRotationY( -Math.PI*0.5 ) );extraGeo.applyMatrix4( new this.THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );}
+            if( axe.x === 1 ) {extraGeo.rotateY( Math.PI * 0.5 );/*extraGeo.applyMatrix4(new this.THREE.Matrix4().makeRotationY( Math.PI*0.5 ));*/}
+
+            extraMesh = new this.THREE.Mesh( extraGeo,  m2 );
             break;
             case J_LOCAL :
 
-            var axe =  bone.joint.getHingeRotationAxis();
+            axe =  bone.joint.getHingeRotationAxis();
+            a1 = bone.joint.min;
+            a2 = bone.joint.max;
+            r = 2;
             
-
-            var r = 2;
-            var a1 = bone.joint.min;
-            var a2 = bone.joint.max;
-            //console.log('local', a1, a2)
             m2.color.setHex(0x00FFFF);
-            extraGeo = new THREE.CircleBufferGeometry( r, 12, a1, -a1+a2 );
-            extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
+            extraGeo = new this.THREE.CircleBufferGeometry( r, 12, a1, -a1+a2 );
+            extraGeo.rotateX( -Math.PI * 0.5 );
 
-            if( axe.z === 1 ) { extraGeo.applyMatrix( new THREE.Matrix4().makeRotationY( -Math.PI*0.5 ) ); extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( Math.PI*0.5 ) );}
-            if( axe.x === 1 ) extraGeo.applyMatrix( new THREE.Matrix4().makeRotationZ( -Math.PI*0.5 ) );
-            if( axe.y === 1 ) { extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( Math.PI*0.5 ) ); extraGeo.applyMatrix(new THREE.Matrix4().makeRotationY( Math.PI*0.5 ));}
+           // extraGeo.applyMatrix4( new this.THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
+            if( axe.z === 1 ) { eextraGeo.rotateY( -Math.PI * 0.5 ); extraGeo.rotateX( Math.PI * 0.5 ); }
+            if( axe.x === 1 ) extraGeo.rotateZ( -Math.PI * 0.5 );
+            if( axe.y === 1 ) { extraGeo.rotateX( Math.PI * 0.5 ); extraGeo.rotateY( Math.PI * 0.5 ); }
 
-            extraMesh = new THREE.Mesh( extraGeo,  m2 );
+            /*if( axe.z === 1 ) { extraGeo.applyMatrix4( new this.THREE.Matrix4().makeRotationY( -Math.PI*0.5 ) ); extraGeo.applyMatrix4( new this.THREE.Matrix4().makeRotationX( Math.PI*0.5 ) );}
+            if( axe.x === 1 ) extraGeo.applyMatrix4( new this.THREE.Matrix4().makeRotationZ( -Math.PI*0.5 ) );
+            if( axe.y === 1 ) { extraGeo.applyMatrix4( new this.THREE.Matrix4().makeRotationX( Math.PI*0.5 ) ); extraGeo.applyMatrix4(new this.THREE.Matrix4().makeRotationY( Math.PI*0.5 ));}*/
+
+            extraMesh = new this.THREE.Mesh( extraGeo,  m2 );
             break;
         }
 
-        var axe = new THREE.AxesHelper(1.5);
-        //var bw = new THREE.Mesh( g,  m4 );
+        axe = new this.THREE.AxesHelper(1.5);
+        //let bw = new this.THREE.Mesh( g,  m4 );
 
-        var b = new THREE.Mesh( g,  m );
+        let b = new this.THREE.Mesh( g,  m );
         b.add(axe);
         //b.add(bw);
         this.scene.add( b );
@@ -2452,13 +2436,13 @@ Object.assign( Structure3D.prototype, {
        
         return b;
 
-    },
+    }
 
-    clearAllBoneMesh:function(){
+    clearAllBoneMesh() {
 
         if(!this.isWithMesh) return;
 
-        var i, j, b;
+        let i, j, b;
 
         i = this.meshChains.length;
         while(i--){
@@ -2475,122 +2459,121 @@ Object.assign( Structure3D.prototype, {
 
     }
 
-} );
-
-function Joint2D( clockwise, antiClockwise, coordSystem ){
-
-    this.coordinateSystem = coordSystem || J_LOCAL;
-
-    if( clockwise < 0 ) clockwise *= -1;
-
-    this.min = clockwise !== undefined ? -clockwise * TORAD : -PI;
-    this.max = antiClockwise !== undefined ? antiClockwise * TORAD : PI;
-    
 }
 
-Object.assign( Joint2D.prototype, {
+class Joint2D {
 
-    isJoint2D: true,
+    constructor( clockwise, antiClockwise, coordSystem ) {
 
-    clone: function () {
+        this.isJoint2D = true;
 
-        var j = new Joint2D();
+        this.coordinateSystem = coordSystem || J_LOCAL;
 
+        if( clockwise < 0 ) clockwise *= -1;
+
+        this.min = clockwise !== undefined ? -clockwise * math.toRad : -math.PI;
+        this.max = antiClockwise !== undefined ? antiClockwise * math.toRad : math.PI;
+        
+    }
+
+    clone() {
+
+        let j = new this.constructor();
         j.coordinateSystem = this.coordinateSystem;
         j.max = this.max;
         j.min = this.min;
-
         return j;
 
-    },
+    }
 
-    validateAngle: function ( a ) {
+    validateAngle( a ) {
 
         a = a < 0 ? 0 : a;
         a = a > 180 ? 180 : a;
         return a;
 
-    },
+    }
 
     // SET
 
-    set: function ( joint ) {
+    set( joint ) {
 
         this.max = joint.max;
         this.min = joint.min;
         this.coordinateSystem = joint.coordinateSystem;
 
-    },
+    }
 
-    setClockwiseConstraintDegs: function ( angle ) {
+    setClockwiseConstraintDegs( angle ) {
 
         // 0 to -180 degrees represents clockwise rotation
         if( angle < 0 ) angle *= -1;
-        this.min = - (this.validateAngle( angle ) * TORAD);
+        this.min = - (this.validateAngle( angle ) * math.toRad);
         
-    },
+    }
 
-    setAnticlockwiseConstraintDegs: function ( angle ) {
+    setAnticlockwiseConstraintDegs( angle ) {
 
         // 0 to 180 degrees represents anti-clockwise rotation
-        this.max = this.validateAngle( angle ) * TORAD;
+        this.max = this.validateAngle( angle ) * math.toRad;
         
-    },
+    }
 
-    setConstraintCoordinateSystem: function ( coordSystem ) {
+    setConstraintCoordinateSystem( coordSystem ) {
 
         this.coordinateSystem = coordSystem;
 
-    },
+    }
 
 
     // GET
 
-    getConstraintCoordinateSystem: function () {
+    getConstraintCoordinateSystem() {
 
         return this.coordinateSystem;
 
-    },
-
-} );
-
-function Bone2D ( Start, End, directionUV, length, clockwiseDegs, anticlockwiseDegs, color ) {
-
-    this.start = new V2();
-    this.end = new V2();
-    this.length = length || 0;
-
-    this.joint = new Joint2D( clockwiseDegs, anticlockwiseDegs );
-
-    this.globalConstraintUV = new V2(1, 0);
-    this.boneConnectionPoint = END;
-
-    this.color = color || null;
-    this.name = '';
-
-    // init
-
-    this.setStartLocation( Start );
-
-    if( End ){ 
-
-        this.setEndLocation( End );
-        if( this.length === 0 ) this.length = this.getLength();
-
-    } else if ( directionUV ) {
-
-        this.setEndLocation( this.start.plus( directionUV.normalised().multiplyScalar( this.length ) ) );
-        
     }
 
 }
-Object.assign( Bone2D.prototype, {
 
-    isBone2D: true,
+class Bone2D {
 
-    clone: function () {
+    constructor( Start, End, directionUV, length, clockwiseDegs, anticlockwiseDegs, color ) {
 
-        var b = new Bone2D( this.start, this.end );
+        this.isBone2D = true;
+
+        this.start = new V2();
+        this.end = new V2();
+        this.length = length || 0;
+
+        this.joint = new Joint2D( clockwiseDegs, anticlockwiseDegs );
+
+        this.globalConstraintUV = new V2(1, 0);
+        this.boneConnectionPoint = END;
+
+        this.color = color || null;
+        this.name = '';
+
+        // init
+
+        this.setStartLocation( Start );
+
+        if( End ){ 
+
+            this.setEndLocation( End );
+            if( this.length === 0 ) this.length = this.getLength();
+
+        } else if ( directionUV ) {
+
+            this.setEndLocation( this.start.plus( directionUV.normalised().multiplyScalar( this.length ) ) );
+            
+        }
+
+    }
+
+    clone() {
+
+        let b = new Bone2D( this.start, this.end );
         b.length = this.length;
         b.globalConstraintUV = this.globalConstraintUV;
         b.boneConnectionPoint = this.boneConnectionPoint;
@@ -2599,155 +2582,153 @@ Object.assign( Bone2D.prototype, {
         b.name = this.name;
         return b;
 
-    },
-    
+    }
 
     // SET
 
-    setName: function ( name ) {
+    setName( name ) {
 
         this.name = name;
 
-    },
+    }
 
-    setColor: function ( c ) {
+    setColor( c ) {
 
         this.color = c;
 
-    },
+    }
 
-    setBoneConnectionPoint: function ( bcp ) {
+    setBoneConnectionPoint( bcp ) {
 
         this.boneConnectionPoint = bcp;
 
-    },
+    }
 
-    setStartLocation: function ( v ) {
+    setStartLocation( v ) {
 
         this.start.copy( v );
 
-    },
+    }
 
-    setEndLocation: function ( v ) {
+    setEndLocation( v ) {
 
         this.end.copy( v );
 
-    },
+    }
 
-    setLength:function ( length ) {
+    setLengt( length ) {
 
         if ( length > 0 ) this.length = length;
 
-    },
+    }
 
-    setGlobalConstraintUV: function ( v ) {
+    setGlobalConstraintUV( v ) {
 
         this.globalConstraintUV = v;
 
-    },
+    }
 
     // SET JOINT
 
-    setJoint: function ( joint ) {
+    setJoint( joint ) {
 
         this.joint = joint;
 
-    },
+    }
 
-    setClockwiseConstraintDegs: function ( angleDegs ) {
+    setClockwiseConstraintDegs( angleDegs ) {
 
         this.joint.setClockwiseConstraintDegs( angleDegs );
 
-    },
+    }
 
-    setAnticlockwiseConstraintDegs: function ( angleDegs ) {
+    setAnticlockwiseConstraintDegs( angleDegs ) {
 
         this.joint.setAnticlockwiseConstraintDegs( angleDegs );
 
-    },
+    }
 
-    setJointConstraintCoordinateSystem: function ( coordSystem ) {
+    setJointConstraintCoordinateSystem ( coordSystem ) {
 
         this.joint.setConstraintCoordinateSystem( coordSystem );
 
-    },
+    }
 
 
     // GET
 
-    getGlobalConstraintUV: function () {
+    getGlobalConstraintUV() {
 
         return this.globalConstraintUV;
 
-    },
+    }
     
-    getBoneConnectionPoint: function () {
+    getBoneConnectionPoint() {
 
         return this.boneConnectionPoint;
 
-    },
+    }
 
-    getDirectionUV: function () {
+    getDirectionUV() {
 
         return this.end.minus( this.start ).normalize();
 
-    },
+    }
 
-    getLength: function () {
+    getLength() {
 
         return this.start.distanceTo( this.end );
 
-    },
+    }
     
-
-} );
-
-function Chain2D ( color ){
-
-    this.tmpTarget = new V2();
-
-    this.bones = [];
-    this.name = '';
-
-    this.solveDistanceThreshold = 1.0;
-    this.minIterationChange = 0.01;
-    this.maxIteration = 15;
-    this.precision = 0.001;
-    
-    this.chainLength = 0;
-    this.numBones = 0;
-
-    this.baseLocation = new V2();
-    this.fixedBaseMode = true;
-
-    this.baseboneConstraintType = NONE;
-
-    this.baseboneConstraintUV = new V2();
-    this.baseboneRelativeConstraintUV = new V2();
-
-    this.lastTargetLocation = new V2( MAX_VALUE, MAX_VALUE );
-    this.lastBaseLocation =  new V2( MAX_VALUE, MAX_VALUE );
-
-    this.boneConnectionPoint = END;
-    
-    this.currentSolveDistance = MAX_VALUE;
-    this.connectedChainNumber = -1;
-    this.connectedBoneNumber = -1;
-
-    this.color = color || 0xFFFFFF;
-
-    this.embeddedTarget = new V2();
-    this.useEmbeddedTarget = false;
 
 }
 
-Object.assign( Chain2D.prototype, {
+class Chain2D {
 
-    isChain2D: true,
+    constructor( color ) {
 
-    clone:function(){
+        this.isChain2D = true;
+        this.tmpTarget = new V2();
 
-        var c = new Chain2D();
+        this.bones = [];
+        this.name = '';
+
+        this.solveDistanceThreshold = 1.0;
+        this.minIterationChange = 0.01;
+        this.maxIteration = 15;
+        this.precision = 0.001;
+        
+        this.chainLength = 0;
+        this.numBones = 0;
+
+        this.baseLocation = new V2();
+        this.fixedBaseMode = true;
+
+        this.baseboneConstraintType = NONE;
+
+        this.baseboneConstraintUV = new V2();
+        this.baseboneRelativeConstraintUV = new V2();
+
+        this.lastTargetLocation = new V2( MAX_VALUE, MAX_VALUE );
+        this.lastBaseLocation =  new V2( MAX_VALUE, MAX_VALUE );
+
+        this.boneConnectionPoint = END;
+        
+        this.currentSolveDistance = MAX_VALUE;
+        this.connectedChainNumber = -1;
+        this.connectedBoneNumber = -1;
+
+        this.color = color || 0xFFFFFF;
+
+        this.embeddedTarget = new V2();
+        this.useEmbeddedTarget = false;
+
+    }
+
+    clone() {
+
+        let c = new this.constructor();
 
         c.solveDistanceThreshold = this.solveDistanceThreshold;
         c.minIterationChange = this.minIterationChange;
@@ -2784,20 +2765,18 @@ Object.assign( Chain2D.prototype, {
 
         return c;
 
-    },
+    }
 
-    
+    clear() {
 
-    clear: function () {
-
-        var i = this.numBones;
+        let i = this.numBones;
         while(i--){
             this.removeBone(i);
         }
 
-    },
+    }
 
-    addBone: function ( bone ) {
+    addBone( bone ) {
 
         if( bone.color === null ) bone.setColor( this.color );
 
@@ -2821,9 +2800,9 @@ Object.assign( Chain2D.prototype, {
         // Increment the number of bones in the chain and update the chain length
         this.updateChainLength();
 
-    },
+    }
 
-    removeBone: function ( id ) {
+    removeBone( id ) {
 
         if ( id < this.numBones ){   
             // ...then remove the bone, decrease the bone count and update the chain length.
@@ -2832,24 +2811,24 @@ Object.assign( Chain2D.prototype, {
             this.updateChainLength();
         }
 
-    },
+    }
 
-    addConsecutiveBone: function( directionUV, length, clockwiseDegs, anticlockwiseDegs, color ){
+    addConsecutiveBone( directionUV, length, clockwiseDegs, anticlockwiseDegs, color ) {
 
         if ( this.numBones === 0 ){ Tools.error('Chain is empty ! need first bone'); return }
         if( directionUV.isBone2D ) { // first argument is bone
 
-            var bone = directionUV;
+            let bone = directionUV;
 
             // Validate the direction unit vector - throws an IllegalArgumentException if it has a magnitude of zero
-            var dir = bone.getDirectionUV();
-            _Math.validateDirectionUV( dir );
+            let dir = bone.getDirectionUV();
+            math.validateDirectionUV( dir );
             
             // Validate the length of the bone - throws an IllegalArgumentException if it is not a positive value
-            var len = bone.length;
-            _Math.validateLength( len );
+            let len = bone.length;
+            math.validateLength( len );
 
-            var prevBoneEnd = this.bones[ this.numBones-1 ].end;
+            let prevBoneEnd = this.bones[ this.numBones-1 ].end;
 
             bone.setStartLocation( prevBoneEnd );
             bone.setEndLocation( prevBoneEnd.plus( dir.multiplyScalar( len ) ) );
@@ -2862,13 +2841,13 @@ Object.assign( Chain2D.prototype, {
             color = color || this.color;
              
             // Validate the direction unit vector - throws an IllegalArgumentException if it has a magnitude of zero
-            _Math.validateDirectionUV( directionUV );
+            math.validateDirectionUV( directionUV );
             
             // Validate the length of the bone - throws an IllegalArgumentException if it is not a positive value
-            _Math.validateLength( length );
+            math.validateLength( length );
                     
             // Get the end location of the last bone, which will be used as the start location of the new bone
-            var prevBoneEnd = this.bones[ this.numBones-1 ].end;
+            let prevBoneEnd = this.bones[ this.numBones-1 ].end;
                     
             // Add a bone to the end of this IK chain
             this.addBone( new Bone2D( prevBoneEnd, null, directionUV.normalised(), length, clockwiseDegs, anticlockwiseDegs, color ) );
@@ -2876,133 +2855,133 @@ Object.assign( Chain2D.prototype, {
 
         }
         
-    },
+    }
 
 
     // -------------------------------
     //      GET
     // -------------------------------
 
-    getBoneConnectionPoint: function () {
+    getBoneConnectionPoint() {
 
         return this.boneConnectionPoint;
 
-    },
+    }
 
-    getConnectedBoneNumber:function () {
+    getConnectedBoneNumber() {
 
         return this.connectedBoneNumber;
 
-    },
+    }
 
-    getConnectedChainNumber:function(){
+    getConnectedChainNumber(){
 
         return this.connectedChainNumber;
 
-    },
+    }
 
-    getEmbeddedTarget:function () {
+    getEmbeddedTarget() {
 
         return this.embeddedTarget;
 
-    },
+    }
 
-    getBaseboneConstraintType: function () {
+    getBaseboneConstraintType() {
 
         return this.baseboneConstraintType;
 
-    },
+    }
 
-    getBaseboneConstraintUV:function(){
+    getBaseboneConstraintUV() {
 
         if ( !(this.baseboneConstraintType === NONE) ) return this.baseboneConstraintUV;
 
-    },
+    }
 
-    getBaseLocation:function(){
+    getBaseLocation() {
 
         return this.bones[0].start;
 
-    },
+    }
 
-    getEffectorLocation: function () {
+    getEffectorLocation() {
 
         return this.bones[this.numBones-1].end;
 
-    },
+    }
 
-    getLastTargetLocation: function () {
+    getLastTargetLocation() {
 
         return this.lastTargetLocation;
 
-    },
+    }
 
-    getLiveChainLength: function () {
+    getLiveChainLength() {
 
-        var lng = 0;
-        var i = this.numBones;
+        let lng = 0;
+        let i = this.numBones;
         while( i-- ) lng += this.bones[i].getLength();
         return lng;
 
-    },
+    }
 
 
     // -------------------------------
     //      SET
     // -------------------------------
 
-    setColor: function ( color ) {
+    setColor( color ) {
 
         this.color = color;
-        var i = this.numBones;
+        let i = this.numBones;
         while( i-- ) this.bones[i].setColor( this.color );
         
-    },
+    }
 
-    setBaseboneRelativeConstraintUV: function ( constraintUV ) { 
+    setBaseboneRelativeConstraintUV( constraintUV ) { 
 
         this.baseboneRelativeConstraintUV = constraintUV; 
 
-    },
+    }
 
-    setConnectedBoneNumber: function ( boneNumber ) {
+    setConnectedBoneNumber( boneNumber ) {
 
         this.connectedBoneNumber = boneNumber;
 
-    },
+    }
 
-    setConnectedChainNumber: function ( chainNumber ) {
+    setConnectedChainNumber( chainNumber ) {
 
         this.connectedChainNumber = chainNumber;
 
-    },
+    }
 
-    setBoneConnectionPoint: function ( point ) {
+    setBoneConnectionPoint( point ) {
 
         this.boneConnectionPoint = point;
 
-    },
+    }
 
-    setBaseboneConstraintUV: function ( constraintUV ) {
+    setBaseboneConstraintUV( constraintUV ) {
 
-        _Math.validateDirectionUV( constraintUV );
+        math.validateDirectionUV( constraintUV );
         this.baseboneConstraintUV.copy( constraintUV.normalised() );
 
-    },
+    }
 
-    setBaseLocation : function( baseLocation ){
+    setBaseLocation( baseLocation ){
 
         this.baseLocation.copy( baseLocation );
 
-    },
+    }
 
-    setBaseboneConstraintType: function ( value ) {
+    setBaseboneConstraintType( value ) {
 
         this.baseboneConstraintType = value;
 
-    },
+    }
 
-    setFixedBaseMode: function ( value ) {
+    setFixedBaseMode( value ) {
 
         // Enforce that a chain connected to another chain stays in fixed base mode (i.e. it moves with the chain it's connected to instead of independently)
         if ( !value && this.connectedChainNumber !== -1) return;
@@ -3010,28 +2989,28 @@ Object.assign( Chain2D.prototype, {
         // Above conditions met? Set the fixedBaseMode
         this.fixedBaseMode = value;
 
-    },
+    }
 
-    setMaxIterationAttempts: function ( maxIteration ) {
+    setMaxIterationAttempts( maxIteration ) {
 
         if ( maxIteration < 1 ) return;
         this.maxIteration = maxIteration;
 
-    },
+    }
 
-    setMinIterationChange: function ( minIterationChange ) {
+    setMinIterationChange( minIterationChange ) {
 
         if (minIterationChange < 0) return;
         this.minIterationChange = minIterationChange;
 
-    },
+    }
 
-    setSolveDistanceThreshold: function ( solveDistance ) {
+    setSolveDistanceThreshold( solveDistance ) {
 
         if ( solveDistance < 0 ) return;
         this.solveDistanceThreshold = solveDistance;
 
-    },
+    }
 
     // -------------------------------
     //
@@ -3039,18 +3018,18 @@ Object.assign( Chain2D.prototype, {
     //
     // -------------------------------
 
-    solveForEmbeddedTarget: function () {
+    solveForEmbeddedTarget() {
 
         if ( this.useEmbeddedTarget ) return this.solveForTarget( this.embeddedTarget );
 
-    },
+    }
 
-    resetTarget: function(){
+    resetTarget(){
 
         this.lastBaseLocation = new V2( MAX_VALUE, MAX_VALUE );
         this.currentSolveDistance = MAX_VALUE;
 
-    },
+    }
 
 
     // Solve the IK chain for this target to the best of our ability.
@@ -3061,19 +3040,19 @@ Object.assign( Chain2D.prototype, {
     // - A solution incrementally improves on the previous solution by less than the minIterationChange, or
     // - The number of attempts to solve the IK chain exceeds the maxIteration.
 
-    solveForTarget: function ( t ) {
+    solveForTarget( t ) {
 
         this.tmpTarget.set( t.x, t.y );
-        var p = this.precision;
+        let p = this.precision;
 
-        var isSameBaseLocation = this.lastBaseLocation.approximatelyEquals( this.baseLocation, p );
+        let isSameBaseLocation = this.lastBaseLocation.approximatelyEquals( this.baseLocation, p );
 
         // If we have both the same target and base location as the last run then do not solve
         if ( this.lastTargetLocation.approximatelyEquals( this.tmpTarget, p ) && isSameBaseLocation ) return this.currentSolveDistance;
         
         // Keep starting solutions and distance
-        var startingDistance;
-        var startingSolution = null;
+        let startingDistance;
+        let startingSolution = null;
 
         // If the base location of a chain hasn't moved then we may opt to keep the current solution if our 
         // best new solution is worse...
@@ -3087,16 +3066,16 @@ Object.assign( Chain2D.prototype, {
                         
         // Not the same target? Then we must solve the chain for the new target.
 		// We'll start by creating a list of bones to store our best solution
-        var bestSolution = [];
+        let bestSolution = [];
         
         // We'll keep track of our best solve distance, starting it at a huge value which will be beaten on first attempt
-        var bestSolveDistance = MAX_VALUE;
-        var lastPassSolveDistance = MAX_VALUE;
+        let bestSolveDistance = MAX_VALUE;
+        let lastPassSolveDistance = MAX_VALUE;
         
         // Allow up to our iteration limit attempts at solving the chain
-        var solveDistance;
+        let solveDistance;
         
-        var i = this.maxIteration;
+        let i = this.maxIteration;
 
         while( i-- ){
 
@@ -3144,7 +3123,7 @@ Object.assign( Chain2D.prototype, {
         
         return this.currentSolveDistance;
 
-    },
+    }
 
     // -------------------------------
     //
@@ -3155,16 +3134,16 @@ Object.assign( Chain2D.prototype, {
     // Solve the IK chain for the given target using the FABRIK algorithm.
     // retun the best solve distance found between the end-effector of this chain and the provided target.
 
-    solveIK: function ( target ) {
+    solveIK( target ) {
 
         if ( this.numBones === 0 ) return;
 
-        var bone, boneLength, nextBone, startPosition, endPosition, directionUV, baselineUV;
+        let bone, boneLength, nextBone, startPosition, endPosition, directionUV, baselineUV;
         
         // ---------- Forward pass from end effector to base -----------
 
         // Loop over all bones in the chain, from the end effector (numBones-1) back to the basebone (0) 
-        var i = this.numBones;
+        let i = this.numBones;
 
         while( i-- ){
 
@@ -3335,56 +3314,60 @@ Object.assign( Chain2D.prototype, {
         // ...and calculate and return the distance between the current effector location and the target.
         return this.bones[this.numBones-1].end.distanceTo( target );
 
-    },
+    }
 
-    updateChainLength: function () {
+    updateChainLength() {
 
         // Loop over all the bones in the chain, adding the length of each bone to the mChainLength property
         this.chainLength = 0;
-        var i = this.numBones;
+        let i = this.numBones;
         while(i--) this.chainLength += this.bones[i].length;
 
-    },
+    }
 
-    cloneBones : function(){
+    cloneBones() {
 
         // Use clone to create a new Bone with the values from the source Bone.
-        var chain = [];
-        for ( var i = 0, n = this.bones.length; i < n; i++ ) chain.push( this.bones[i].clone() );
+        let chain = [];
+        for ( let i = 0, n = this.bones.length; i < n; i++ ) chain.push( this.bones[i].clone() );
         return chain;
 
     }
 
-} );
-
-function Structure2D ( scene ) {
-
-    this.fixedBaseMode = true;
-
-    this.chains = [];
-    this.meshChains = [];
-    this.targets = [];
-    this.numChains = 0;
-
-    this.scene = scene || null;
-
-    this.isWithMesh = false;
-
 }
 
-Object.assign( Structure2D.prototype, {
+class Structure2D {
 
-    isStructure2D: true,
+    constructor( scene, THREE ) {
 
-    update: function () {
+        this.THREE = THREE;
+
+        this.isStructure2D = true;
+
+        this.fixedBaseMode = true;
+
+        this.chains = [];
+        this.meshChains = [];
+        this.angleChains= [];
+        this.targets = [];
+        this.numChains = 0;
+
+        this.scene = scene || null;
+
+        this.isWithMesh = false;
+
+    }
+
+    update() {
 
         //console.log('up')
 
-        var chain, mesh, bone, target, tmp = new THREE.Vector3();
-        var hostChainNumber;
-        var hostBone, constraintType;
+        let chain, mesh, bone, target; new this.THREE.Vector3();
+        let hostChainNumber;
+        let constraintType;
+        let a, angle;
 
-        for( var i = 0; i < this.numChains; i++ ){
+        for( let i = 0; i < this.numChains; i++ ){
 
             chain = this.chains[i];
             
@@ -3400,13 +3383,13 @@ Object.assign( Structure2D.prototype, {
             // Note: For NONE or GLOBAL_ABSOLUTE we don't need to update anything before calling solveForTarget().
             if ( hostChainNumber !== -1 && constraintType !== GLOBAL_ABSOLUTE ) {   
                 // Get the bone which this chain is connected to in the 'host' chain
-                var hostBone = this.chains[ hostChainNumber ].bones[ chain.getConnectedBoneNumber() ];
+                let hostBone = this.chains[ hostChainNumber ].bones[ chain.getConnectedBoneNumber() ];
 
                 chain.setBaseLocation( chain.getBoneConnectionPoint() === START ? hostBone.start : hostBone.end );
                
                 
                 // If the basebone is constrained to the direction of the bone it's connected to...
-                var hostBoneUV = hostBone.getDirectionUV();
+                let hostBoneUV = hostBone.getDirectionUV();
 
                 if ( constraintType === LOCAL_RELATIVE ){   
 
@@ -3420,10 +3403,10 @@ Object.assign( Structure2D.prototype, {
                     // will be updated to be left with regard to the host bone.
                     
                     // Get the angle between UP and the hostbone direction
-                    var angle = UP.getSignedAngle( hostBoneUV );
+                    angle = UP.getSignedAngle( hostBoneUV );
 
                     // ...then apply that same rotation to this chain's basebone constraint UV to get the relative constraint UV... 
-                    var relativeConstraintUV = chain.getBaseboneConstraintUV().clone().rotate( angle );
+                    let relativeConstraintUV = chain.getBaseboneConstraintUV().clone().rotate( angle );
                     
                     // ...which we then update.
                     chain.setBaseboneRelativeConstraintUV( relativeConstraintUV );      
@@ -3445,11 +3428,18 @@ Object.assign( Structure2D.prototype, {
             if( this.isWithMesh ){
 
                 mesh = this.meshChains[i];
+                angle = this.angleChains[i];
 
-                for ( var j = 0; j < chain.numBones; j++ ) {
+                for ( let j = 0; j < chain.numBones; j++ ) {
+
                     bone = chain.bones[j];
                     mesh[j].position.set( bone.start.x, bone.start.y, 0 );
-                    mesh[j].lookAt( tmp.set( bone.end.x, bone.end.y, 0 ) );
+                    a = math.unwrapRad( -Math.atan2( bone.start.x - bone.end.x, bone.start.y - bone.end.y ));
+                    a = math.unwrapRad( -Math.atan2( bone.end.x - bone.start.x, bone.end.y - bone.start.y ));
+                    mesh[j].rotation.z = a;
+                    angle[j] =  a * math.toDeg;
+
+                    //mesh[j].lookAt( tmp.set( bone.end.x, bone.end.y, 0 ) );
                 }
 
             }
@@ -3457,26 +3447,26 @@ Object.assign( Structure2D.prototype, {
 
         }
 
-    },
+    }
 
-    setFixedBaseMode: function ( value ) {
+    setFixedBaseMode( value ) {
 
         // Update our flag and set the fixed base mode on the first (i.e. 0th) chain in this structure.
         this.fixedBaseMode = value; 
-        var i = this.numChains, host;
+        let i = this.numChains, host;
         while(i--){
             host = this.chains[i].getConnectedChainNumber();
             if(host===-1) this.chains[i].setFixedBaseMode( this.fixedBaseMode );
         }
         //this.chains[0].setFixedBaseMode( this.fixedBaseMode );
 
-    },
+    }
 
-    clear: function () {
+    clear() {
 
         this.clearAllBoneMesh();
 
-        var i;
+        let i;
 
         i = this.numChains;
         while(i--){
@@ -3485,11 +3475,12 @@ Object.assign( Structure2D.prototype, {
 
         this.chains = [];
         this.meshChains = [];
+        this.angleChains = [];
         this.targets = [];
 
-    },
+    }
 
-    add:function ( chain, target, meshBone ) {
+    add( chain, target, meshBone ) {
 
         this.chains.push( chain );
         this.numChains ++;
@@ -3501,46 +3492,47 @@ Object.assign( Structure2D.prototype, {
 
         if( meshBone ) this.addChainMeshs( chain );
 
-    },
+    }
 
-    remove:function( id ){
+    remove( id ){
 
         this.chains[id].clear();
         this.chains.splice(id, 1);
         this.meshChains.splice(id, 1);
+        this.angleChains.splice(id, 1);
         this.targets.splice(id, 1);
         this.numChains --;
 
-    },
+    }
 
     /*setFixedBaseMode:function( fixedBaseMode ){
-        for ( var i = 0; i < this.numChains; i++) {
+        for ( let i = 0; i < this.numChains; i++) {
             this.chains[i].setFixedBaseMode( fixedBaseMode );
         }
     },*/
 
-    getNumChains: function () {
+    getNumChains() {
 
         return this.numChains;
 
-    },
+    }
 
-    getChain: function ( id ) {
+    getChain( id ) {
 
         return this.chains[id];
 
-    },
+    }
 
-    connectChain: function ( Chain, chainNumber, boneNumber, point, target, meshBone, color ) {
+    connectChain( Chain, chainNumber, boneNumber, point, target, meshBone, color ) {
 
-        var c = chainNumber;
-        var n = boneNumber;
+        let c = chainNumber;
+        let n = boneNumber;
 
         point = point || 'end';
 
         if ( c > this.numChains ){ Tools.error('Chain not existe !'); return }        if ( n > this.chains[ c ].numBones ){ Tools.error('Bone not existe !'); return }
         // Make a copy of the provided chain so any changes made to the original do not affect this chain
-        var chain = Chain.clone();
+        let chain = Chain.clone();
 
         chain.setBoneConnectionPoint( point === 'end' ? END : START );
         chain.setConnectedChainNumber( c );
@@ -3549,7 +3541,7 @@ Object.assign( Structure2D.prototype, {
         // The chain as we were provided should be centred on the origin, so we must now make it
         // relative to the start or end position of the given bone in the given chain.
 
-        var position = point === 'end' ? this.chains[ c ].bones[ n ].end : this.chains[ c ].bones[ n ].start;
+        let position = point === 'end' ? this.chains[ c ].bones[ n ].end : this.chains[ c ].bones[ n ].start;
 
         //if ( connectionPoint === 'start' ) connectionLocation = this.chains[chainNumber].getBone(boneNumber).start;
         //else connectionLocation = this.chains[chainNumber].getBone(boneNumber).end;
@@ -3563,7 +3555,7 @@ Object.assign( Structure2D.prototype, {
         chain.setFixedBaseMode( true );
 
         // Translate the chain we're connecting to the connection point
-        for ( var i = 0; i < chain.numBones; i++ ){
+        for ( let i = 0; i < chain.numBones; i++ ){
 
             chain.bones[i].start.add( position );
             chain.bones[i].end.add( position );
@@ -3572,95 +3564,91 @@ Object.assign( Structure2D.prototype, {
         
         this.add( chain, target, meshBone );
 
-    },
+    }
 
     // 3D THREE
 
-    addChainMeshs: function ( chain, id ) {
+    addChainMeshs( chain, id ) {
 
         this.isWithMesh = true;
 
-        var meshBone = [];
+        let meshBone = [];
+        let angle = [];
 
-        var lng  = chain.bones.length;
-        for(var i = 0; i<lng; i++ ){
+        let lng  = chain.bones.length;
+        for(let i = 0; i<lng; i++ ){
             meshBone.push( this.addBoneMesh( chain.bones[i] ) );
+            angle.push(0);
         }
 
         this.meshChains.push( meshBone );
+        this.angleChains.push( angle );
 
-    },
+    }
 
-    addBoneMesh:function( bone ){
+    addBoneMesh( bone ){
 
-        var size = bone.length;
-        var color = bone.color;
+        let size = bone.length;
+        let color = bone.color;
         //console.log(bone.color)
-        var g = new THREE.CylinderBufferGeometry ( 1, 0.5, size, 4 );
-       //g.applyMatrix( new THREE.Matrix4().makeTranslation( 0, size*0.5, 0 ) );
-        g.applyMatrix( new THREE.Matrix4().makeRotationX( -_Math.pi90 ) );
-        g.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0, size*0.5 ) );
-        //var m = new THREE.MeshStandardMaterial({ color:color });
-        var m = new THREE.MeshStandardMaterial({ color:color, wireframe:false, shadowSide:false });
-        //m.color.setHex( color );
+        let g = new this.THREE.CylinderBufferGeometry ( 0.5, 1, size, 4 );
+        g.translate( 0, size*0.5, 0 );
 
-        var m2 = new THREE.MeshBasicMaterial({ wireframe : true });
+        let m = new this.THREE.MeshStandardMaterial({ color:color, wireframe:false, shadowSide:this.THREE.DoubleSide });
+        new this.THREE.MeshBasicMaterial({ wireframe : true });
 
-        var extraMesh;
-
-        /*var type = bone.getJoint().type;
+        /*let type = bone.getJoint().type;
         switch(type){
             case J_BALL :
                 m2.color.setHex(0xFF6600);
-                var angle  = bone.getJoint().mRotorConstraintDegs;
+                let angle  = bone.getJoint().mRotorConstraintDegs;
                 if(angle === 180) break;
-                var s = size/4;
-                var r = 2;//
+                let s = size/4;
+                let r = 2;//
 
-                extraGeo = new THREE.CylinderBufferGeometry ( 0, r, s, 6 );
-                extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) )
-                extraGeo.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0, s*0.5 ) );
-                extraMesh = new THREE.Mesh( extraGeo,  m2 );
+                extraGeo = new this.THREE.CylinderBufferGeometry ( 0, r, s, 6 );
+                extraGeo.applyMatrix4( new this.THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) )
+                extraGeo.applyMatrix4( new this.THREE.Matrix4().makeTranslation( 0, 0, s*0.5 ) );
+                extraMesh = new this.THREE.Mesh( extraGeo,  m2 );
             break;
             case J_GLOBAL_HINGE :
-            var a1 = bone.getJoint().mHingeClockwiseConstraintDegs * _Math.torad;
-            var a2 = bone.getJoint().mHingeAnticlockwiseConstraintDegs * _Math.torad;
-            var r = 2;
+            let a1 = bone.getJoint().mHingeClockwiseConstraintDegs * math.torad;
+            let a2 = bone.getJoint().mHingeAnticlockwiseConstraintDegs * math.torad;
+            let r = 2;
             m2.color.setHex(0xFFFF00);
-            extraGeo = new THREE.CircleGeometry ( r, 12, a1, a1+a2 );
-            extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
-            extraMesh = new THREE.Mesh( extraGeo,  m2 );
+            extraGeo = new this.THREE.CircleGeometry ( r, 12, a1, a1+a2 );
+            extraGeo.applyMatrix4( new this.THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
+            extraMesh = new this.THREE.Mesh( extraGeo,  m2 );
             break;
             case J_LOCAL_HINGE :
-            var r = 2;
-            var a1 = bone.getJoint().mHingeClockwiseConstraintDegs * _Math.torad;
-            var a2 = bone.getJoint().mHingeAnticlockwiseConstraintDegs * _Math.torad;
+            let r = 2;
+            let a1 = bone.getJoint().mHingeClockwiseConstraintDegs * math.torad;
+            let a2 = bone.getJoint().mHingeAnticlockwiseConstraintDegs * math.torad;
             m2.color.setHex(0x00FFFF);
-            extraGeo = new THREE.CircleGeometry ( r, 12, a1, a1+a2 );
-            extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
-            extraMesh = new THREE.Mesh( extraGeo,  m2 );
+            extraGeo = new this.THREE.CircleGeometry ( r, 12, a1, a1+a2 );
+            extraGeo.applyMatrix4( new this.THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
+            extraMesh = new this.THREE.Mesh( extraGeo,  m2 );
             break;
         }*/
 
 
 
 
-        var b = new THREE.Mesh( g,  m );
+        let b = new this.THREE.Mesh( g,  m );
 
         b.castShadow = true;
         b.receiveShadow = true;
         
         this.scene.add( b );
-        if( extraMesh ) b.add( extraMesh );
         return b;
 
-    },
+    }
 
-    clearAllBoneMesh:function(){
+    clearAllBoneMesh() {
 
         if(!this.isWithMesh) return;
 
-        var i, j, b;
+        let i, j, b;
 
         i = this.meshChains.length;
         while(i--){
@@ -3677,84 +3665,78 @@ Object.assign( Structure2D.prototype, {
 
     }
 
-} );
+}
+
+//import { NONE, GLOBAL_ROTOR, GLOBAL_HINGE, LOCAL_ROTOR, LOCAL_HINGE, J_BALL, J_GLOBAL, J_LOCAL } from '../constants.js';
+
+class IKSolver {
+
+    constructor( o ) {
+
+        this.isIKSolver = true;
+    	this.startBones = null;
+    	this.endBones = null;
+
+        this.target = null;
+        this.goal = null;
+        this.swivelAngle = 0;
+
+        this.iteration = 40;
+
+        this.thresholds = { position:0.1, rotation:0.1 };
+
+        this.solver = null;
+        this.chain = null;
+
+    }
+
+}
 
 //import { NONE, GLOBAL_ROTOR, GLOBAL_HINGE, LOCAL_ROTOR, LOCAL_HINGE, J_BALL, J_GLOBAL, J_LOCAL } from '../constants.js';
 
 
-function IKSolver ( o ) {
+class HISolver {
 
-	this.startBones = null;
-	this.endBones = null;
+    constructor( o ) {
 
-    this.target = null;
-    this.goal = null;
-    this.swivelAngle = 0;
+    	this.isHISolver = true;
+		this.startBones = null;
+		this.endBones = null;
 
-    this.iteration = 40;
+		this.scene = o.scene;
 
-    this.thresholds = { position:0.1, rotation:0.1 };
+	    this.target = null;
+	    this.goal = null;
+	    this.swivelAngle = 0;
 
-    this.solver = null;
-    this.chain = null;
+	    this.iteration = 15;
 
-}
+	    this.thresholds = { position:0.1, rotation:0.1 };
 
-Object.assign( IKSolver.prototype, {
+	    this.solver = new FIK.Structure2D(this.scene);
+	    //this.chain = null;
 
-	isIKSolver: true,
+	    this.bones = [];
+	    this.numBones = 0;
 
-} );
+	    this.rotation = [];
 
-//import { NONE, GLOBAL_ROTOR, GLOBAL_HINGE, LOCAL_ROTOR, LOCAL_HINGE, J_BALL, J_GLOBAL, J_LOCAL } from '../constants.js';
+	    this.initStructure( o );
 
-
-function HISolver ( o ) {
-
-
-
-	this.startBones = null;
-	this.endBones = null;
-
-	this.scene = o.scene;
-
-    this.target = null;
-    this.goal = null;
-    this.swivelAngle = 0;
-
-    this.iteration = 15;
-
-    this.thresholds = { position:0.1, rotation:0.1 };
-
-    this.solver = new FIK.Structure2D(this.scene);
-    //this.chain = null;
-
-    this.bones = [];
-    this.numBones = 0;
-
-    this.rotation = [];
+	}
 
 
-
-    this.initStructure( o );
-
-}
-
-Object.assign( HISolver.prototype, {
-
-	isHISolver: true,
-
-	initStructure: function ( o ) {
+	initStructure( o ) {
 
 		this.startBones = o.start;
 		this.endBones = o.end;
 		this.angles = o.angles;
 
-		var bone = this.startBones, next = bone.children[0];
+		let bone = this.startBones, next = bone.children[0];
 
 		this.bones.push(bone);
 
-		for (var i = 0; i<100; i++) {
+		for (let i = 0; i<100; i++) {
             
             this.bones.push(next);
 			if( next === this.endBones ) { this.createChain(); break }
@@ -3765,12 +3747,12 @@ Object.assign( HISolver.prototype, {
 
 		}
 
-	},
+	}
 
-	createChain: function () {
+	createChain() {
 
 		this.numBones = this.bones.length;
-		var chain = new Chain2D();
+		let chain = new Chain2D();
 		//chain.embeddedTarget = new V2();
         //chain.useEmbeddedTarget = true;
         chain.setFixedBaseMode(true);  
@@ -3780,13 +3762,13 @@ Object.assign( HISolver.prototype, {
 
 		this.target = new THREE.Vector3();
 
-		var base = new THREE.Vector3();
-		var p0 = new THREE.Vector3();
-		var p1 = new THREE.Vector3();
-		var uv = new V2();
-		var lng = 0;
+		let base = new THREE.Vector3();
+		let p0 = new THREE.Vector3();
+		let p1 = new THREE.Vector3();
+		let uv = new V2();
+		let lng = 0;
 
-	    for (var i = 0; i<this.numBones; i++) {
+	    for (let i = 0; i<this.numBones; i++) {
 
 	    	if( i > 0 ){ 
 	    		this.target.add( this.bones[i].position );
@@ -3821,35 +3803,35 @@ Object.assign( HISolver.prototype, {
 	    //console.log( lengths );
 	    //console.log( this.bones, this.target, this.solver.chains[0].bones );
 
-	},
+	}
 
-	update: function () {
+	update() {
 
 		this.solver.update();
 
-		var bones2d = this.solver.chains[0].bones;
-		var n = this.numBones-1;
+		let bones2d = this.solver.chains[0].bones;
+		let n = this.numBones-1;
 
-		var a;
+		let a;
 
-		for(var i = 0; i < n; i++){
+		for(let i = 0; i < n; i++){
 
-			a = i===0 ? _Math.findAngle( this.fakeBone, bones2d[i] ) : _Math.findAngle( bones2d[i-1], bones2d[i] );
-			this.rotation[i] = a * _Math.toDeg;
+			a = i===0 ? math.findAngle( this.fakeBone, bones2d[i] ) : math.findAngle( bones2d[i-1], bones2d[i] );
+			this.rotation[i] = a * math.toDeg;
 		    this.rotation[i] += a < 0 ? 180 : -180;
 		    this.rotation[i] *= -1;
 
 		}
 
-		for( var i = 0; i < n; i++ ){
-			this.bones[i].rotation.z = this.rotation[i] * _Math.toRad;
+		for( let i = 0; i < n; i++ ){
+			this.bones[i].rotation.z = this.rotation[i] * math.toRad;
 		}
 
-		console.log(this.rotation);
-		//var r = FIK._Math.findAngle(bones[0], bones[1]);
+		//console.log(this.rotation)
+		//let r = FIK.math.findAngle(bones[0], bones[1]);
 
 	}
 
-} );
+}
 
-export { _Math, V2, V3, M3, Joint3D, Bone3D, Chain3D, Structure3D, Joint2D, Bone2D, Chain2D, Structure2D, IKSolver, HISolver, REVISION, PRECISION, PRECISION_DEG, MAX_VALUE, PI, TORAD, TODEG, NONE, GLOBAL_ROTOR, GLOBAL_HINGE, LOCAL_ROTOR, LOCAL_HINGE, GLOBAL_ABSOLUTE, LOCAL_RELATIVE, LOCAL_ABSOLUTE, J_BALL, J_LOCAL, J_GLOBAL, START, END, X_AXE, Y_AXE, Z_AXE, X_NEG, Y_NEG, Z_NEG, UP, DOWN, LEFT, RIGHT };
+export { Bone2D, Bone3D, Chain2D, Chain3D, DOWN, END, GLOBAL_ABSOLUTE, GLOBAL_HINGE, GLOBAL_ROTOR, HISolver, IKSolver, J_BALL, J_GLOBAL, J_LOCAL, Joint2D, Joint3D, LEFT, LOCAL_ABSOLUTE, LOCAL_HINGE, LOCAL_RELATIVE, LOCAL_ROTOR, M3, MAX_VALUE, NONE, PRECISION, PRECISION_DEG, REVISION, RIGHT, START, Structure2D, Structure3D, UP, V2, V3, X_AXE, X_NEG, Y_AXE, Y_NEG, Z_AXE, Z_NEG, math };

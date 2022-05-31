@@ -11,7 +11,7 @@ var rotStep    = 360 / numBones;
 
 for(var i=0; i<numBones; i++){
 
-    var rotatedUV = FIK._Math.rotateDegs(defaultUV, i * rotStep);
+    var rotatedUV = FIK.math.rotateDegs(defaultUV, i * rotStep);
     chain.addConsecutiveBone(rotatedUV, boneLength);
 
 

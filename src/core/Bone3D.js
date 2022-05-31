@@ -2,27 +2,28 @@ import { END, START } from '../constants.js';
 import { Joint3D } from './Joint3D.js';
 import { V3 } from '../math/V3.js';
 
-function Bone3D ( startLocation, endLocation, directionUV, length, color ){
 
-    this.joint = new Joint3D();
-    this.start = new V3();
-    this.end = new V3();
-    
-    this.boneConnectionPoint = END;
-    this.length = 0;
+export class Bone3D {
 
-    this.color = color || 0xFFFFFF;
-    this.name = '';
+    constructor( startLocation, endLocation, directionUV, length, color ) {
 
-    this.init( startLocation, endLocation, directionUV, length );
+        this.isBone3D = true
 
-};
+        this.joint = new Joint3D();
+        this.start = new V3();
+        this.end = new V3();
+        
+        this.boneConnectionPoint = END;
+        this.length = 0;
 
-Object.assign( Bone3D.prototype, {
+        this.color = color || 0xFFFFFF;
+        this.name = '';
 
-    isBone3D: true,
+        this.init( startLocation, endLocation, directionUV, length );
 
-    init:function( startLocation, endLocation, directionUV, length ){
+    }
+
+    init( startLocation, endLocation, directionUV, length ){
 
         this.setStartLocation( startLocation );
         if( endLocation ){ 
@@ -34,94 +35,92 @@ Object.assign( Bone3D.prototype, {
             this.setEndLocation( this.start.plus( directionUV.normalised().multiplyScalar( length ) ) );
         }
 
-    },
+    }
 
-    clone:function () {
+    clone() {
 
-        var b = new Bone3D( this.start, this.end );
+        let b = new this.constructor( this.start, this.end );
         b.joint = this.joint.clone();
         return b;
 
-    },
+    }
 
     // SET
 
-    setColor: function ( c ) {
+    setColor( c ) {
 
         this.color = c;
 
-    },
+    }
 
-    setBoneConnectionPoint: function ( bcp ) {
+    setBoneConnectionPoint( bcp ) {
 
         this.boneConnectionPoint = bcp;
 
-    },
+    }
 
-    setHingeClockwise: function ( angle ) {
+    setHingeClockwise( angle ) {
 
 
         this.joint.setHingeClockwise( angle );
 
-    },
+    }
 
-    setHingeAnticlockwise: function ( angle ) {
+    setHingeAnticlockwise( angle ) {
 
         this.joint.setHingeAnticlockwise( angle );
 
-    },
+    }
 
-    setBallJointConstraintDegs: function ( angle ) {
+    setBallJointConstraintDegs( angle ) {
 
         this.joint.setBallJointConstraintDegs( angle );
 
-    },
+    }
 
-    setStartLocation: function ( location ) {
+    setStartLocation( location ) {
 
         this.start.copy ( location );
 
-    },
+    }
 
-    setEndLocation: function ( location ) {
+    setEndLocation( location ) {
 
         this.end.copy ( location );
 
-    },
+    }
 
-    setLength: function ( lng ) {
+    setLength( lng ) {
 
         if ( lng > 0 ) this.length = lng;
 
-    },
+    }
 
-    setJoint: function ( joint ) {
+    setJoint( joint ) {
 
         this.joint = joint;
 
-    },
+    }
 
 
     // GET
 
-    getBoneConnectionPoint: function () {
+    getBoneConnectionPoint() {
 
         return this.boneConnectionPoint;
 
-    },
+    }
 
-    getDirectionUV: function () {
+    getDirectionUV () {
 
         return this.end.minus( this.start ).normalize();
 
-    },
+    }
 
-    getLength: function(){
+    getLength(){
 
         return this.start.distanceTo( this.end );
 
-    },
+    }
 
-} );
-
-export { Bone3D };
+}

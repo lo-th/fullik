@@ -1,28 +1,29 @@
 import { V3 } from '../math/V3.js';
-import { J_BALL, J_GLOBAL, J_LOCAL, PI, TORAD } from '../constants.js';
+import { math } from '../math/Math.js';
+import { J_BALL, J_GLOBAL, J_LOCAL } from '../constants.js';
 
-function Joint3D(){
 
-    this.rotor = PI;
-    this.min = -PI;
-    this.max = PI;
+export class Joint3D {
 
-    this.freeHinge = true;
+    constructor() {
 
-    this.rotationAxisUV = new V3();
-    this.referenceAxisUV = new V3();
-    this.type = J_BALL;
+        this.isJoint3D = true;
 
-}
+        this.rotor = math.PI;
+        this.min = -math.PI;
+        this.max = math.PI;
 
-Object.assign( Joint3D.prototype, {
+        this.freeHinge = true;
 
-	isJoint3D: true,
+        this.rotationAxisUV = new V3();
+        this.referenceAxisUV = new V3();
+        this.type = J_BALL;
 
-    clone:function(){
+    }
 
-        var j = new Joint3D();
+    clone() {
 
+        let j = new this.constructor();
         j.type = this.type;
         j.rotor = this.rotor;
         j.max = this.max;
@@ -31,84 +32,84 @@ Object.assign( Joint3D.prototype, {
         j.rotationAxisUV.copy( this.rotationAxisUV );
         j.referenceAxisUV.copy( this.referenceAxisUV );
 
-        return j;
+        return j
 
-    },
+    }
 
-    testAngle: function () {
+    testAngle() {
 
-        if( this.max === PI && this.min === -PI ) this.freeHinge = true;
+        if( this.max === math.PI && this.min === -math.PI ) this.freeHinge = true;
         else this.freeHinge = false;
 
-    },
+    }
 
-    validateAngle: function ( a ) {
+    validateAngle( a ) {
 
         a = a < 0 ? 0 : a;
         a = a > 180 ? 180 : a;
         return a;
 
-    },
+    }
 
-    setAsBallJoint:function( angle ){
+    setAsBallJoint( angle ) {
 
-        this.rotor = this.validateAngle( angle ) * TORAD;
+        this.rotor = this.validateAngle( angle ) * math.toRad;
         this.type = J_BALL;
         
-    },
+    }
 
     // Specify this joint to be a hinge with the provided settings
 
-    setHinge: function( type, rotationAxis, clockwise, anticlockwise, referenceAxis ){
+    setHinge( type, rotationAxis, clockwise, anticlockwise, referenceAxis ) {
 
         this.type = type;
         if( clockwise < 0 ) clockwise *= -1;
-        this.min = -this.validateAngle( clockwise ) * TORAD;
-        this.max = this.validateAngle( anticlockwise ) * TORAD;
+        this.min = -this.validateAngle( clockwise ) * math.toRad;
+        this.max = this.validateAngle( anticlockwise ) * math.toRad;
 
         this.testAngle();
 
         this.rotationAxisUV.copy( rotationAxis ).normalize();
         this.referenceAxisUV.copy( referenceAxis ).normalize();
 
-    },
+    }
 
     // GET
 
-    getHingeReferenceAxis:function () {
+    getHingeReferenceAxis() {
 
         return this.referenceAxisUV; 
 
-    },
+    }
 
-    getHingeRotationAxis:function () {
+    getHingeRotationAxis() {
 
         return this.rotationAxisUV; 
 
-    },
+    }
 
     // SET
 
-    setBallJointConstraintDegs: function ( angle ) {
+    setBallJointConstraintDegs( angle ) {
 
-        this.rotor = this.validateAngle( angle ) * TORAD;
+        this.rotor = this.validateAngle( angle ) * math.toRad;
 
-    },
+    }
 
-    setHingeClockwise: function ( angle ) {
+    setHingeClockwise( angle ) {
 
         if( angle < 0 ) angle *= -1;
-        this.min = -this.validateAngle( angle ) * TORAD;
+        this.min = -this.validateAngle( angle ) * math.toRad;
         this.testAngle();
 
-    },
+    }
 
-    setHingeAnticlockwise: function ( angle ) {
+    setHingeAnticlockwise( angle ) {
 
-        this.max = this.validateAngle( angle ) * TORAD;
+        this.max = this.validateAngle( angle ) * math.toRad;
         this.testAngle();
 
-    },
+    }
 
     /*setHingeRotationAxis: function ( axis ) {
 
@@ -124,6 +125,4 @@ Object.assign( Joint3D.prototype, {
 
     
     
-} );
-
-export { Joint3D };
+}

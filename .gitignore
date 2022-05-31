@@ -1,6 +1,7 @@
 node_modules
-npm-debug.log
 desktop.ini
-index_dev_3d.html
-index_dev_2d.html
+dev_3d.html
+dev_2d.html
 package-lock.json
+prepa
+*.sh

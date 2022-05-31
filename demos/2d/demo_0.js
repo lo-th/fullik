@@ -15,7 +15,7 @@ for( var j=0; j < n; j++ ){
 	v2 = new FIK.V2( x*r2, y*r2 );
 
 
-	var chain = new FIK.Chain2D( FIK._Math.rand(0x555555, 0xFFFFFF) );
+	var chain = new FIK.Chain2D( FIK.math.rand(0x555555, 0xFFFFFF) );
 	var boneLength = 5;
 	var basebone = new FIK.Bone2D( v1, v2 );  
 	chain.addBone( basebone );

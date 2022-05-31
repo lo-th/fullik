@@ -1,6 +1,4 @@
-import './polyfills.js';
-
-export { _Math } from './math/Math.js';
+export { math } from './math/Math.js';
 export { V2 } from './math/V2.js';
 export { V3 } from './math/V3.js';
 export { M3 } from './math/M3.js';
@@ -19,4 +17,3 @@ export { IKSolver } from './solver/IKSolver.js';
 export { HISolver } from './solver/HISolver.js';
 
 export * from './constants.js';
-

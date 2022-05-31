@@ -1,36 +1,43 @@
-import { NONE, GLOBAL_ROTOR, GLOBAL_HINGE, LOCAL_ROTOR, LOCAL_HINGE, J_BALL, J_GLOBAL, J_LOCAL, END, START } from '../constants.js';
-import { _Math } from '../math/Math.js';
+import {  NONE, GLOBAL_ROTOR, GLOBAL_HINGE, LOCAL_ROTOR, LOCAL_HINGE, J_BALL, J_GLOBAL, J_LOCAL, END, START } from '../constants.js';
+import { math } from '../math/Math.js';
+import { M3 } from '../math/M3.js';
 
-function Structure3D ( scene ) {
+//import * as THREE from 'three'
 
-    this.fixedBaseMode = true;
+export class Structure3D {
 
-    this.chains = [];
-    this.meshChains = [];
-    this.targets = [];
-    this.numChains = 0;
+    constructor( scene, THREE ) {
 
-    this.scene = scene || null;
+        this.THREE = THREE
 
-    this.tmpMtx = new FIK.M3();
+        this.isStructure3D = true;
 
-    this.isWithMesh = false;
+        this.fixedBaseMode = true;
 
-}
+        this.chains = [];
+        this.meshChains = [];
+        this.targets = [];
+        this.numChains = 0;
 
-Object.assign( Structure3D.prototype, {
+        this.scene = scene || null;
 
-    update:function(){
+        this.tmpMtx = new M3();
 
-        var chain, mesh, bone, target;
-        var hostChainNumber;
-        var hostBone, constraintType;
+        this.isWithMesh = false;
 
-        //var i =  this.numChains;
+    }
+
+    update() {
+
+        let chain, mesh, bone, target;
+        let hostChainNumber;
+        let hostBone, constraintType;
+
+        //let i =  this.numChains;
 
         //while(i--){
 
-        for( var i = 0; i < this.numChains; i++ ){
+        for( let i = 0; i < this.numChains; i++ ){
 
             chain = this.chains[i];
             target = this.targets[i];
@@ -63,12 +70,12 @@ Object.assign( Structure3D.prototype, {
 
                     // Get the direction of the bone this chain is connected to and create a rotation matrix from it.
                     this.tmpMtx.createRotationMatrix( hostBone.getDirectionUV() );
-                    //var connectionBoneMatrix = new FIK.M3().createRotationMatrix( hostBone.getDirectionUV() );
+                    //let connectionBoneMatrix = new FIK.M3().createRotationMatrix( hostBone.getDirectionUV() );
                         
                     // We'll then get the basebone constraint UV and multiply it by the rotation matrix of the connected bone 
                     // to make the basebone constraint UV relative to the direction of bone it's connected to.
-                    //var relativeBaseboneConstraintUV = connectionBoneMatrix.times( c.getBaseboneConstraintUV() ).normalize();
-                    var relativeBaseboneConstraintUV = chain.getBaseboneConstraintUV().clone().applyM3( this.tmpMtx );
+                    //let relativeBaseboneConstraintUV = connectionBoneMatrix.times( c.getBaseboneConstraintUV() ).normalize();
+                    let relativeBaseboneConstraintUV = chain.getBaseboneConstraintUV().clone().applyM3( this.tmpMtx );
                             
                     // Update our basebone relative constraint UV property
                     chain.setBaseboneRelativeConstraintUV( relativeBaseboneConstraintUV );
@@ -97,7 +104,7 @@ Object.assign( Structure3D.prototype, {
 
                 mesh = this.meshChains[i];
 
-                for ( var j = 0; j < chain.numBones; j++ ) {
+                for ( let j = 0; j < chain.numBones; j++ ) {
                     bone = chain.bones[j];
                     mesh[j].position.copy( bone.start );
                     mesh[j].lookAt( bone.end );
@@ -107,13 +114,13 @@ Object.assign( Structure3D.prototype, {
 
         }
 
-    },
+    }
 
-    clear:function(){
+    clear() {
 
         this.clearAllBoneMesh();
 
-        var i, j;
+        let i, j;
 
         i = this.numChains;
         while(i--){
@@ -124,9 +131,9 @@ Object.assign( Structure3D.prototype, {
         this.meshChains = [];
         this.targets = [];
 
-    },
+    }
 
-    add:function( chain, target, meshBone ){
+    add( chain, target, meshBone ) {
 
         this.chains.push( chain );
          
@@ -135,11 +142,9 @@ Object.assign( Structure3D.prototype, {
 
         if( meshBone ) this.addChainMeshs( chain );; 
 
-    },
+    }
 
-    
-
-    remove:function( id ){
+    remove( id ) {
 
         this.chains[id].clear();
         this.chains.splice(id, 1);
@@ -147,41 +152,41 @@ Object.assign( Structure3D.prototype, {
         this.targets.splice(id, 1);
         this.numChains --;
 
-    },
+    }
 
-    setFixedBaseMode:function( value ){
+    setFixedBaseMode( value ) {
 
         this.fixedBaseMode = value; 
-        var i = this.numChains, host;
+        let i = this.numChains, host;
         while(i--){
             host = this.chains[i].getConnectedChainNumber();
             if( host===-1 ) this.chains[i].setFixedBaseMode( this.fixedBaseMode );
         }
 
-    },
+    }
 
-    getNumChains:function(){
+    getNumChains() {
 
         return this.numChains;
 
-    },
+    }
 
-    getChain:function(id){
+    getChain(id) {
 
         return this.chains[id];
 
-    },
+    }
 
-    connectChain : function( Chain, chainNumber, boneNumber, point, target, meshBone, color ){
+    connectChain( Chain, chainNumber, boneNumber, point, target, meshBone, color ) {
 
-        var c = chainNumber;
-        var n = boneNumber;
+        let c = chainNumber;
+        let n = boneNumber;
 
         if ( chainNumber > this.numChains ) return;
         if ( boneNumber > this.chains[chainNumber].numBones ) return;
 
         // Make a copy of the provided chain so any changes made to the original do not affect this chain
-        var chain = Chain.clone();//new Fullik.Chain( newChain );
+        let chain = Chain.clone();//new Fullik.Chain( newChain );
         if( color !== undefined ) chain.setColor( color );
 
         // Connect the copy of the provided chain to the specified chain and bone in this structure
@@ -194,7 +199,7 @@ Object.assign( Structure3D.prototype, {
         // The chain as we were provided should be centred on the origin, so we must now make it
         // relative to the start location of the given bone in the given chain.
 
-        var position = point === 'end' ? this.chains[ c ].bones[ n ].end : this.chains[ c ].bones[ n ].start;
+        let position = point === 'end' ? this.chains[ c ].bones[ n ].end : this.chains[ c ].bones[ n ].start;
          
 
         chain.setBaseLocation( position );
@@ -204,7 +209,7 @@ Object.assign( Structure3D.prototype, {
         chain.setFixedBaseMode( true );
 
         // Translate the chain we're connecting to the connection point
-        for ( var i = 0; i < chain.numBones; i++ ){
+        for ( let i = 0; i < chain.numBones; i++ ){
 
             chain.bones[i].start.add( position );
             chain.bones[i].end.add( position );
@@ -213,95 +218,105 @@ Object.assign( Structure3D.prototype, {
         
         this.add( chain, target, meshBone );
 
-    },
+    }
 
 
     // 3D THREE
 
-    addChainMeshs:function( chain, id ){
+    addChainMeshs( chain, id ) {
 
         this.isWithMesh = true;
 
-        var meshBone = [];
-        var lng  = chain.bones.length;
-        for(var i = 0; i < lng; i++ ){
+        let meshBone = [];
+        let lng  = chain.bones.length;
+        for(let i = 0; i < lng; i++ ){
             meshBone.push( this.addBoneMesh( chain.bones[i], i-1, meshBone, chain ));
         }
 
         this.meshChains.push( meshBone );
 
-    },
+    }
 
-    addBoneMesh:function( bone, prev, ar, chain ){
+    addBoneMesh( bone, prev, ar, chain ) {
 
-        var size = bone.length;
-        var color = bone.color;
-        var g = new THREE.CylinderBufferGeometry ( 1, 0.5, size, 4 );
-        g.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) )
-        g.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0, size*0.5 ) );
-        var m = new THREE.MeshStandardMaterial({ color:color, wireframe:false, shadowSide:false });
+        let s = 2, r = 2, a1, a2, axe;
+        let size = bone.length;
+        let color = bone.color;
+        let g = new this.THREE.CylinderBufferGeometry ( 1, 0.5, size, 4 );
+        g.rotateX( -Math.PI * 0.5 );
+        g.translate( 0, 0, size*0.5 );
+        //g.applyMatrix4( new this.THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) )
+        //g.applyMatrix4( new this.THREE.Matrix4().makeTranslation( 0, 0, size*0.5 ) );
+        let m = new this.THREE.MeshStandardMaterial({ color:color, wireframe:false, shadowSide:this.THREE.DoubleSide });
 
-        var m2 = new THREE.MeshBasicMaterial({ wireframe : true });
-        //var m4 = new THREE.MeshBasicMaterial({ wireframe : true, color:color, transparent:true, opacity:0.3 });
+        let m2 = new this.THREE.MeshBasicMaterial({ wireframe : true });
+        //let m4 = new this.THREE.MeshBasicMaterial({ wireframe : true, color:color, transparent:true, opacity:0.3 });
 
-        var extraMesh = null;
-        var extraGeo;
+        let extraMesh = null;
+        let extraGeo;
 
-        var type = bone.joint.type;
+        let type = bone.joint.type;
         switch(type){
             case J_BALL :
                 m2.color.setHex(0xFF6600);
-                var angle = bone.joint.rotor;
+                let angle = bone.joint.rotor;
              
                 if(angle === Math.PI) break;
-                var s = 2//size/4;
-                var r = 2;//
-                extraGeo = new THREE.CylinderBufferGeometry ( 0, r, s, 6,1, true );
-                extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) )
-                extraGeo.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 0, s*0.5 ) );
-                extraMesh = new THREE.Mesh( extraGeo,  m2 );
+                s = 2//size/4;
+                r = 2;//
+                extraGeo = new this.THREE.CylinderBufferGeometry ( 0, r, s, 6,1, true );
+                extraGeo.rotateX( -Math.PI * 0.5 );
+                extraGeo.translate(  0, 0, s*0.5 );
+                //extraGeo.applyMatrix4( new this.THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) )
+                //extraGeo.applyMatrix4( new this.THREE.Matrix4().makeTranslation( 0, 0, s*0.5 ) );
+                extraMesh = new this.THREE.Mesh( extraGeo,  m2 );
             break;
             case J_GLOBAL :
-            var axe =  bone.joint.getHingeRotationAxis();
-            //console.log( axe );
-            var a1 = bone.joint.min;
-            var a2 = bone.joint.max;
-            var r = 2;
+            axe =  bone.joint.getHingeRotationAxis();
+            a1 = bone.joint.min;
+            a2 = bone.joint.max;
+            r = 2;
             //console.log('global', a1, a2)
             m2.color.setHex(0xFFFF00);
-            extraGeo = new THREE.CircleBufferGeometry( r, 12, a1, -a1+a2 );
-            //extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
-            if( axe.z === 1 ) extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
-            if( axe.y === 1 ) {extraGeo.applyMatrix( new THREE.Matrix4().makeRotationY( -Math.PI*0.5 ) );extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );}
-            if( axe.x === 1 ) {  extraGeo.applyMatrix(new THREE.Matrix4().makeRotationY( Math.PI*0.5 ));}
+            extraGeo = new this.THREE.CircleBufferGeometry( r, 12, a1, -a1+a2 );
 
-            extraMesh = new THREE.Mesh( extraGeo,  m2 );
+            
+            extraGeo.rotateX( -Math.PI * 0.5 );
+            //extraGeo.applyMatrix4( new this.THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
+            if( axe.z === 1 ) extraGeo.rotateX( -Math.PI * 0.5 );//extraGeo.applyMatrix4( new this.THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
+            if( axe.y === 1 ) {extraGeo.rotateY( -Math.PI * 0.5 );  extraGeo.rotateX( -Math.PI * 0.5 ) }//{extraGeo.applyMatrix4( new this.THREE.Matrix4().makeRotationY( -Math.PI*0.5 ) );extraGeo.applyMatrix4( new this.THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );}
+            if( axe.x === 1 ) {extraGeo.rotateY( Math.PI * 0.5 );/*extraGeo.applyMatrix4(new this.THREE.Matrix4().makeRotationY( Math.PI*0.5 ));*/}
+
+            extraMesh = new this.THREE.Mesh( extraGeo,  m2 );
             break;
             case J_LOCAL :
 
-            var axe =  bone.joint.getHingeRotationAxis();
+            axe =  bone.joint.getHingeRotationAxis();
+            a1 = bone.joint.min;
+            a2 = bone.joint.max;
+            r = 2;
             
-
-            var r = 2;
-            var a1 = bone.joint.min;
-            var a2 = bone.joint.max;
-            //console.log('local', a1, a2)
             m2.color.setHex(0x00FFFF);
-            extraGeo = new THREE.CircleBufferGeometry( r, 12, a1, -a1+a2 );
-            extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
+            extraGeo = new this.THREE.CircleBufferGeometry( r, 12, a1, -a1+a2 );
+            extraGeo.rotateX( -Math.PI * 0.5 )
 
-            if( axe.z === 1 ) { extraGeo.applyMatrix( new THREE.Matrix4().makeRotationY( -Math.PI*0.5 ) ); extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( Math.PI*0.5 ) );}
-            if( axe.x === 1 ) extraGeo.applyMatrix( new THREE.Matrix4().makeRotationZ( -Math.PI*0.5 ) );
-            if( axe.y === 1 ) { extraGeo.applyMatrix( new THREE.Matrix4().makeRotationX( Math.PI*0.5 ) ); extraGeo.applyMatrix(new THREE.Matrix4().makeRotationY( Math.PI*0.5 ));}
+           // extraGeo.applyMatrix4( new this.THREE.Matrix4().makeRotationX( -Math.PI*0.5 ) );
+            if( axe.z === 1 ) { eextraGeo.rotateY( -Math.PI * 0.5 ); extraGeo.rotateX( Math.PI * 0.5 ); }
+            if( axe.x === 1 ) extraGeo.rotateZ( -Math.PI * 0.5 )
+            if( axe.y === 1 ) { extraGeo.rotateX( Math.PI * 0.5 ); extraGeo.rotateY( Math.PI * 0.5 ) }
 
-            extraMesh = new THREE.Mesh( extraGeo,  m2 );
+            /*if( axe.z === 1 ) { extraGeo.applyMatrix4( new this.THREE.Matrix4().makeRotationY( -Math.PI*0.5 ) ); extraGeo.applyMatrix4( new this.THREE.Matrix4().makeRotationX( Math.PI*0.5 ) );}
+            if( axe.x === 1 ) extraGeo.applyMatrix4( new this.THREE.Matrix4().makeRotationZ( -Math.PI*0.5 ) );
+            if( axe.y === 1 ) { extraGeo.applyMatrix4( new this.THREE.Matrix4().makeRotationX( Math.PI*0.5 ) ); extraGeo.applyMatrix4(new this.THREE.Matrix4().makeRotationY( Math.PI*0.5 ));}*/
+
+            extraMesh = new this.THREE.Mesh( extraGeo,  m2 );
             break;
         }
 
-        var axe = new THREE.AxesHelper(1.5);
-        //var bw = new THREE.Mesh( g,  m4 );
+        axe = new this.THREE.AxesHelper(1.5);
+        //let bw = new this.THREE.Mesh( g,  m4 );
 
-        var b = new THREE.Mesh( g,  m );
+        let b = new this.THREE.Mesh( g,  m );
         b.add(axe);
         //b.add(bw);
         this.scene.add( b );
@@ -325,13 +340,13 @@ Object.assign( Structure3D.prototype, {
        
         return b;
 
-    },
+    }
 
-    clearAllBoneMesh:function(){
+    clearAllBoneMesh() {
 
         if(!this.isWithMesh) return;
 
-        var i, j, b;
+        let i, j, b;
 
         i = this.meshChains.length;
         while(i--){
@@ -348,6 +363,4 @@ Object.assign( Structure3D.prototype, {
 
     }
 
-} );
-
-export { Structure3D };
+}

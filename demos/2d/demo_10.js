@@ -28,8 +28,8 @@ extraUpdate = function(){
 
 	var bones = solver.chains[0].bones;
 
-	var r = FIK._Math.findAngle(bones[0], bones[1]);
-	r *= FIK._Math.toDeg;
+	var r = FIK.math.findAngle(bones[0], bones[1]);
+	r *= FIK.math.toDeg;
 
 	tell( "ANGLE:" + r );
 

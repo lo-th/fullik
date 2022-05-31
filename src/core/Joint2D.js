@@ -1,80 +1,77 @@
-import { J_LOCAL, J_GLOBAL, PI, TORAD } from '../constants.js';
+import { math } from '../math/Math.js';
+import { J_LOCAL, J_GLOBAL } from '../constants.js';
 
-function Joint2D( clockwise, antiClockwise, coordSystem ){
+export class Joint2D {
 
-    this.coordinateSystem = coordSystem || J_LOCAL;
+    constructor( clockwise, antiClockwise, coordSystem ) {
 
-    if( clockwise < 0 ) clockwise *= -1;
+        this.isJoint2D = true;
 
-    this.min = clockwise !== undefined ? -clockwise * TORAD : -PI;
-    this.max = antiClockwise !== undefined ? antiClockwise * TORAD : PI;
-    
-}
+        this.coordinateSystem = coordSystem || J_LOCAL;
 
-Object.assign( Joint2D.prototype, {
+        if( clockwise < 0 ) clockwise *= -1;
 
-    isJoint2D: true,
+        this.min = clockwise !== undefined ? -clockwise * math.toRad : -math.PI;
+        this.max = antiClockwise !== undefined ? antiClockwise * math.toRad : math.PI;
+        
+    }
 
-    clone: function () {
+    clone() {
 
-        var j = new Joint2D();
-
+        let j = new this.constructor();
         j.coordinateSystem = this.coordinateSystem;
         j.max = this.max;
         j.min = this.min;
-
         return j;
 
-    },
+    }
 
-    validateAngle: function ( a ) {
+    validateAngle( a ) {
 
         a = a < 0 ? 0 : a;
         a = a > 180 ? 180 : a;
         return a;
 
-    },
+    }
 
     // SET
 
-    set: function ( joint ) {
+    set( joint ) {
 
         this.max = joint.max;
         this.min = joint.min;
         this.coordinateSystem = joint.coordinateSystem;
 
-    },
+    }
 
-    setClockwiseConstraintDegs: function ( angle ) {
+    setClockwiseConstraintDegs( angle ) {
 
         // 0 to -180 degrees represents clockwise rotation
         if( angle < 0 ) angle *= -1;
-        this.min = - (this.validateAngle( angle ) * TORAD);
+        this.min = - (this.validateAngle( angle ) * math.toRad);
         
-    },
+    }
 
-    setAnticlockwiseConstraintDegs: function ( angle ) {
+    setAnticlockwiseConstraintDegs( angle ) {
 
         // 0 to 180 degrees represents anti-clockwise rotation
-        this.max = this.validateAngle( angle ) * TORAD;
+        this.max = this.validateAngle( angle ) * math.toRad;
         
-    },
+    }
 
-    setConstraintCoordinateSystem: function ( coordSystem ) {
+    setConstraintCoordinateSystem( coordSystem ) {
 
         this.coordinateSystem = coordSystem;
 
-    },
+    }
 
 
     // GET
 
-    getConstraintCoordinateSystem: function () {
+    getConstraintCoordinateSystem() {
 
         return this.coordinateSystem;
 
-    },
+    }
 
-} );
-
-export { Joint2D };
+}
