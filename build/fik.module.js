@@ -3697,7 +3697,9 @@ class IKSolver {
 
 class HISolver {
 
-    constructor( o ) {
+    constructor( o, THREE ) {
+
+    	this.THREE = THREE;
 
     	this.isHISolver = true;
 		this.startBones = null;
@@ -3713,7 +3715,7 @@ class HISolver {
 
 	    this.thresholds = { position:0.1, rotation:0.1 };
 
-	    this.solver = new FIK.Structure2D(this.scene);
+	    this.solver = new Structure2D( this.scene, this.THREE );
 	    //this.chain = null;
 
 	    this.bones = [];
@@ -3756,15 +3758,15 @@ class HISolver {
 		//chain.embeddedTarget = new V2();
         //chain.useEmbeddedTarget = true;
         chain.setFixedBaseMode(true);  
-        chain.setBaseboneConstraintType( FIK.LOCAL_ABSOLUTE );
+        chain.setBaseboneConstraintType( LOCAL_ABSOLUTE );
 
         this.fakeBone = new Bone2D( new V2(0, -1), new V2(0, 0) );
 
-		this.target = new THREE.Vector3();
+		this.target = new this.THREE.Vector3();
 
-		let base = new THREE.Vector3();
-		let p0 = new THREE.Vector3();
-		let p1 = new THREE.Vector3();
+		let base = new this.THREE.Vector3();
+		let p0 = new this.THREE.Vector3();
+		let p1 = new this.THREE.Vector3();
 		let uv = new V2();
 		let lng = 0;
 
